@@ -1,0 +1,32 @@
+---
+import { verificarIntegridade } from '../lib/integridade';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Programa de mentorias em tecnologia.' } = Astro.props;
+
+// Toda página usa este layout: referência quebrada no conteúdo falha o build.
+await verificarIntegridade();
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content={description} />
+    <!-- Provisório até o lançamento (Fase 3): evita indexar o site em construção. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

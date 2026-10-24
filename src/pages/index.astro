@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+
+// Data do build em São Paulo (YYYY-MM-DD). Confirma TZ do CI e o cron diário.
+const buildDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+---
+
+<Base title="Além do Código">
+  <main>
+    <h1>Além do Código</h1>
+    <p>Em breve, o novo site do programa de mentorias.</p>
+    <p><small>Build: <time datetime={buildDate}>{buildDate}</time></small></p>
+  </main>
+</Base>
+
+<style>
+  main {
+    max-width: 40rem;
+    margin: 4rem auto;
+    padding: 0 1rem;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+  }
+</style>

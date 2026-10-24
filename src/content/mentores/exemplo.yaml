@@ -1,0 +1,8 @@
+# EXEMPLO: remover ao migrar o conteúdo real do site atual.
+nome: Pessoa Mentora
+foto: ../../assets/images/mentores/exemplo.svg
+bio: Bio curta de exemplo.
+cargo: Engenharia de Software
+empresa: ""
+linkedin:
+github: https://github.com/exemplo

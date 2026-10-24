@@ -1,0 +1,52 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # 05:00 UTC = 02:00 em São Paulo, junto com o fechamento dos formulários (D-14).
+    # O agendador do GitHub pode atrasar alguns minutos.
+    - cron: '0 5 * * *'
+
+# Nenhuma permissão por padrão; cada job declara o que precisa.
+permissions: {}
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  # Em PR, um push novo cancela a verificação anterior; no main, deploys nunca são interrompidos.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # O status das mentorias é calculado com o "hoje" de São Paulo (seção 6.3).
+      TZ: America/Sao_Paulo
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: withastro/action@a8b97df764791eb61fbf3338ef713b0e61ae05c5 # v6.1.4
+        with:
+          # Testes + astro check + build; conteúdo inválido ou teste quebrado não chega à produção.
+          build-cmd: pnpm run test && pnpm run build
+
+  deploy:
+    # PRs (inclusive do Dependabot) só validam o build.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
