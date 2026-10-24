@@ -1,0 +1,40 @@
+version: 2
+
+updates:
+  # Dependências do site (pnpm usa o ecossistema npm no Dependabot).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+      day: monday
+      time: '09:00'
+      timezone: America/Sao_Paulo
+    # Só propõe versões publicadas há pelo menos 7 dias: dá tempo de pacotes
+    # comprometidos ou com bug grave serem retirados antes de chegarem aqui.
+    cooldown:
+      default-days: 7
+    groups:
+      # Minor e patch num PR só; majors (ex.: Astro 8) vêm em PRs separados,
+      # porque costumam exigir ajustes no código.
+      npm-minor-e-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: deps
+    open-pull-requests-limit: 5
+
+  # Actions do workflow (fixadas por SHA; o Dependabot atualiza SHA e comentário de versão).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      day: monday
+      time: '09:00'
+      timezone: America/Sao_Paulo
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: ci
+    open-pull-requests-limit: 5
