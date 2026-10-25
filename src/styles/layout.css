@@ -1,0 +1,39 @@
+/*
+ * Primitivos de layout. Espaçamento entre irmãos sempre por `gap`, nunca por margem.
+ * Custom properties não funcionam em @media; os breakpoints fixos são 48rem e 64rem.
+ */
+@layer layout {
+  /* Largura máxima com margens laterais. */
+  .container {
+    width: 100%;
+    max-width: calc(var(--largura-max) + 2 * var(--margem-lateral));
+    margin-inline: auto;
+    padding-inline: var(--margem-lateral);
+  }
+
+  /* Pilha vertical. Ajuste o espaço com --pilha-espaco. */
+  .pilha {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pilha-espaco, var(--espaco-s));
+  }
+
+  /* Itens em linha que quebram quando falta espaço. */
+  .grupo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--grupo-espaco, var(--espaco-s));
+  }
+
+  /* Grade responsiva sem media query. Ajuste a largura mínima com --grade-min. */
+  .grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--grade-min, 16rem)), 1fr));
+    gap: var(--grade-espaco, var(--espaco-m));
+  }
+
+  .secao {
+    padding-block: var(--espaco-2xl);
+  }
+}

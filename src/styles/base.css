@@ -1,0 +1,84 @@
+@layer base {
+  html {
+    scroll-padding-top: var(--espaco-l);
+  }
+
+  body {
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+    font-family: var(--fonte-texto);
+    font-size: var(--passo-0);
+    font-weight: var(--peso-normal);
+    line-height: var(--altura-linha);
+    display: flex;
+    flex-direction: column;
+  }
+
+  main {
+    flex: 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: var(--peso-titulo);
+    line-height: var(--altura-linha-titulo);
+    text-wrap: balance;
+  }
+
+  h1 {
+    font-size: var(--passo-5);
+  }
+
+  h2 {
+    font-size: var(--passo-3);
+  }
+
+  h3 {
+    font-size: var(--passo-2);
+    font-weight: var(--peso-negrito);
+  }
+
+  h4 {
+    font-size: var(--passo-1);
+    font-weight: var(--peso-negrito);
+  }
+
+  p,
+  li {
+    max-width: var(--medida);
+    text-wrap: pretty;
+  }
+
+  small {
+    font-size: var(--passo--1);
+  }
+
+  a {
+    color: var(--cor-link);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--fonte-mono);
+    font-size: 0.95em;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--cor-foco);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: light-dark(#e4d8ee, #4b3a66);
+  }
+}

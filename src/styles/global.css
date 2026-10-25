@@ -1,0 +1,12 @@
+/*
+ * Ordem das camadas: estilos com escopo dos componentes (.astro) ficam fora de camadas e,
+ * por isso, vencem qualquer regra daqui sem precisar de especificidade maior.
+ */
+@layer reset, tokens, base, layout, components, utilities;
+
+@import './reset.css';
+@import './tokens.css';
+@import './base.css';
+@import './layout.css';
+@import './components.css';
+@import './utilities.css';

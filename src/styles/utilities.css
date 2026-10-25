@@ -1,0 +1,19 @@
+@layer utilities {
+  .visualmente-oculto:not(:focus, :active) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Dentro de um .card, usa o texto suave da variante do card. */
+  .texto-suave {
+    color: var(--_texto-suave, var(--cor-texto-suave));
+  }
+
+  .mono {
+    font-family: var(--fonte-mono);
+  }
+}

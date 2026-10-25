@@ -1,24 +1,44 @@
 ---
 import Base from '../layouts/Base.astro';
+import { hojeEmSaoPaulo } from '../lib/datas';
 
 // Data do build em São Paulo (YYYY-MM-DD). Confirma TZ do CI e o cron diário.
-const buildDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+const buildDate = hojeEmSaoPaulo();
 ---
 
-<Base title="Além do Código">
-  <main>
-    <h1>Além do Código</h1>
-    <p>Em breve, o novo site do programa de mentorias.</p>
-    <p><small>Build: <time datetime={buildDate}>{buildDate}</time></small></p>
-  </main>
+<Base>
+  <section class="container secao pilha abertura">
+    <p class="abertura__chamada mono">Mentorias com professores e empresas parceiras</p>
+    <h1>Mentorias em tecnologia para quem estuda no Cluster de TI</h1>
+    <p class="abertura__texto">
+      Encontros ao vivo, materiais no Classroom e um caminho claro do primeiro projeto até o portfólio. O novo site
+      está em construção.
+    </p>
+    <div class="grupo">
+      <a class="botao" href="/mentorias">Ver mentorias</a>
+      <a class="botao botao--contorno" href="/como-participar">Como participar</a>
+    </div>
+    <p><small class="texto-suave">Build: <time datetime={buildDate}>{buildDate}</time></small></p>
+  </section>
 </Base>
 
 <style>
-  main {
-    max-width: 40rem;
-    margin: 4rem auto;
-    padding: 0 1rem;
-    font-family: system-ui, sans-serif;
-    line-height: 1.5;
+  .abertura {
+    --pilha-espaco: var(--espaco-m);
+  }
+
+  .abertura__chamada {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+    font-weight: 600;
+  }
+
+  .abertura h1 {
+    max-width: 20ch;
+  }
+
+  .abertura__texto {
+    font-size: var(--passo-1);
+    max-width: 52ch;
   }
 </style>

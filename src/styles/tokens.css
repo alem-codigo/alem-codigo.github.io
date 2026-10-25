@@ -1,0 +1,133 @@
+/*
+ * Design tokens do Além do Código.
+ *
+ * Cores: `light-dark(claro, escuro)`, resolvido pelo `color-scheme` do :root, que segue o
+ * `prefers-color-scheme` do sistema (sem alternância manual na v1). Todo par de texto/fundo
+ * listado em `src/lib/tokens.test.ts` é verificado contra o WCAG AA no CI: ao mudar uma cor
+ * aqui, rode `pnpm test`.
+ *
+ * Paleta da marca: violeta #693d84 · ameixa #793670 · azul #0c91ed · grafite #2b2b3d.
+ * Tema escuro "violeta noturno": fundo quase preto puxado para o violeta, com faixas ainda
+ * mais escuras (cabeçalho, rodapé) e cards um tom acima do fundo.
+ */
+@layer tokens {
+  :root {
+    color-scheme: light dark;
+
+    /* ---- Superfícies e texto ---- */
+    --cor-fundo: light-dark(#f4f5f7, #14111d);
+    --cor-faixa: light-dark(#e9eaf0, #0e0c15); /* contraponto mais escuro: cabeçalho, rodapé */
+    --cor-texto: light-dark(#2b2b3d, #f5f5f5);
+    --cor-texto-suave: light-dark(#535367, #c4c5ca);
+    --cor-borda: light-dark(#e2e4ea, #2d2939);
+    --cor-link: light-dark(#693d84, #c9a7ff);
+    --cor-foco: light-dark(#0478c7, #0c91ed);
+    --cor-destaque: light-dark(#0478c7, #0c91ed); /* sublinhado do item ativo da navegação */
+
+    /* ---- Logo inline (cabeçalho animado). Os arquivos em public/marca têm as cores embutidas. */
+    --logo-texto: light-dark(#693d84, #ffffff);
+    --logo-bandeira: light-dark(#693d84, #8650a6);
+    --logo-estrada: light-dark(#2b2b3d, #ffffff);
+    --logo-azul: #0c91ed;
+
+    /* ---- Botões ----
+     * Primário: violeta no claro, azul no escuro. No hover, degradê para a segunda cor.
+     * Texto branco passa no AA em qualquer tamanho nas quatro cores. */
+    --botao-fundo: light-dark(#693d84, #0478c7);
+    --botao-fundo-2: light-dark(#793670, #693d84);
+    --botao-texto: #ffffff;
+    /* Monocromático: grafite no claro, branco no escuro. */
+    --botao-mono-fundo: light-dark(#2b2b3d, #ffffff);
+    --botao-mono-texto: light-dark(#ffffff, #2b2b3d);
+
+    /* ---- Ícones em ameixa (quadradinho com o desenho do ícone) ---- */
+    --icone-fundo: light-dark(#f3e4f0, #3d1a3a);
+    --icone-borda: light-dark(#e8cfe3, #5a2753);
+    --icone-cor: light-dark(#793670, #f0b8e6);
+
+    /* ---- Luz que acompanha o mouse nos cards (.card--brilho) ----
+     * Claro: branco (reflexo sob o cursor) + azul #0c91ed. Escuro: violeta + ameixa.
+     * Com 24% de azul, o texto suave dos cards padrão e violeta segue acima de 4.5:1 no pico
+     * da luz; o card grafite (encerrada) não acende, para o texto apagado não cair abaixo do AA. */
+    --brilho-1: light-dark(rgb(255 255 255 / 0.9), rgb(147 83 196 / 0.3));
+    --brilho-2: light-dark(rgb(12 145 237 / 0.24), rgb(163 70 143 / 0.26));
+    --brilho-borda: light-dark(rgb(12 145 237 / 0.75), rgb(201 167 255 / 0.55));
+
+    /* ---- Cards: três variantes, escolhidas por status (referência: abertas = violeta,
+     * em andamento = padrão, encerrada = grafite). As pílulas de status terão tokens próprios. */
+    --card-padrao-fundo: light-dark(#ffffff, #1b1826);
+    --card-padrao-borda: light-dark(#e2e4ea, #2d2939);
+    --card-padrao-texto: light-dark(#2b2b3d, #f5f5f5);
+    --card-padrao-texto-suave: light-dark(#535367, #c4c5ca);
+    --card-padrao-link: light-dark(#693d84, #c9a7ff);
+    --card-padrao-botao: light-dark(#693d84, #0478c7);
+
+    --card-violeta-fundo: light-dark(#f1ebf6, #2a1d3b);
+    --card-violeta-borda: light-dark(#e4d8ee, #3f2d55);
+    --card-violeta-texto: light-dark(#2b2b3d, #f5f5f5);
+    --card-violeta-texto-suave: light-dark(#535367, #c4c5ca);
+    --card-violeta-link: light-dark(#693d84, #c9a7ff);
+    --card-violeta-botao: light-dark(#693d84, #0478c7);
+
+    /* Grafite: recuado e com texto propositalmente apagado (encerrada), no limite do AA.
+     * Sem botão principal. */
+    --card-grafite-fundo: light-dark(#e6e7eb, #100e17);
+    --card-grafite-borda: light-dark(#d9dce3, #221f2c);
+    --card-grafite-texto: light-dark(#5f606e, #80818c);
+    --card-grafite-texto-suave: light-dark(#666775, #7a7b86);
+    --card-grafite-link: light-dark(#5f606e, #80818c);
+    --card-grafite-botao: light-dark(#5f606e, #0478c7);
+
+    /* ---- Tipografia ----
+     * `--fonte-texto` e `--fonte-mono` vêm da API de fontes do Astro (astro.config.mjs).
+     * Escala fluida: 16px→18px de base, razão 1.2 (360px) → 1.25 (1240px). */
+    --passo--1: clamp(0.8333rem, 0.8061rem + 0.1212vw, 0.9rem);
+    --passo-0: clamp(1rem, 0.9489rem + 0.2273vw, 1.125rem);
+    --passo-1: clamp(1.2rem, 1.116rem + 0.375vw, 1.406rem);
+    --passo-2: clamp(1.44rem, 1.31rem + 0.5778vw, 1.758rem);
+    --passo-3: clamp(1.728rem, 1.536rem + 0.8532vw, 2.197rem);
+    --passo-4: clamp(2.074rem, 1.798rem + 1.224vw, 2.747rem);
+    --passo-5: clamp(2.488rem, 2.102rem + 1.718vw, 3.433rem);
+
+    --peso-normal: 400;
+    --peso-negrito: 700;
+    --peso-titulo: 800;
+    --altura-linha: 1.55;
+    --altura-linha-titulo: 1.12;
+    --medida: 65ch;
+
+    /* ---- Espaçamento (base 4px, fluido entre 360px e 1240px) ---- */
+    --espaco-3xs: clamp(0.25rem, 0.2244rem + 0.1136vw, 0.3125rem);
+    --espaco-2xs: clamp(0.5rem, 0.4744rem + 0.1136vw, 0.5625rem);
+    --espaco-xs: clamp(0.75rem, 0.6989rem + 0.2273vw, 0.875rem);
+    --espaco-s: clamp(1rem, 0.9489rem + 0.2273vw, 1.125rem);
+    --espaco-m: clamp(1.5rem, 1.423rem + 0.3409vw, 1.688rem);
+    --espaco-l: clamp(2rem, 1.898rem + 0.4545vw, 2.25rem);
+    --espaco-xl: clamp(3rem, 2.847rem + 0.6818vw, 3.375rem);
+    --espaco-2xl: clamp(4rem, 3.795rem + 0.9091vw, 4.5rem);
+    --espaco-3xl: clamp(6rem, 5.693rem + 1.364vw, 6.75rem);
+
+    /* ---- Layout ---- */
+    --largura-max: 72rem;
+    --margem-lateral: clamp(1rem, 4vw, 2rem);
+
+    /* ---- Forma ---- */
+    --raio-s: 6px;
+    --raio-m: 10px;
+    --raio-l: 14px;
+    --raio-pilula: 999px;
+    --borda: 1px solid var(--cor-borda);
+
+    /* ---- Movimento ---- */
+    --duracao: 160ms;
+    --duracao-lenta: 280ms;
+    --curva: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --duracao: 0ms;
+      --duracao-lenta: 0ms;
+    }
+  }
+}

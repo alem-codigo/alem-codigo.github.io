@@ -1,0 +1,110 @@
+---
+import { CANAIS, RODAPE, SITE } from '../lib/site';
+import Logo from './Logo.astro';
+
+const grupos = CANAIS.length > 0 ? [...RODAPE, { titulo: 'Canais', itens: CANAIS }] : RODAPE;
+const ano = new Intl.DateTimeFormat('pt-BR', { year: 'numeric', timeZone: 'America/Sao_Paulo' }).format(new Date());
+---
+
+<footer class="rodape">
+  <div class="container rodape__conteudo">
+    <div class="rodape__marca pilha">
+      <a href="/" class="rodape__logo" aria-label="Além do Código, página inicial">
+        <Logo alt="" altura={40} />
+      </a>
+      <p class="texto-suave">{SITE.descricao}</p>
+    </div>
+
+    {
+      grupos.map((grupo) => (
+        <nav class="rodape__grupo" aria-label={grupo.titulo}>
+          <h2 class="rodape__titulo">{grupo.titulo}</h2>
+          <ul role="list" class="pilha">
+            {grupo.itens.map((item) => (
+              <li>
+                <a href={item.href}>{item.rotulo}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))
+    }
+  </div>
+
+  <div class="rodape__faixa">
+    <div class="container rodape__base">
+      <p>{SITE.vinculo}</p>
+      <p>© {ano} {SITE.nome}</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .rodape {
+    margin-block-start: var(--espaco-3xl);
+    background: var(--cor-faixa);
+    border-block-start: var(--borda);
+    font-size: var(--passo--1);
+  }
+
+  .rodape__conteudo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    gap: var(--espaco-l) var(--espaco-xl);
+    padding-block: var(--espaco-xl);
+  }
+
+  @media (min-width: 48rem) {
+    .rodape__conteudo {
+      grid-template-columns: minmax(16rem, 2fr) repeat(auto-fit, minmax(10rem, 1fr));
+    }
+  }
+
+  .rodape__marca {
+    --pilha-espaco: var(--espaco-xs);
+  }
+
+  .rodape__marca p {
+    max-width: 34ch;
+  }
+
+  .rodape__logo {
+    align-self: flex-start;
+    border-radius: var(--raio-s);
+  }
+
+  .rodape__logo :global(img) {
+    height: 40px;
+    width: auto;
+  }
+
+  .rodape__titulo {
+    margin-block-end: var(--espaco-xs);
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cor-texto-suave);
+  }
+
+  .rodape__grupo ul {
+    --pilha-espaco: var(--espaco-2xs);
+  }
+
+  .rodape__grupo a {
+    color: var(--cor-texto);
+  }
+
+  .rodape__base {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--espaco-2xs) var(--espaco-m);
+    padding-block: var(--espaco-m);
+    color: var(--cor-texto-suave);
+  }
+
+  .rodape__faixa {
+    border-block-start: var(--borda);
+  }
+</style>

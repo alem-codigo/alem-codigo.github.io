@@ -1,12 +1,19 @@
 ---
+import { Font } from 'astro:assets';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
 import { verificarIntegridade } from '../lib/integridade';
+import { SITE } from '../lib/site';
+import '../styles/global.css';
 
 interface Props {
-  title: string;
+  /** Título da página; a home usa só o nome do programa. */
+  title?: string;
   description?: string;
 }
 
-const { title, description = 'Programa de mentorias em tecnologia.' } = Astro.props;
+const { title, description = SITE.descricao } = Astro.props;
+const tituloCompleto = title ? `${title} · ${SITE.nome}` : SITE.nome;
 
 // Toda página usa este layout: referência quebrada no conteúdo falha o build.
 await verificarIntegridade();
@@ -18,15 +25,43 @@ await verificarIntegridade();
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#e9eaf0" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e0c15" />
     <meta name="description" content={description} />
     <!-- Provisório até o lançamento (Fase 3): evita indexar o site em construção. -->
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <Font cssVariable="--fonte-texto" preload={[{ style: 'normal' }]} />
+    <Font cssVariable="--fonte-mono" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
+    <title>{tituloCompleto}</title>
   </head>
   <body>
-    <slot />
+    <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+    <SiteHeader />
+    <main id="conteudo" tabindex="-1">
+      <slot />
+    </main>
+    <SiteFooter />
+    <script>
+      // Luz dos cards (.card--brilho): só posiciona --mx/--my; o efeito é todo em CSS.
+      // Um único listener para a página inteira; só onde há mouse.
+      if (matchMedia('(hover: hover)').matches) {
+        document.addEventListener(
+          'pointermove',
+          (e) => {
+            const card = e.target instanceof Element ? e.target.closest<HTMLElement>('.card--brilho') : null;
+            if (!card) return;
+            const r = card.getBoundingClientRect();
+            card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+            card.style.setProperty('--my', `${e.clientY - r.top}px`);
+          },
+          { passive: true },
+        );
+      }
+    </script>
   </body>
 </html>

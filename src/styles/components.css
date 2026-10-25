@@ -1,0 +1,199 @@
+@layer components {
+  /* ---- Link para pular a navegação ---- */
+  .pular-conteudo {
+    position: absolute;
+    inset-inline-start: var(--espaco-s);
+    inset-block-start: var(--espaco-s);
+    z-index: 100;
+    padding: var(--espaco-2xs) var(--espaco-s);
+    border-radius: var(--raio-m);
+    background: var(--botao-mono-fundo);
+    color: var(--botao-mono-texto);
+    font-weight: var(--peso-negrito);
+    translate: 0 calc(-100% - var(--espaco-l));
+  }
+
+  .pular-conteudo:focus-visible {
+    translate: 0 0;
+  }
+
+  /* ---- Botões ----
+   * .botao           primário: violeta no claro, azul no escuro; no hover, degradê para a 2ª cor
+   * .botao--mono     grafite no claro, branco no escuro
+   * .botao--contorno secundário, só borda
+   * Dentro de .card, o primário usa a cor de botão da variante do card. */
+  .botao {
+    --_fundo: var(--botao-fundo);
+    --_fundo-2: var(--botao-fundo-2);
+    --_texto: var(--botao-texto);
+
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espaco-2xs);
+    min-height: 2.75rem; /* alvo de toque de 44px */
+    padding: 0.5rem 1.1rem;
+    border: 0;
+    border-radius: var(--raio-m);
+    background: var(--_fundo);
+    color: var(--_texto);
+    font-size: var(--passo-0);
+    font-weight: var(--peso-negrito);
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  /* Degradê do hover numa camada própria: `background-image` não anima, a opacidade sim. */
+  .botao::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(120deg, var(--_fundo) 0%, var(--_fundo-2) 100%);
+    opacity: 0;
+    transition: opacity var(--duracao-lenta) var(--curva);
+  }
+
+  .botao:hover::before {
+    opacity: 1;
+  }
+
+  .botao--mono {
+    --_fundo: var(--botao-mono-fundo);
+    --_fundo-2: var(--botao-mono-fundo);
+    --_texto: var(--botao-mono-texto);
+  }
+
+  .botao--contorno {
+    --_fundo: transparent;
+    --_fundo-2: transparent;
+    --_texto: var(--cor-texto);
+
+    box-shadow: inset 0 0 0 1.5px var(--cor-borda);
+  }
+
+  .botao--contorno::before {
+    background: linear-gradient(120deg, var(--brilho-1), var(--brilho-2));
+  }
+
+  /* ---- Ícone em ameixa ---- */
+  .icone {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--raio-m);
+    background: var(--icone-fundo);
+    box-shadow: inset 0 0 0 1px var(--icone-borda);
+    color: var(--icone-cor);
+  }
+
+  .icone svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  /* ---- Cards ----
+   * Variantes: padrão (sem atributo), data-variante="violeta" e data-variante="grafite".
+   * .card--brilho: luz de duas cores que acompanha o mouse (posição em --mx/--my, definida
+   * por script no layout; sem script, o card só não ganha a luz). */
+  .card {
+    --_fundo: var(--card-padrao-fundo);
+    --_borda: var(--card-padrao-borda);
+    --_texto: var(--card-padrao-texto);
+    --_texto-suave: var(--card-padrao-texto-suave);
+    --_link: var(--card-padrao-link);
+    --_botao: var(--card-padrao-botao);
+
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-2xs);
+    padding: var(--espaco-m);
+    border: 1px solid var(--_borda);
+    border-radius: var(--raio-l);
+    background: var(--_fundo);
+    color: var(--_texto);
+  }
+
+  .card[data-variante='violeta'] {
+    --_fundo: var(--card-violeta-fundo);
+    --_borda: var(--card-violeta-borda);
+    --_texto: var(--card-violeta-texto);
+    --_texto-suave: var(--card-violeta-texto-suave);
+    --_link: var(--card-violeta-link);
+    --_botao: var(--card-violeta-botao);
+  }
+
+  .card[data-variante='grafite'] {
+    --_fundo: var(--card-grafite-fundo);
+    --_borda: var(--card-grafite-borda);
+    --_texto: var(--card-grafite-texto);
+    --_texto-suave: var(--card-grafite-texto-suave);
+    --_link: var(--card-grafite-link);
+    --_botao: var(--card-grafite-botao);
+  }
+
+  .card[data-variante='grafite'] .icone {
+    filter: saturate(0.35);
+    opacity: 0.8;
+  }
+
+  .card a:not(.botao) {
+    color: var(--_link);
+  }
+
+  .card .botao {
+    --_fundo: var(--_botao);
+
+    align-self: flex-start;
+  }
+
+  .card--brilho {
+    --mx: 50%;
+    --my: 0%;
+  }
+
+  .card--brilho::before,
+  .card--brilho::after {
+    content: '';
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--duracao-lenta) var(--curva);
+  }
+
+  /* Duas luzes: a primeira sob o cursor, a segunda deslocada para baixo e à direita. */
+  .card--brilho::before {
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(240px circle at var(--mx) var(--my), var(--brilho-1), transparent 70%),
+      radial-gradient(360px circle at calc(var(--mx) + 90px) calc(var(--my) + 70px), var(--brilho-2), transparent 70%);
+  }
+
+  /* Borda que acende perto do cursor. */
+  .card--brilho::after {
+    inset: -1px;
+    padding: 1px;
+    background: radial-gradient(200px circle at var(--mx) var(--my), var(--brilho-borda), transparent 70%);
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+
+  /* O card grafite (encerrada) fica recuado: não acende. */
+  @media (hover: hover) {
+    .card--brilho:not([data-variante='grafite']):hover::before,
+    .card--brilho:not([data-variante='grafite']):hover::after {
+      opacity: 1;
+    }
+  }
+}

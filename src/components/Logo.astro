@@ -1,0 +1,33 @@
+---
+/**
+ * Logo como <img> de SVG externo: um arquivo em cache para todas as páginas, sem ids
+ * duplicados no HTML. A versão `auto` troca as cores sozinha pelo `prefers-color-scheme`
+ * (regras dentro do próprio SVG), acompanhando o tema do site.
+ */
+interface Props {
+  variante?: 'auto' | 'grafite' | 'branca';
+  /** Altura em px; a largura segue a proporção do desenho. */
+  altura?: number;
+  /** Vazio quando a logo está dentro de um link que já tem nome acessível. */
+  alt?: string;
+  class?: string;
+}
+
+const PROPORCAO = 344.8 / 131;
+const ARQUIVOS = {
+  auto: '/marca/logo.svg',
+  grafite: '/marca/logo-grafite.svg',
+  branca: '/marca/logo-branca.svg',
+} as const;
+
+const { variante = 'auto', altura = 44, alt = 'Além do Código', class: classe } = Astro.props;
+---
+
+<img
+  src={ARQUIVOS[variante]}
+  width={Math.round(altura * PROPORCAO)}
+  height={altura}
+  alt={alt}
+  class={classe}
+  decoding="async"
+/>

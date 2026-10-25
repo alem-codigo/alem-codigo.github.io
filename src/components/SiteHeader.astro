@@ -1,0 +1,211 @@
+---
+import { getCollection } from 'astro:content';
+import { hojeEmSaoPaulo } from '../lib/datas';
+import { destinoInscricoes, itemAtivo, NAVEGACAO_PRINCIPAL } from '../lib/navegacao';
+import Logo from './Logo.astro';
+import LogoAnimado from './LogoAnimado.astro';
+
+const caminho = Astro.url.pathname;
+const mentorias = (await getCollection('mentorias')).map((m) => ({ id: m.id, ...m.data }));
+const linkInscricoes = destinoInscricoes(mentorias, hojeEmSaoPaulo());
+---
+
+<header class="cabecalho">
+  <div class="container cabecalho__barra">
+    <a href="/" class="cabecalho__marca" aria-label="Além do Código, página inicial">
+      <LogoAnimado altura={40} />
+    </a>
+
+    <!--
+      Menu sem JavaScript: no celular, a lista abre num popover (Popover API); a partir de
+      60rem ela fica sempre visível na barra e o botão some.
+    -->
+    <nav class="navegacao" aria-label="Principal">
+      <button class="navegacao__abrir" type="button" popovertarget="menu-principal">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+        Menu
+      </button>
+
+      <div id="menu-principal" class="navegacao__painel" popover>
+        <div class="navegacao__topo">
+          <Logo alt="" altura={40} />
+          <button class="navegacao__fechar" type="button" popovertarget="menu-principal" popovertargetaction="hide">
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+            </svg>
+            <span class="visualmente-oculto">Fechar menu</span>
+          </button>
+        </div>
+        <ul class="navegacao__lista" role="list">
+          {
+            NAVEGACAO_PRINCIPAL.map((item) => (
+              <li>
+                <a
+                  class="navegacao__link"
+                  href={item.href}
+                  aria-current={itemAtivo(caminho, item.href) ? 'page' : undefined}
+                >
+                  {item.rotulo}
+                </a>
+              </li>
+            ))
+          }
+          {
+            linkInscricoes && (
+              <li class="navegacao__cta">
+                <a class="botao" href={linkInscricoes}>
+                  Inscrições abertas
+                </a>
+              </li>
+            )
+          }
+        </ul>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .cabecalho {
+    background: var(--cor-faixa);
+    border-block-end: var(--borda);
+  }
+
+  .cabecalho__barra {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espaco-m);
+    min-height: 4.5rem;
+    padding-block: var(--espaco-2xs);
+  }
+
+  .cabecalho__marca {
+    display: inline-flex;
+    flex: none;
+    border-radius: var(--raio-s);
+  }
+
+  /* ---- Celular: botão + painel em popover ---- */
+  .navegacao__abrir,
+  .navegacao__fechar {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espaco-2xs);
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    justify-content: center;
+    padding: 0.4rem 0.8rem;
+    border: var(--borda);
+    border-radius: var(--raio-m);
+    background: transparent;
+    font-weight: var(--peso-negrito);
+  }
+
+  .navegacao__painel {
+    /* Popover no top layer: ocupa o topo da tela, com cabeçalho próprio. */
+    inset: 0 0 auto 0;
+    width: 100%;
+    max-width: none;
+    max-height: 100dvh;
+    margin: 0;
+    padding: var(--espaco-2xs) var(--margem-lateral) var(--espaco-l);
+    border: 0;
+    border-block-end: var(--borda);
+    background: var(--cor-faixa);
+    color: var(--cor-texto);
+    box-shadow: 0 16px 40px rgb(0 0 0 / 0.18);
+    overflow-y: auto;
+  }
+
+  .navegacao__painel::backdrop {
+    background: rgb(23 23 34 / 0.45);
+  }
+
+  .navegacao__topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Mesma altura da barra do cabeçalho: logo e botão não "pulam" ao abrir. */
+    min-height: calc(4.5rem - 2 * var(--espaco-2xs));
+    margin-block-end: var(--espaco-s);
+  }
+
+  .navegacao__topo :global(img) {
+    height: 40px;
+    width: auto;
+  }
+
+  .navegacao__lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-3xs);
+  }
+
+  .navegacao__link {
+    display: flex;
+    align-items: center;
+    min-height: 3rem;
+    padding-inline: var(--espaco-2xs);
+    border-radius: var(--raio-m);
+    color: var(--cor-texto);
+    font-size: var(--passo-1);
+    font-weight: var(--peso-negrito);
+    text-decoration: none;
+  }
+
+  .navegacao__link:hover {
+    background: color-mix(in srgb, var(--cor-texto) 6%, transparent);
+  }
+
+  .navegacao__link[aria-current='page'] {
+    text-decoration: underline;
+    text-decoration-color: var(--cor-destaque);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.35em;
+  }
+
+  .navegacao__cta {
+    margin-block-start: var(--espaco-s);
+  }
+
+  /* ---- Desktop: lista sempre visível na barra ---- */
+  @media (min-width: 60rem) {
+    .navegacao__abrir,
+    .navegacao__topo {
+      display: none;
+    }
+
+    /* Sobrepõe o `display: none` do popover fechado: a lista vira parte da barra. */
+    .navegacao__painel,
+    .navegacao__painel:popover-open {
+      display: block;
+      position: static;
+      inset: auto;
+      width: auto;
+      padding: 0;
+      border: 0;
+      background: none;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    .navegacao__lista {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--espaco-xs);
+    }
+
+    .navegacao__link {
+      min-height: 2.75rem;
+      font-size: var(--passo-0);
+      font-weight: var(--peso-normal);
+    }
+
+    .navegacao__cta {
+      margin: 0 0 0 var(--espaco-2xs);
+    }
+  }
+</style>
