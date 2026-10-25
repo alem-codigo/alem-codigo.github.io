@@ -28,7 +28,7 @@ export function textoDataStatus(c: Cronograma, status: StatusMentoria, hoje: str
       return `Inscrições a partir de ${formatarData(c.inscricoes.abertura, hoje)}`;
     case 'inscricoes-abertas':
       return `Inscrições até ${formatarData(c.inscricoes.fechamento, hoje)}`;
-    case 'aguardando-inicio':
+    case 'inscricoes-encerradas':
       return `Começa em ${formatarData(c.realizacao.inicio, hoje)}`;
     case 'em-andamento':
       return `Termina em ${formatarData(c.realizacao.fim, hoje)}`;
@@ -47,7 +47,7 @@ export interface GruposHome<T> {
   abertas: ComStatus<T>[];
   /** Ordem: abertura mais próxima primeiro. */
   emBreve: ComStatus<T>[];
-  /** Aguardando início e em andamento. Ordem: as que estão acontecendo, pelo fim mais próximo; depois as que vão começar. */
+  /** Em andamento (pelo fim mais próximo) e depois inscrições encerradas, que ainda vão começar (pelo início). */
   emAndamento: ComStatus<T>[];
 }
 
@@ -63,7 +63,7 @@ export function agruparParaHome<T extends Cronograma>(mentorias: readonly T[], h
     emBreve: de('em-breve').sort(porData((c) => c.inscricoes.abertura)),
     emAndamento: [
       ...de('em-andamento').sort(porData((c) => c.realizacao.fim)),
-      ...de('aguardando-inicio').sort(porData((c) => c.realizacao.inicio)),
+      ...de('inscricoes-encerradas').sort(porData((c) => c.realizacao.inicio)),
     ],
   };
 }

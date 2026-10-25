@@ -79,8 +79,9 @@
     --card-grafite-link: light-dark(#5f606e, #80818c);
     --card-grafite-botao: light-dark(#5f606e, #0478c7);
 
-    /* ---- Pílulas de status (Q-08): fundo opaco, texto e ponto. O texto carrega o significado;
-     * a cor nunca aparece sozinha. Verde só em "inscrições abertas" (única cor fora da paleta). */
+    /* ---- Pílulas de status (D-17): fundo opaco, texto e ponto. O texto carrega o significado;
+     * a cor nunca aparece sozinha. Verde só em "inscrições abertas" (única cor fora da paleta).
+     * Mentoria encerrada não tem pílula (fica numa seção própria). */
     --pilula-em-breve-fundo: light-dark(#f3e4f0, #3d1a3a);
     --pilula-em-breve-texto: light-dark(#793670, #f0b8e6);
     --pilula-em-breve-ponto: light-dark(#a3468f, #e07fcf);
@@ -89,17 +90,20 @@
     --pilula-inscricoes-abertas-texto: light-dark(#146235, #86e0a8);
     --pilula-inscricoes-abertas-ponto: light-dark(#178a49, #3ccf7a);
 
-    --pilula-aguardando-inicio-fundo: light-dark(#ece3f4, #2f2147);
-    --pilula-aguardando-inicio-texto: light-dark(#5a3372, #d4bcff);
-    --pilula-aguardando-inicio-ponto: light-dark(#8650a6, #a67ee0);
+    --pilula-inscricoes-encerradas-fundo: light-dark(#ece3f4, #2f2147);
+    --pilula-inscricoes-encerradas-texto: light-dark(#5a3372, #d4bcff);
+    --pilula-inscricoes-encerradas-ponto: light-dark(#8650a6, #a67ee0);
 
     --pilula-em-andamento-fundo: light-dark(#e0effb, #0f2a40);
     --pilula-em-andamento-texto: light-dark(#0b5a94, #8fcbf8);
     --pilula-em-andamento-ponto: light-dark(#0a7bc9, #2b9cf0);
 
-    --pilula-encerrada-fundo: light-dark(#d9dae0, #1f1d29);
-    --pilula-encerrada-texto: light-dark(#4f5060, #a3a4ae);
-    --pilula-encerrada-ponto: light-dark(#6e6f7b, #7a7b86);
+
+    /* ---- Selos (livres, cadastrados no painel): estilo único por tema, discreto, para não
+     * competir com a pílula de status. */
+    --selo-fundo: light-dark(#ede9f3, #252131);
+    --selo-texto: light-dark(#3d3550, #e4def0);
+    --selo-borda: light-dark(#d3cce0, #3a3449);
 
     /* ---- Tipografia ----
      * `--fonte-texto` e `--fonte-mono` vêm da API de fontes do Astro (astro.config.mjs).

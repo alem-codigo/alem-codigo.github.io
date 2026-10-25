@@ -233,22 +233,16 @@
     --_ponto: var(--pilula-inscricoes-abertas-ponto);
   }
 
-  .pilula[data-status='aguardando-inicio'] {
-    --_fundo: var(--pilula-aguardando-inicio-fundo);
-    --_texto: var(--pilula-aguardando-inicio-texto);
-    --_ponto: var(--pilula-aguardando-inicio-ponto);
-  }
-
   .pilula[data-status='em-andamento'] {
     --_fundo: var(--pilula-em-andamento-fundo);
     --_texto: var(--pilula-em-andamento-texto);
     --_ponto: var(--pilula-em-andamento-ponto);
   }
 
-  .pilula[data-status='encerrada'] {
-    --_fundo: var(--pilula-encerrada-fundo);
-    --_texto: var(--pilula-encerrada-texto);
-    --_ponto: var(--pilula-encerrada-ponto);
+  .pilula[data-status='inscricoes-encerradas'] {
+    --_fundo: var(--pilula-inscricoes-encerradas-fundo);
+    --_texto: var(--pilula-inscricoes-encerradas-texto);
+    --_ponto: var(--pilula-inscricoes-encerradas-ponto);
   }
 
   /* ---- Cabeçalho de seção ----
@@ -292,5 +286,21 @@
 
   .link-seta:hover::after {
     translate: 0.2em 0;
+  }
+
+  /* ---- Selo (livre, cadastrado no painel) ----
+   * Sem ponto e com borda: não se confunde com a pílula de status, que tem cor por status. */
+  .selo {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2em 0.7em;
+    border: 1px solid var(--selo-borda);
+    border-radius: var(--raio-pilula);
+    background: var(--selo-fundo);
+    color: var(--selo-texto);
+    font-size: var(--passo--1);
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
   }
 }

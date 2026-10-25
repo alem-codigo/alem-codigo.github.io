@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import css from '../styles/tokens.css?raw';
 import { AA, contraste } from './contraste';
-import { STATUS_MENTORIA } from './status';
+import { STATUS_COM_PILULA } from './status';
 
 /**
  * Verifica no CI os pares de cor dos design tokens (src/styles/tokens.css) contra o WCAG AA,
@@ -68,8 +68,11 @@ const pares: Par[] = [
   ['--card-padrao-botao', '--card-padrao-fundo', AA.componente],
   ['--card-violeta-botao', '--card-violeta-fundo', AA.componente],
 
+  // Selos (estilo único)
+  ['--selo-texto', '--selo-fundo', AA.texto],
+
   // Pílulas de status (Q-08): uma por status, fundo opaco (não depende do card nem da luz)
-  ...STATUS_MENTORIA.flatMap((s): Par[] => [
+  ...STATUS_COM_PILULA.flatMap((s): Par[] => [
     [`--pilula-${s}-texto`, `--pilula-${s}-fundo`, AA.texto],
     [`--pilula-${s}-ponto`, `--pilula-${s}-fundo`, AA.componente],
   ]),

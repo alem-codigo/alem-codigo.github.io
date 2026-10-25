@@ -22,7 +22,7 @@ interface Props {
 const { mentoria, status, hoje, nivel: Titulo = 'h3' } = Astro.props;
 const m = mentoria.data;
 const variante = VARIANTE_CARD[status];
-const [eixos, mentores] = await Promise.all([getEntries(m.eixos), getEntries(m.mentores)]);
+const [eixos, mentores, selos] = await Promise.all([getEntries(m.eixos), getEntries(m.mentores), getEntries(m.selos)]);
 const eixosOrdenados = eixos.sort((a, b) => a.data.ordem - b.data.ordem);
 const mostrarRealizacao = status === 'em-breve' || status === 'inscricoes-abertas';
 const idTitulo = `mentoria-${mentoria.id}`;
@@ -39,6 +39,16 @@ const idTitulo = `mentoria-${mentoria.id}`;
     <StatusPilula status={status} />
     <span class="mentoria__codigo mono">{m.codigo}</span>
   </div>
+
+  {
+    selos.length > 0 && (
+      <ul class="mentoria__selos" role="list" aria-label="Selos">
+        {selos.map((s) => (
+          <li class="selo">{s.data.nome}</li>
+        ))}
+      </ul>
+    )
+  }
 
   <Titulo class="mentoria__titulo" id={idTitulo}>
     <a class="mentoria__link" href={`/mentorias/${mentoria.id}`}>{m.titulo}</a>
@@ -125,6 +135,13 @@ const idTitulo = `mentoria-${mentoria.id}`;
     align-items: center;
     justify-content: space-between;
     gap: var(--espaco-2xs);
+  }
+
+  .mentoria__selos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-3xs);
+    margin-block-start: calc(-1 * var(--espaco-3xs));
   }
 
   .mentoria__codigo {

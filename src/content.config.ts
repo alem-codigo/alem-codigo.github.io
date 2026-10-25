@@ -24,6 +24,17 @@ const eixos = defineCollection({
   }),
 });
 
+/**
+ * Selos livres exibidos nos cards ao lado do status (ex.: "Exclusiva para mulheres", "Em parceria").
+ * Só o nome: o estilo é único por tema (D-17). ID = nome do arquivo.
+ */
+const selos = defineCollection({
+  loader: glob({ pattern: '**/*.{yaml,yml}', base: './src/content/selos' }),
+  schema: z.object({
+    nome: texto,
+  }),
+});
+
 const mentores = defineCollection({
   loader: glob({ pattern: '**/*.{yaml,yml}', base: './src/content/mentores' }),
   schema: ({ image }) =>
@@ -56,6 +67,7 @@ const mentorias = defineCollection({
         prerequisitos: listaDeTextos,
         eixos: z.array(reference('eixos')).min(1, 'Selecione ao menos um eixo'),
         mentores: z.array(reference('mentores')).min(1, 'Selecione ao menos um mentor'),
+        selos: z.preprocess((v) => (v === null || v === undefined ? [] : v), z.array(reference('selos'))),
         formUrl: urlHttps,
         classroomCourseId: opcional(idTurmaClassroom),
         parceiro: opcional(z.object({ nome: texto, logo: image(), url: urlHttps })),
@@ -64,4 +76,4 @@ const mentorias = defineCollection({
       .superRefine(validarCronograma),
 });
 
-export const collections = { eixos, mentores, mentorias };
+export const collections = { eixos, mentores, mentorias, selos };

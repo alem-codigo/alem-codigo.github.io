@@ -1,5 +1,6 @@
 ---
-import { ROTULO_STATUS, type StatusMentoria } from '../lib/status';
+/** Pílula do status. Mentoria encerrada não tem pílula: o componente não renderiza nada. */
+import { ROTULO_STATUS, temPilula, type StatusMentoria } from '../lib/status';
 
 interface Props {
   status: StatusMentoria;
@@ -8,4 +9,4 @@ interface Props {
 const { status } = Astro.props;
 ---
 
-<span class="pilula" data-status={status}>{ROTULO_STATUS[status]}</span>
+{temPilula(status) && <span class="pilula" data-status={status}>{ROTULO_STATUS[status]}</span>}

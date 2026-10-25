@@ -2,13 +2,13 @@ import { getCollection, getEntry } from 'astro:content';
 
 /**
  * O Astro só registra referências quebradas como erro de log, sem falhar o build.
- * A spec exige o contrário (seção 6.2): referência a eixo ou mentor inexistente
+ * A spec exige o contrário (seção 6.2): referência a eixo, mentor ou selo inexistente
  * precisa impedir o deploy. Executado uma única vez por build.
  */
 async function verificar(): Promise<void> {
   const problemas: string[] = [];
   for (const m of await getCollection('mentorias')) {
-    for (const ref of [...m.data.eixos, ...m.data.mentores]) {
+    for (const ref of [...m.data.eixos, ...m.data.mentores, ...m.data.selos]) {
       if (!(await getEntry(ref))) {
         problemas.push(`mentoria "${m.id}" referencia ${ref.collection}/"${ref.id}", que não existe`);
       }

@@ -44,12 +44,13 @@ describe('textoDataStatus', () => {
   it.each([
     ['em-breve', 'Inscrições a partir de 01/11'],
     ['inscricoes-abertas', 'Inscrições até 10/11'],
-    ['aguardando-inicio', 'Começa em 20/11'],
+    ['inscricoes-encerradas', 'Começa em 20/11'],
     ['em-andamento', 'Termina em 15/12'],
     ['encerrada', '20/11 – 15/12/2026'],
   ] as const)('%s → %s', (status, esperado) => {
     expect(textoDataStatus(c, status, hoje)).toBe(esperado);
   });
+
 });
 
 describe('agruparParaHome', () => {
@@ -74,9 +75,9 @@ describe('agruparParaHome', () => {
     expect(ids(g.emBreve)).toEqual(['breve-cedo', 'breve-tarde']);
   });
 
-  it('em andamento primeiro (fim mais próximo) e depois aguardando início', () => {
+  it('em andamento primeiro (fim mais próximo), depois inscrições encerradas', () => {
     expect(ids(g.emAndamento)).toEqual(['andamento-curta', 'andamento-longa', 'aguardando']);
-    expect(g.emAndamento.at(-1)?.status).toBe('aguardando-inicio');
+    expect(g.emAndamento.at(-1)?.status).toBe('inscricoes-encerradas');
   });
 
   it('encerradas ficam de fora', () => {
