@@ -1,8 +1,8 @@
 ---
 /**
- * Logo como <img> de SVG externo: um arquivo em cache para todas as páginas, sem ids
- * duplicados no HTML. A versão `auto` troca as cores sozinha pelo `prefers-color-scheme`
- * (regras dentro do próprio SVG), acompanhando o tema do site.
+ * Logo como <img> de SVG externo: arquivos em cache para todas as páginas, sem ids
+ * duplicados no HTML. A versão `auto` acompanha o tema do site (escuro por padrão, claro com
+ * <html data-tema="claro">): renderiza as duas versões coloridas e o CSS mostra a certa.
  */
 interface Props {
   variante?: 'auto' | 'grafite' | 'branca';
@@ -14,20 +14,50 @@ interface Props {
 }
 
 const PROPORCAO = 344.8 / 131;
-const ARQUIVOS = {
-  auto: '/marca/logo.svg',
+const MONO = {
   grafite: '/marca/logo-grafite.svg',
   branca: '/marca/logo-branca.svg',
 } as const;
 
 const { variante = 'auto', altura = 44, alt = 'Além do Código', class: classe } = Astro.props;
+const largura = Math.round(altura * PROPORCAO);
 ---
 
-<img
-  src={ARQUIVOS[variante]}
-  width={Math.round(altura * PROPORCAO)}
-  height={altura}
-  alt={alt}
-  class={classe}
-  decoding="async"
-/>
+{
+  variante === 'auto' ? (
+    <>
+      <img
+        src="/marca/logo-colorida-escura.svg"
+        width={largura}
+        height={altura}
+        alt={alt}
+        class:list={[classe, 'logo--escura']}
+        decoding="async"
+      />
+      <img
+        src="/marca/logo-colorida-clara.svg"
+        width={largura}
+        height={altura}
+        alt={alt}
+        class:list={[classe, 'logo--clara']}
+        decoding="async"
+      />
+    </>
+  ) : (
+    <img src={MONO[variante]} width={largura} height={altura} alt={alt} class={classe} decoding="async" />
+  )
+}
+
+<style>
+  .logo--clara {
+    display: none;
+  }
+
+  :global(:root[data-tema='claro']) .logo--clara {
+    display: block;
+  }
+
+  :global(:root[data-tema='claro']) .logo--escura {
+    display: none;
+  }
+</style>

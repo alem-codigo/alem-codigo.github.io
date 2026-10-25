@@ -4,6 +4,7 @@ import { hojeEmSaoPaulo } from '../lib/datas';
 import { destinoInscricoes, itemAtivo, NAVEGACAO_PRINCIPAL } from '../lib/navegacao';
 import Logo from './Logo.astro';
 import LogoAnimado from './LogoAnimado.astro';
+import TemaAlternar from './TemaAlternar.astro';
 
 const caminho = Astro.url.pathname;
 const mentorias = (await getCollection('mentorias')).map((m) => ({ id: m.id, ...m.data }));
@@ -64,6 +65,8 @@ const linkInscricoes = destinoInscricoes(mentorias, hojeEmSaoPaulo());
         </ul>
       </div>
     </nav>
+
+    <TemaAlternar />
   </div>
 </header>
 
@@ -77,7 +80,7 @@ const linkInscricoes = destinoInscricoes(mentorias, hojeEmSaoPaulo());
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--espaco-m);
+    gap: var(--espaco-xs);
     min-height: 4.5rem;
     padding-block: var(--espaco-2xs);
   }
@@ -85,6 +88,7 @@ const linkInscricoes = destinoInscricoes(mentorias, hojeEmSaoPaulo());
   .cabecalho__marca {
     display: inline-flex;
     flex: none;
+    margin-inline-end: auto;
     border-radius: var(--raio-s);
   }
 

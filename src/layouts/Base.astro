@@ -24,9 +24,24 @@ await verificarIntegridade();
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#e9eaf0" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e0c15" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0e0c15" />
+    <!--
+      Aplica o tema salvo antes da pintura (padrão: escuro) e marca que há JavaScript,
+      para o botão de tema aparecer. Precisa ficar inline e no início do <head>.
+    -->
+    <script is:inline>
+      (function () {
+        var r = document.documentElement;
+        r.classList.add('js');
+        try {
+          if (localStorage.getItem('tema') === 'claro') {
+            r.dataset.tema = 'claro';
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#e9eaf0');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta name="description" content={description} />
     <!-- Provisório até o lançamento (Fase 3): evita indexar o site em construção. -->
     <meta name="robots" content="noindex, nofollow" />

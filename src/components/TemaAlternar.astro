@@ -1,0 +1,84 @@
+---
+/**
+ * Alterna entre os temas escuro (padrão) e claro. A escolha fica salva no navegador
+ * (localStorage `tema`) e é aplicada antes da pintura por um script no <head> do layout,
+ * que também marca <html class="js">: sem JavaScript, o botão não aparece e o site fica escuro.
+ */
+---
+
+<button class="tema" type="button" aria-pressed="true" data-tema-botao>
+  <svg class="tema__icone tema__icone--lua" aria-hidden="true" viewBox="0 0 24 24" width="22" height="22">
+    <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path>
+  </svg>
+  <svg class="tema__icone tema__icone--sol" aria-hidden="true" viewBox="0 0 24 24" width="22" height="22">
+    <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"></circle>
+    <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+  </svg>
+  <span class="visualmente-oculto">Tema escuro</span>
+</button>
+
+<script>
+  const COR_BARRA = { escuro: '#0e0c15', claro: '#e9eaf0' } as const;
+  const raiz = document.documentElement;
+
+  function aplicar(tema: 'escuro' | 'claro', salvar: boolean): void {
+    if (tema === 'claro') raiz.dataset.tema = 'claro';
+    else delete raiz.dataset.tema;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', COR_BARRA[tema]);
+    for (const botao of document.querySelectorAll<HTMLButtonElement>('[data-tema-botao]')) {
+      botao.setAttribute('aria-pressed', String(tema === 'escuro'));
+    }
+    if (salvar) {
+      try {
+        localStorage.setItem('tema', tema);
+      } catch {
+        /* navegação privada ou armazenamento bloqueado: vale só para esta página */
+      }
+    }
+  }
+
+  aplicar(raiz.dataset.tema === 'claro' ? 'claro' : 'escuro', false);
+
+  for (const botao of document.querySelectorAll<HTMLButtonElement>('[data-tema-botao]')) {
+    botao.addEventListener('click', () => {
+      aplicar(raiz.dataset.tema === 'claro' ? 'escuro' : 'claro', true);
+    });
+  }
+</script>
+
+<style>
+  .tema {
+    display: none;
+    place-items: center;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: var(--borda);
+    border-radius: var(--raio-m);
+    background: transparent;
+    color: var(--cor-texto);
+    transition: background-color var(--duracao) var(--curva);
+  }
+
+  :global(.js) .tema {
+    display: inline-grid;
+  }
+
+  .tema:hover {
+    background: color-mix(in srgb, var(--cor-texto) 6%, transparent);
+  }
+
+  /* Mostra o tema para o qual o botão leva: sol no escuro, lua no claro. */
+  .tema__icone--lua {
+    display: none;
+  }
+
+  :global(:root[data-tema='claro']) .tema__icone--sol {
+    display: none;
+  }
+
+  :global(:root[data-tema='claro']) .tema__icone--lua {
+    display: block;
+  }
+</style>

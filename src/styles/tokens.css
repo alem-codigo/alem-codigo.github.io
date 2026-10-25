@@ -1,8 +1,9 @@
 /*
  * Design tokens do Além do Código.
  *
- * Cores: `light-dark(claro, escuro)`, resolvido pelo `color-scheme` do :root, que segue o
- * `prefers-color-scheme` do sistema (sem alternância manual na v1). Todo par de texto/fundo
+ * Cores: `light-dark(claro, escuro)`, resolvido pelo `color-scheme` do :root. O padrão é o
+ * tema escuro; o visitante troca para o claro pelo botão do cabeçalho, que marca
+ * <html data-tema="claro"> (escolha salva no navegador). Todo par de texto/fundo
  * listado em `src/lib/tokens.test.ts` é verificado contra o WCAG AA no CI: ao mudar uma cor
  * aqui, rode `pnpm test`.
  *
@@ -12,7 +13,7 @@
  */
 @layer tokens {
   :root {
-    color-scheme: light dark;
+    color-scheme: dark;
 
     /* ---- Superfícies e texto ---- */
     --cor-fundo: light-dark(#f4f5f7, #14111d);
@@ -122,6 +123,10 @@
     --duracao: 160ms;
     --duracao-lenta: 280ms;
     --curva: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  :root[data-tema='claro'] {
+    color-scheme: light;
   }
 
   @media (prefers-reduced-motion: reduce) {

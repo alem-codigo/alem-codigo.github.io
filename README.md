@@ -24,12 +24,12 @@ Workflow `.github/workflows/deploy.yml`: roda testes, `astro check` e build; em 
 
 CSS puro com design tokens em custom properties, sem framework (D-16).
 
-- `src/styles/tokens.css`: cores (claro/escuro com `light-dark()`, seguindo o tema do sistema), tipografia, espaçamento, raios e movimento.
+- `src/styles/tokens.css`: cores (claro/escuro com `light-dark()`; o padrão é o escuro e o visitante troca pelo botão do cabeçalho, `TemaAlternar.astro`, que marca `<html data-tema="claro">` e salva a escolha no navegador), tipografia, espaçamento, raios e movimento.
 - `src/styles/global.css`: ordem das camadas (`reset`, `tokens`, `base`, `layout`, `components`, `utilities`). Estilos com escopo dos componentes `.astro` ficam fora das camadas e têm prioridade.
 - Primitivos de layout: `.container`, `.pilha`, `.grupo`, `.grade`, `.secao`. Componentes: `.botao` (`--mono`, `--contorno`), `.icone` (quadradinho em ameixa) e `.card` com `data-variante="violeta" | "grafite"` (sem atributo, é o padrão) e `.card--brilho` (luz de duas cores que acompanha o mouse; script no layout).
 - Contraste: `src/lib/tokens.test.ts` verifica os pares de cor contra o WCAG AA nos dois temas. Ao criar ou mudar uma cor, inclua o par no teste.
 - Fontes: Atkinson Hyperlegible Next e Mono, servidas pelo próprio site a partir dos pacotes `@fontsource-variable/*` (API de fontes do Astro, em `astro.config.mjs`).
-- Marca: logos em `public/marca/` (`logo.svg` troca as cores sozinho no tema escuro; `logo-grafite.svg` e `logo-branca.svg` são as monocromáticas) e favicons em `public/`.
+- Marca: logos em `public/marca/` (`<Logo />` mostra `logo-colorida-escura.svg` ou `logo-colorida-clara.svg` conforme o tema do site; `logo-grafite.svg` e `logo-branca.svg` são as monocromáticas; `logo.svg` segue o tema do sistema, para uso fora do site) e favicons em `public/`.
 - Logo animada do cabeçalho: `src/components/LogoAnimado.astro` (SVG inline em `src/assets/marca/logo-animado.svg`). No hover/foco, a estrada se forma do fim até a bandeira, que tremula ao final. A estrada é revelada por uma máscara com dois traços que seguem as linhas do desenho; se a logo mudar, esses traços precisam ser refeitos. Use uma vez por página; nos demais lugares, `<Logo />`.
 - Navegação e rodapé: `src/lib/navegacao.ts` e `src/lib/site.ts` (os canais do rodapé ficam em `CANAIS`).
 
