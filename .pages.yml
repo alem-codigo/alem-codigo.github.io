@@ -1,0 +1,322 @@
+# Configuração do Pages CMS (D-12). Referência: https://pagescms.org/docs/configuration/
+#
+# Os campos espelham os schemas de src/content.config.ts. O painel valida o básico (obrigatórios,
+# formatos); a validação final continua sendo o build (ordem das datas, referências, imagens).
+#
+# Pontos de compatibilidade com o Astro (validados em 2026-10-25, ver SPEC seção 4):
+# - Imagens: `output` relativo (../../assets/images/...) porque o `image()` resolve o caminho a partir
+#   do arquivo de conteúdo. Todas as coleções ficam em src/content/<colecao>/, a dois níveis de src/.
+# - Referências: o painel grava o nome do arquivo (`fulano.yaml`); o schema remove a extensão
+#   (`idDeReferencia` em src/lib/schemas.ts). Por isso renomear mentores, eixos e selos fica desativado.
+# - Datas: gravadas como AAAA-MM-DD sem aspas; o schema normaliza o Date do YAML (seção 6.2).
+#   `default: ""` evita que uma data nova venha preenchida com o dia de hoje.
+
+media:
+  - name: mentores
+    label: Fotos de mentores
+    input: src/assets/images/mentores
+    output: ../../assets/images/mentores
+    extensions: [jpg, jpeg, png, webp, avif]
+    rename: safe
+  - name: mentorias
+    label: Capas de mentorias
+    input: src/assets/images/mentorias
+    output: ../../assets/images/mentorias
+    extensions: [jpg, jpeg, png, webp, avif]
+    rename: safe
+  - name: parceiros
+    label: Logos de parceiros
+    input: src/assets/images/parceiros
+    output: ../../assets/images/parceiros
+    extensions: [svg, png, jpg, jpeg, webp, avif]
+    rename: safe
+
+content:
+  - name: mentorias
+    label: Mentorias
+    description: 'O status (em breve, inscrições abertas etc.) é calculado pelas datas; não há campo de status.'
+    type: collection
+    path: src/content/mentorias
+    format: yaml-frontmatter
+    # M26-01 → m26-01.md (o painel gera o nome em minúsculas; o endereço vem do código).
+    filename: "{codigo}.md"
+    view:
+      primary: titulo
+      fields: [titulo, codigo]
+      sort: [codigo, titulo]
+      search: [titulo, codigo]
+      default:
+        sort: codigo
+        order: desc
+    fields:
+      - name: codigo
+        label: Código
+        type: string
+        required: true
+        description: "Formato M<ano>-<sequência>, ex.: M26-01. O ano é o do início da realização (2 dígitos); a sequência começa em 01 e reinicia a cada ano (veja o maior código do ano na lista). Define o endereço da página (/mentorias/m26-01) e o nome do arquivo; não altere depois de divulgar."
+        pattern:
+          regex: '^M\d{2}-(?!00)\d{2}$'
+          message: "Use o formato M26-01: M maiúsculo, ano com 2 dígitos, traço e sequência com 2 dígitos (a partir de 01)."
+      - name: titulo
+        label: Título
+        type: string
+        required: true
+      - name: resumo
+        label: Resumo
+        type: text
+        required: true
+        description: 'Uma ou duas frases. Aparece no card e na prévia do link no WhatsApp e no LinkedIn.'
+      - name: inscricoes
+        label: Inscrições
+        type: object
+        fields:
+          - name: abertura
+            label: Abertura
+            type: date
+            required: true
+            default: ""
+            description: 'Primeiro dia em que as inscrições ficam abertas.'
+          - name: fechamento
+            label: Último dia de inscrição
+            type: date
+            required: true
+            default: ""
+            description: "Último dia em que o aluno pode se inscrever (não o dia em que o formulário fecha). Agende o fechamento do Google Forms para as 02:00 do dia seguinte. Ex.: inscrições até 10/10 → Forms fecha em 11/10 às 02:00."
+      - name: realizacao
+        label: Realização
+        type: object
+        fields:
+          - name: inicio
+            label: Início
+            type: date
+            required: true
+            default: ""
+            description: 'Primeiro dia de aula. Não pode ser antes do último dia de inscrição.'
+          - name: fim
+            label: Fim
+            type: date
+            required: true
+            default: ""
+            description: 'Último dia da mentoria. Depois dele, ela vai para a seção de encerradas.'
+      - name: cursos
+        label: Cursos elegíveis
+        type: string
+        list: true
+        required: true
+        description: 'Um curso por item, ex.: Análise e Desenvolvimento de Sistemas.'
+      - name: prerequisitos
+        label: Pré-requisitos
+        type: string
+        list: true
+        description: 'Opcional. Um por item.'
+      - name: eixos
+        label: Eixos
+        type: reference
+        required: true
+        options:
+          collection: eixos
+          multiple: true
+          value: "{name}"
+          label: "{numero}. {titulo}"
+          search: titulo
+      - name: mentores
+        label: Mentores
+        type: reference
+        required: true
+        description: 'Se o mentor não aparece na lista, cadastre-o antes em Mentores.'
+        options:
+          collection: mentores
+          multiple: true
+          value: "{name}"
+          label: "{nome}"
+          search: nome
+      - name: selos
+        label: Selos
+        type: reference
+        description: 'Opcional. Aparecem no card abaixo do status (ex.: Exclusiva para mulheres). Cadastre novos em Selos.'
+        options:
+          collection: selos
+          multiple: true
+          value: "{name}"
+          label: "{nome}"
+          search: nome
+      - name: formUrl
+        label: Link do Google Forms
+        type: string
+        required: true
+        description: 'Link de inscrição (começa com https://). O botão "Inscrever-se" só aparece enquanto as inscrições estão abertas.'
+        pattern:
+          regex: '^https://\S+$'
+          message: Cole o link completo, começando com https://
+      - name: classroomCourseId
+        label: ID da turma no Classroom
+        type: string
+        description: "Opcional. Só números (não é o código de convite nem o trecho do endereço da turma). Liga a página da mentoria ao conteúdo do Classroom; o mantenedor informa o número."
+        pattern:
+          regex: '^\d*$'
+          message: O ID da turma tem só números.
+      - name: capa
+        label: Imagem de capa
+        type: image
+        description: 'Opcional. Qualquer tamanho; o site redimensiona e otimiza.'
+        options:
+          media: mentorias
+      - name: parceiro
+        label: Empresa parceira
+        type: object
+        description: 'Só para mentorias em parceria. Preencha os três campos ou deixe os três vazios.'
+        fields:
+          - name: nome
+            label: Nome da empresa
+            type: string
+          - name: logo
+            label: Logo
+            type: image
+            description: 'SVG ou PNG com fundo transparente, de preferência.'
+            options:
+              media: parceiros
+          - name: url
+            label: Site
+            type: string
+            pattern:
+              regex: '^(https://\S+)?$'
+              message: Cole o link completo, começando com https://
+      - name: body
+        label: Objetivo
+        type: rich-text
+        required: true
+        description: 'Texto da página da mentoria. O que o aluno vai aprender e para quem é.'
+        options:
+          media: mentorias
+
+  - name: mentores
+    label: Mentores
+    type: collection
+    path: src/content/mentores
+    format: yaml
+    filename: "{nome}.yaml"
+    operations:
+      # O nome do arquivo é o identificador usado nas mentorias; renomear quebraria as referências.
+      rename: false
+    view:
+      primary: nome
+      fields: [nome, cargo, empresa]
+      sort: [nome]
+      search: [nome, empresa]
+      default:
+        sort: nome
+        order: asc
+    fields:
+      - name: nome
+        label: Nome
+        type: string
+        required: true
+        description: 'Nome como deve aparecer no site. Define o nome do arquivo na criação; corrigir depois não muda o arquivo.'
+      - name: foto
+        label: Foto
+        type: image
+        required: true
+        description: 'Foto de rosto, de preferência quadrada. Qualquer tamanho; o site otimiza.'
+        options:
+          media: mentores
+      - name: cargo
+        label: Cargo
+        type: string
+        required: true
+      - name: empresa
+        label: Empresa
+        type: string
+        description: 'Opcional.'
+      - name: bio
+        label: Bio curta
+        type: text
+        required: true
+        description: 'Duas ou três frases.'
+      - name: linkedin
+        label: LinkedIn
+        type: string
+        description: 'Opcional. Link completo do perfil, começando com https://'
+        pattern:
+          regex: '^(https://\S+)?$'
+          message: Cole o link completo, começando com https://
+      - name: github
+        label: GitHub
+        type: string
+        description: 'Opcional. Link completo do perfil, começando com https://'
+        pattern:
+          regex: '^(https://\S+)?$'
+          message: Cole o link completo, começando com https://
+
+  - name: eixos
+    label: Eixos
+    type: collection
+    path: src/content/eixos
+    format: yaml
+    filename: "{titulo}.yaml"
+    operations:
+      rename: false
+    view:
+      primary: titulo
+      fields: [numero, titulo]
+      sort: [ordem, numero]
+      default:
+        sort: ordem
+        order: asc
+    fields:
+      - name: numero
+        label: Número
+        type: number
+        required: true
+        description: 'Número do eixo (1, 2, 3...).'
+        options:
+          min: 1
+          step: 1
+      - name: titulo
+        label: Título
+        type: string
+        required: true
+        description: 'Sem o prefixo "Mentoria de".'
+      - name: descricao
+        label: Descrição
+        type: text
+        required: true
+        description: 'Uma ou duas frases.'
+      - name: ordem
+        label: Ordem de exibição
+        type: number
+        required: true
+        description: 'Posição na lista do site (1 = primeiro). Normalmente igual ao número.'
+        options:
+          step: 1
+
+  - name: selos
+    label: Selos
+    description: 'Rótulos livres exibidos nos cards. Antes de excluir um selo, retire-o das mentorias que o usam.'
+    type: collection
+    path: src/content/selos
+    format: yaml
+    filename: "{nome}.yaml"
+    exclude: [README.md]
+    operations:
+      rename: false
+    view:
+      primary: nome
+      fields: [nome]
+    fields:
+      - name: nome
+        label: Nome
+        type: string
+        required: true
+        description: "Texto curto, ex.: Exclusiva para mulheres, Em parceria, Vagas limitadas. A cor é a mesma para todos os selos."
+
+settings:
+  # Esconde o editor de configuração do painel: o .pages.yml só muda por commit.
+  config: false
+  commit:
+    # Commits feitos pelo app (pages-cms[bot]): disparam o deploy e não expõem e-mail pessoal (seção 10).
+    identity: app
+    templates:
+      create: "conteúdo: cria {path} (painel, {user})"
+      update: "conteúdo: atualiza {path} (painel, {user})"
+      delete: "conteúdo: remove {path} (painel, {user})"
+      rename: "conteúdo: renomeia {oldPath} para {newPath} (painel, {user})"

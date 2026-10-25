@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { z } from 'astro/zod';
 import {
   codigoMentoria,
+  codigosDuplicados,
   cronograma,
   dataCalendario,
+  idDeReferencia,
   opcional,
   slugDoCodigo,
   urlHttps,
+  validarCodigo,
   validarCronograma,
 } from './schemas';
 
@@ -52,16 +56,35 @@ describe('cronograma', () => {
 });
 
 describe('codigoMentoria e slugDoCodigo', () => {
-  it.each(['M1.26A', 'M12.27B'])('aceita %s', (c) => {
+  it.each(['M26-01', 'M27-12', 'M26-99'])('aceita %s', (c) => {
     expect(codigoMentoria.safeParse(c).success).toBe(true);
   });
 
-  it.each(['m1.26a', 'M1-26A', 'M1.2026A', 'M1.26'])('rejeita %s', (c) => {
+  it.each(['m26-01', 'M26-1', 'M2026-01', 'M26-00', 'M26.01', 'M1.26A', 'M26-001'])('rejeita %s', (c) => {
     expect(codigoMentoria.safeParse(c).success).toBe(false);
   });
 
   it('gera o slug da URL', () => {
-    expect(slugDoCodigo('M1.26A')).toBe('m1-26a');
+    expect(slugDoCodigo('M26-01')).toBe('m26-01');
+  });
+});
+
+describe('validarCodigo', () => {
+  const comCodigo = (codigo: string, inicio: string) =>
+    z.object({ codigo: z.string(), realizacao: z.object({ inicio: z.string() }) }).superRefine(validarCodigo).safeParse({
+      codigo,
+      realizacao: { inicio },
+    });
+
+  it('aceita o ano do início da realização', () => {
+    expect(comCodigo('M27-01', '2027-02-01').success).toBe(true);
+  });
+
+  it('rejeita ano diferente do início (ex.: inscrições em 2026, início em 2027)', () => {
+    const r = comCodigo('M26-03', '2027-02-01');
+    expect(r.success).toBe(false);
+    expect(r.error?.issues[0]?.path).toEqual(['codigo']);
+    expect(r.error?.issues[0]?.message).toContain('M27-');
   });
 });
 
@@ -76,5 +99,40 @@ describe('opcional e urlHttps', () => {
   it('exige https', () => {
     expect(campo.safeParse('http://exemplo.com').success).toBe(false);
     expect(campo.parse('https://exemplo.com')).toBe('https://exemplo.com');
+  });
+});
+
+describe('idDeReferencia', () => {
+  it.each([
+    ['fulano.yaml', 'fulano'],
+    ['fulano.yml', 'fulano'],
+    ['src/content/mentores/fulano.yaml', 'fulano'],
+    ['fulano', 'fulano'],
+    [' conteudo-pratico.yaml ', 'conteudo-pratico'],
+  ])('reduz "%s" ao id "%s"', (valor, id) => {
+    expect(idDeReferencia(valor)).toBe(id);
+  });
+
+  it('não mexe em valores que não são texto', () => {
+    expect(idDeReferencia(undefined)).toBeUndefined();
+    expect(idDeReferencia(null)).toBeNull();
+  });
+});
+
+describe('codigosDuplicados', () => {
+  const md = (codigo: string) => `---\ncodigo: ${codigo}\ntitulo: X\n---\nCorpo.\n`;
+
+  it('aponta o código repetido e os arquivos', () => {
+    expect(
+      codigosDuplicados({
+        '../content/mentorias/m26-01.md': md('M26-01'),
+        '../content/mentorias/outra.md': md('"M26-01"'),
+        '../content/mentorias/m26-02.md': md('M26-02'),
+      }),
+    ).toEqual([{ codigo: 'M26-01', arquivos: ['m26-01.md', 'outra.md'] }]);
+  });
+
+  it('não acusa nada sem repetição ou sem código', () => {
+    expect(codigosDuplicados({ 'a.md': md('M26-01'), 'b.md': md('M26-02'), 'c.md': 'sem frontmatter' })).toEqual([]);
   });
 });

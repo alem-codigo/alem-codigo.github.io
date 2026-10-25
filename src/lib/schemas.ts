@@ -33,16 +33,67 @@ export const dataCalendario = z.preprocess(
     .refine(ehDataCalendario, 'Data inexistente no calendário'),
 );
 
-/** Ex.: `M1.26A`. */
+/**
+ * Ex.: `M26-01`: "M", ano do início da realização com 2 dígitos, traço e sequência da mentoria
+ * no ano, a partir de 01 (reinicia a cada ano). O ano é conferido por `validarCodigo`.
+ */
 export const codigoMentoria = z
   .string()
   .trim()
-  .regex(/^M\d+\.\d{2}[A-Z]$/, 'Código no formato M<n>.<ano><turma>, ex.: M1.26A');
+  .regex(/^M\d{2}-(?!00)\d{2}$/, 'Código no formato M<ano>-<sequência>, ex.: M26-01');
 
-/** `M1.26A` → `m1-26a` (usado na URL `/mentorias/[codigo]`). */
+/** `M26-01` → `m26-01` (usado na URL `/mentorias/[codigo]`). */
 export function slugDoCodigo(codigo: string): string {
-  return codigo.trim().toLowerCase().replace(/\./g, '-');
+  return codigo.trim().toLowerCase();
 }
+
+/**
+ * Códigos repetidos entre arquivos de mentoria (`caminho → texto do arquivo`). Lê o `codigo`
+ * direto do frontmatter, porque a coleção já chega deduplicada pelo id.
+ */
+export function codigosDuplicados(
+  arquivos: Record<string, string>,
+): Array<{ codigo: string; arquivos: string[] }> {
+  const porSlug = new Map<string, { codigo: string; arquivos: string[] }>();
+  for (const [caminho, texto] of Object.entries(arquivos)) {
+    const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(texto)?.[1] ?? '';
+    const codigo = /^codigo:[ \t]*["']?([^"'\s#]+)/m.exec(frontmatter)?.[1];
+    if (!codigo) continue;
+    const grupo = porSlug.get(slugDoCodigo(codigo)) ?? { codigo, arquivos: [] };
+    grupo.arquivos.push(caminho.replace(/^.*\//, ''));
+    porSlug.set(slugDoCodigo(codigo), grupo);
+  }
+  return [...porSlug.values()].filter((g) => g.arquivos.length > 1);
+}
+
+/** O ano do código (`M26-…`) é o ano de `realizacao.inicio` (seção 6.2). */
+export function validarCodigo(
+  m: { codigo: string; realizacao: { inicio: string } },
+  ctx: z.RefinementCtx,
+): void {
+  const anoCodigo = m.codigo.slice(1, 3);
+  const anoInicio = m.realizacao.inicio.slice(2, 4);
+  if (anoCodigo !== anoInicio) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['codigo'],
+      message: `o ano do código (${m.codigo}) deve ser o do início da realização (${m.realizacao.inicio}): use M${anoInicio}-<sequência>`,
+    });
+  }
+}
+
+/**
+ * Id de uma referência entre coleções. O Pages CMS grava o nome do arquivo (`fulano.yaml`) e não
+ * oferece token sem extensão; o Astro identifica a entrada sem ela (`fulano`). Aceita também o
+ * caminho completo (`src/content/mentores/fulano.yaml`) e o id puro, escrito à mão.
+ */
+export function idDeReferencia(valor: unknown): unknown {
+  if (typeof valor !== 'string') return valor;
+  return valor.trim().replace(/^.*\//, '').replace(/\.(ya?ml|md)$/i, '');
+}
+
+/** Envolve um `reference()` do Astro para aceitar o valor gravado pelo painel. */
+export const referenciaDoPainel = <T extends z.ZodType>(schema: T) => z.preprocess(idDeReferencia, schema);
 
 /** `classroomCourseId`: ID numérico da turma no Classroom. */
 export const idTurmaClassroom = z.string().trim().regex(/^\d+$/, 'ID da turma deve ser numérico');

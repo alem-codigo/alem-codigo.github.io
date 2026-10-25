@@ -35,6 +35,6 @@ CSS puro com design tokens em custom properties, sem framework (D-16).
 
 ## Conteúdo
 
-Coleções em `src/content/` (`mentorias`, `mentores`, `eixos`), com schemas em `src/content.config.ts`. Datas são `YYYY-MM-DD` e precisam estar em ordem (abertura ≤ fechamento ≤ início ≤ fim); campo inválido ou referência a eixo/mentor inexistente quebra o build. A URL da mentoria vem do `codigo` (`M1.26A` → `/mentorias/m1-26a`).
+Coleções em `src/content/` (`mentorias`, `mentores`, `eixos`), com schemas em `src/content.config.ts`. Datas são `YYYY-MM-DD` e precisam estar em ordem (abertura ≤ fechamento ≤ início ≤ fim); campo inválido ou referência a eixo/mentor inexistente quebra o build. A URL da mentoria vem do `codigo` (`M26-01` → `/mentorias/m26-01`; ano do início da realização + sequência do ano).
 
 Os arquivos `exemplo*` e `m0-26z.md` são apenas para validar os schemas e devem ser removidos na migração do conteúdo real.

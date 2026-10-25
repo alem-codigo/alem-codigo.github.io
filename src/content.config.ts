@@ -7,9 +7,11 @@ import {
   idTurmaClassroom,
   listaDeTextos,
   opcional,
+  referenciaDoPainel,
   slugDoCodigo,
   texto,
   urlHttps,
+  validarCodigo,
   validarCronograma,
 } from './lib/schemas';
 
@@ -53,7 +55,7 @@ const mentorias = defineCollection({
   loader: glob({
     pattern: '**/*.md',
     base: './src/content/mentorias',
-    // A URL vem do código (M1.26A → m1-26a), independentemente do nome do arquivo.
+    // A URL vem do código (M26-01 → m26-01), independentemente do nome do arquivo.
     generateId: ({ entry, data }) =>
       typeof data.codigo === 'string' ? slugDoCodigo(data.codigo) : entry.replace(/\.md$/, ''),
   }),
@@ -65,15 +67,20 @@ const mentorias = defineCollection({
         resumo: texto,
         cursos: z.array(texto).min(1, 'Informe ao menos um curso elegível'),
         prerequisitos: listaDeTextos,
-        eixos: z.array(reference('eixos')).min(1, 'Selecione ao menos um eixo'),
-        mentores: z.array(reference('mentores')).min(1, 'Selecione ao menos um mentor'),
-        selos: z.preprocess((v) => (v === null || v === undefined ? [] : v), z.array(reference('selos'))),
+        // O painel grava `arquivo.yaml`; `referenciaDoPainel` reduz ao id da entrada (ver .pages.yml).
+        eixos: z.array(referenciaDoPainel(reference('eixos'))).min(1, 'Selecione ao menos um eixo'),
+        mentores: z.array(referenciaDoPainel(reference('mentores'))).min(1, 'Selecione ao menos um mentor'),
+        selos: z.preprocess(
+          (v) => (v === null || v === undefined ? [] : v),
+          z.array(referenciaDoPainel(reference('selos'))),
+        ),
         formUrl: urlHttps,
         classroomCourseId: opcional(idTurmaClassroom),
         parceiro: opcional(z.object({ nome: texto, logo: image(), url: urlHttps })),
         capa: opcional(image()),
       })
-      .superRefine(validarCronograma),
+      .superRefine(validarCronograma)
+      .superRefine(validarCodigo),
 });
 
 export const collections = { eixos, mentores, mentorias, selos };
