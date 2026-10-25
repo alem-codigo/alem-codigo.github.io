@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import css from '../styles/tokens.css?raw';
 import { AA, contraste } from './contraste';
+import { STATUS_MENTORIA } from './status';
 
 /**
  * Verifica no CI os pares de cor dos design tokens (src/styles/tokens.css) contra o WCAG AA,
@@ -52,8 +53,9 @@ const pares: Par[] = [
   ['--botao-mono-texto', '--botao-mono-fundo', AA.texto],
   ['--botao-mono-fundo', '--cor-fundo', AA.componente],
 
-  // Ícones em ameixa
+  // Ícones em ameixa (o desenho também é usado como texto: número dos eixos nos cards)
   ['--icone-cor', '--icone-fundo', AA.componente],
+  ['--icone-cor', '--card-padrao-fundo', AA.texto],
 
   // Cards
   ...(['padrao', 'violeta', 'grafite'] as const).flatMap((v): Par[] => [
@@ -65,6 +67,12 @@ const pares: Par[] = [
   // Botão principal do card. No grafite (encerrada), o card não tem ação principal.
   ['--card-padrao-botao', '--card-padrao-fundo', AA.componente],
   ['--card-violeta-botao', '--card-violeta-fundo', AA.componente],
+
+  // Pílulas de status (Q-08): uma por status, fundo opaco (não depende do card nem da luz)
+  ...STATUS_MENTORIA.flatMap((s): Par[] => [
+    [`--pilula-${s}-texto`, `--pilula-${s}-fundo`, AA.texto],
+    [`--pilula-${s}-ponto`, `--pilula-${s}-fundo`, AA.componente],
+  ]),
 ];
 
 describe('tokens de cor (WCAG 2.1 AA)', () => {

@@ -1,0 +1,229 @@
+---
+/**
+ * Card de mentoria. A variante (padrão, violeta, grafite) e a pílula vêm do status calculado (6.3, Q-08).
+ * O card inteiro leva ao portal da mentoria (link do título esticado); o botão "Inscrever-se", só em
+ * inscrições abertas, leva direto ao Google Forms e fica acima do link do card.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { getEntries } from 'astro:content';
+import { Image } from 'astro:assets';
+import { formatarPeriodo, juntarLista, textoDataStatus } from '../lib/mentorias';
+import { VARIANTE_CARD, type StatusMentoria } from '../lib/status';
+import StatusPilula from './StatusPilula.astro';
+
+interface Props {
+  mentoria: CollectionEntry<'mentorias'>;
+  status: StatusMentoria;
+  hoje: string;
+  /** Nível do título, conforme a hierarquia da página. */
+  nivel?: 'h2' | 'h3';
+}
+
+const { mentoria, status, hoje, nivel: Titulo = 'h3' } = Astro.props;
+const m = mentoria.data;
+const variante = VARIANTE_CARD[status];
+const [eixos, mentores] = await Promise.all([getEntries(m.eixos), getEntries(m.mentores)]);
+const eixosOrdenados = eixos.sort((a, b) => a.data.ordem - b.data.ordem);
+const mostrarRealizacao = status === 'em-breve' || status === 'inscricoes-abertas';
+const idTitulo = `mentoria-${mentoria.id}`;
+---
+
+<article
+  class="card card--brilho mentoria"
+  data-variante={variante === 'padrao' ? undefined : variante}
+  aria-labelledby={idTitulo}
+>
+  {m.capa && <Image class="mentoria__capa" src={m.capa} alt="" widths={[400, 800]} sizes="(min-width: 64rem) 22rem, 90vw" />}
+
+  <div class="mentoria__topo">
+    <StatusPilula status={status} />
+    <span class="mentoria__codigo mono">{m.codigo}</span>
+  </div>
+
+  <Titulo class="mentoria__titulo" id={idTitulo}>
+    <a class="mentoria__link" href={`/mentorias/${mentoria.id}`}>{m.titulo}</a>
+  </Titulo>
+
+  <p class="mentoria__data">{textoDataStatus(m, status, hoje)}</p>
+  <p class="mentoria__resumo texto-suave">{m.resumo}</p>
+
+  <dl class="mentoria__dados">
+    {
+      mostrarRealizacao && (
+        <div>
+          <dt>Realização</dt>
+          <dd>{formatarPeriodo(m.realizacao.inicio, m.realizacao.fim, hoje)}</dd>
+        </div>
+      )
+    }
+    <div>
+      <dt>Cursos</dt>
+      <dd>{juntarLista(m.cursos)}</dd>
+    </div>
+    <div>
+      <dt>{mentores.length > 1 ? 'Mentores' : 'Mentoria'}</dt>
+      <dd>{juntarLista(mentores.map((p) => p.data.nome))}</dd>
+    </div>
+  </dl>
+
+  <ul class="mentoria__eixos" role="list" aria-label="Eixos">
+    {eixosOrdenados.map((e) => <li>Eixo {e.data.numero} · {e.data.titulo}</li>)}
+  </ul>
+
+  {
+    m.parceiro && (
+      <p class="mentoria__parceiro texto-suave">
+        Em parceria com
+        <Image src={m.parceiro.logo} alt={m.parceiro.nome} height={24} class="mentoria__parceiro-logo" />
+      </p>
+    )
+  }
+
+  {
+    status === 'inscricoes-abertas' && (
+      <a class="botao mentoria__acao" href={m.formUrl}>
+        Inscrever-se
+        <span class="visualmente-oculto">na mentoria {m.titulo} (formulário do Google)</span>
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+          <path
+            d="M7 17 17 7M9 7h8v8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </a>
+    )
+  }
+</article>
+
+<style>
+  .mentoria {
+    gap: var(--espaco-xs);
+  }
+
+  /* Foco do link esticado: contorno no card inteiro. */
+  .mentoria:has(.mentoria__link:focus-visible) {
+    outline: 3px solid var(--cor-foco);
+    outline-offset: 2px;
+  }
+
+  .mentoria__capa {
+    width: calc(100% + 2 * var(--espaco-m));
+    max-width: none;
+    margin: calc(-1 * var(--espaco-m)) calc(-1 * var(--espaco-m)) var(--espaco-3xs);
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--raio-l) var(--raio-l) 0 0;
+  }
+
+  .mentoria__topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espaco-2xs);
+  }
+
+  .mentoria__codigo {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+    font-weight: 600;
+  }
+
+  .mentoria__titulo {
+    font-size: var(--passo-1);
+    line-height: 1.25;
+  }
+
+  .mentoria__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .mentoria__link:focus-visible {
+    outline: none;
+  }
+
+  /* Link esticado: o card inteiro é clicável. */
+  .mentoria__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+  }
+
+  .mentoria:hover .mentoria__link {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .mentoria__data {
+    font-weight: var(--peso-negrito);
+  }
+
+  .mentoria__resumo {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+
+  .mentoria__dados {
+    display: grid;
+    gap: var(--espaco-3xs);
+    font-size: var(--passo--1);
+  }
+
+  .mentoria__dados div {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: var(--espaco-2xs);
+  }
+
+  .mentoria__dados dt {
+    color: var(--_texto-suave);
+  }
+
+  .mentoria__dados dd {
+    margin: 0;
+  }
+
+  .mentoria__eixos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-3xs);
+    font-size: var(--passo--1);
+  }
+
+  .mentoria__eixos li {
+    padding: 0.1em 0.6em;
+    border: 1px solid var(--_borda);
+    border-radius: var(--raio-s);
+    color: var(--_texto-suave);
+  }
+
+  .mentoria__parceiro {
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-2xs);
+    font-size: var(--passo--1);
+  }
+
+  .mentoria__parceiro-logo {
+    height: 24px;
+    width: auto;
+  }
+
+  /* Acima do link esticado; empurrado para o rodapé do card. */
+  .mentoria__acao {
+    position: relative;
+    z-index: 2;
+    margin-block-start: auto;
+  }
+</style>

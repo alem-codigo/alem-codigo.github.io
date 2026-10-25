@@ -62,13 +62,14 @@ await verificarIntegridade();
     </main>
     <SiteFooter />
     <script>
-      // Luz dos cards (.card--brilho): só posiciona --mx/--my; o efeito é todo em CSS.
+      // Luz que acompanha o mouse (.card--brilho e áreas com [data-luz], como a capa da home):
+      // só posiciona --mx/--my; o efeito é todo em CSS.
       // Um único listener para a página inteira; só onde há mouse.
       if (matchMedia('(hover: hover)').matches) {
         document.addEventListener(
           'pointermove',
           (e) => {
-            const card = e.target instanceof Element ? e.target.closest<HTMLElement>('.card--brilho') : null;
+            const card = e.target instanceof Element ? e.target.closest<HTMLElement>('.card--brilho, [data-luz]') : null;
             if (!card) return;
             const r = card.getBoundingClientRect();
             card.style.setProperty('--mx', `${e.clientX - r.left}px`);

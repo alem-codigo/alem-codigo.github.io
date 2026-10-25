@@ -1,0 +1,256 @@
+---
+/**
+ * Capa da home. Camadas, de trás para a frente:
+ *  1. fundo em CSS (cor da página + brilho violeta atrás da pessoa), que troca com o tema;
+ *  2. foto recortada de uma pessoa, sorteada a cada visita;
+ *  3. texto.
+ *
+ * A foto fica quase invisível e acende perto do cursor, com a mesma luz dos cards
+ * (posição em --mx/--my, definida pelo script do layout para elementos com [data-luz]).
+ * Sem mouse, sem JavaScript ou com `prefers-reduced-motion`, fica só no nível base.
+ */
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import pessoa1 from '../assets/images/home/pessoa-1.png';
+import pessoa2 from '../assets/images/home/pessoa-2.png';
+import pessoa3 from '../assets/images/home/pessoa-3.png';
+import pessoa4 from '../assets/images/home/pessoa-4.png';
+
+interface Props {
+  /** Destino do botão principal quando há inscrições abertas; `null` leva às mentorias. */
+  linkInscricoes: string | null;
+}
+
+const { linkInscricoes } = Astro.props;
+
+/** A primeira é a mostrada sem JavaScript. Todas seguem o mesmo enquadramento (cintura para cima). */
+const FOTOS: readonly ImageMetadata[] = [pessoa1, pessoa2, pessoa3, pessoa4];
+
+// Uma regra por foto: mostra só a sorteada (data-foto no <section>).
+const regrasSorteio = FOTOS.map(
+  (_, i) => `.hero[data-foto="${i}"] .hero__foto[data-i="${i}"]{display:block}`,
+).join('');
+---
+
+<section class="hero" data-luz aria-labelledby="hero-titulo">
+  <!-- Sorteia a foto antes de as imagens entrarem no DOM; evita repetir a da visita anterior. -->
+  <script is:inline define:vars={{ total: FOTOS.length }}>
+    (function () {
+      var hero = document.currentScript.parentElement;
+      var i = Math.floor(Math.random() * total);
+      try {
+        var anterior = Number(localStorage.getItem('hero-foto'));
+        if (total > 1 && i === anterior) i = (i + 1) % total;
+        localStorage.setItem('hero-foto', String(i));
+      } catch (e) {}
+      hero.dataset.foto = String(i);
+    })();
+  </script>
+  <style is:inline set:html={regrasSorteio}></style>
+
+  <div class="hero__palco" aria-hidden="true">
+    {
+      FOTOS.map((foto, i) => (
+        <Picture
+          src={foto}
+          alt=""
+          formats={['avif']}
+          fallbackFormat="webp"
+          widths={[360, 640, foto.width]}
+          sizes="(min-width: 48rem) 36rem, 80vw"
+          loading="lazy"
+          decoding="async"
+          class="hero__img"
+          pictureAttributes={{ class: 'hero__foto', 'data-i': String(i) }}
+        />
+      ))
+    }
+  </div>
+
+  <div class="container hero__conteudo">
+    <p class="hero__selo mono">Cluster de TI · UniCesumar EaD</p>
+    <h1 id="hero-titulo">Mentorias que levam sua formação em TI além do código</h1>
+    <p class="hero__texto">
+      Turmas curtas e práticas, conduzidas por professores e profissionais de empresas parceiras, para você ganhar
+      autonomia técnica, organizar a vida acadêmica e se preparar para o mercado.
+    </p>
+    <div class="grupo">
+      {
+        linkInscricoes ? (
+          <a class="botao" href={linkInscricoes}>
+            Ver inscrições abertas
+          </a>
+        ) : (
+          <a class="botao" href="/mentorias">
+            Conhecer as mentorias
+          </a>
+        )
+      }
+      <a class="botao botao--contorno" href="/como-participar">Como participar</a>
+    </div>
+    <p class="hero__publico texto-suave">Exclusivo para estudantes e egressos do Cluster de TI da UniCesumar EaD.</p>
+  </div>
+</section>
+
+<style>
+  /* Raio da luz: animável (registrado), cresce no hover. */
+  @property --luz-raio {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
+  }
+
+  .hero {
+    /* Visibilidade da foto fora da luz e no pico da luz. */
+    --hero-base: 0.05;
+    --hero-pico: 0.95;
+    --hero-brilho: rgb(105 61 132 / 0.3);
+    --mx: 70%;
+    --my: 40%;
+
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: grid;
+    align-items: center;
+    min-block-size: clamp(34rem, 86svh - 4.5rem, 46rem);
+    background:
+      radial-gradient(60% 75% at 82% 45%, var(--hero-brilho), transparent 70%),
+      var(--cor-fundo);
+    border-block-end: var(--borda);
+  }
+
+  :global(:root[data-tema='claro']) .hero {
+    --hero-base: 0.05;
+    --hero-pico: 0.9;
+    --hero-brilho: rgb(105 61 132 / 0.1);
+    /* No claro, a luz da capa é só branca (os cards seguem branco + azul). */
+    --brilho-2: rgb(255 255 255 / 0.55);
+  }
+
+  /* Mesma luz dos cards, no fundo. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(calc(var(--luz-raio) * 0.8) circle at var(--mx) var(--my), var(--brilho-1), transparent 70%),
+      radial-gradient(
+        calc(var(--luz-raio) * 1.2) circle at calc(var(--mx) + 90px) calc(var(--my) + 70px),
+        var(--brilho-2),
+        transparent 70%
+      );
+  }
+
+  .hero__palco {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    container-type: size;
+    pointer-events: none;
+    /* Base quase invisível em toda a área + luz em volta do cursor. Camadas de máscara somam. */
+    mask-image:
+      radial-gradient(
+        var(--luz-raio) circle at var(--mx) var(--my),
+        rgb(0 0 0 / var(--hero-pico)) 0%,
+        rgb(0 0 0 / calc(var(--hero-pico) * 0.55)) 40%,
+        transparent 100%
+      ),
+      linear-gradient(rgb(0 0 0 / var(--hero-base)), rgb(0 0 0 / var(--hero-base)));
+    mask-composite: add;
+  }
+
+  @media (hover: hover) {
+    .hero {
+      transition: --luz-raio var(--duracao-lenta) var(--curva);
+    }
+
+    .hero:hover {
+      --luz-raio: 440px;
+    }
+  }
+
+  /* Borda direita do conteúdo (mesma do .container). */
+  .hero__palco {
+    --borda-direita: max(var(--margem-lateral), (100cqw - var(--largura-max)) / 2);
+    /* Altura e borda direita da foto. */
+    --pessoa-altura: 94cqh;
+    --pessoa-direita: var(--borda-direita);
+  }
+
+  .hero__foto {
+    display: none;
+  }
+
+  /* Sem JavaScript (sem sorteio), mostra a primeira. */
+  .hero:not([data-foto]) .hero__foto[data-i='0'] {
+    display: block;
+  }
+
+  .hero__img {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-end: var(--pessoa-direita);
+    height: var(--pessoa-altura);
+    width: auto;
+    max-width: none;
+  }
+
+  .hero__conteudo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-s);
+    padding-block: var(--espaco-2xl);
+  }
+
+  .hero__conteudo > * {
+    max-width: 34rem;
+  }
+
+  .hero h1 {
+    max-width: 16ch;
+    font-size: var(--passo-5);
+  }
+
+  .hero__selo {
+    align-self: flex-start;
+    padding: 0.3rem 0.8rem;
+    border: var(--borda);
+    border-radius: var(--raio-pilula);
+    background: color-mix(in srgb, var(--cor-fundo) 70%, transparent);
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+    font-weight: 600;
+  }
+
+  .hero__texto {
+    font-size: var(--passo-1);
+    color: var(--cor-texto-suave);
+  }
+
+  .hero .grupo {
+    margin-block-start: var(--espaco-2xs);
+  }
+
+  .hero__publico {
+    font-size: var(--passo--1);
+  }
+
+  /* Tablet e notebooks pequenos: pessoa menor, para não encostar no texto. */
+  @media (min-width: 48rem) and (max-width: 71.99rem) {
+    .hero__palco {
+      --pessoa-altura: 82cqh;
+      --pessoa-direita: calc(var(--borda-direita) - 6cqw);
+    }
+  }
+
+  /* Celular: sem foto (ficaria atrás do texto); fica só o fundo. As fotos têm
+   * loading="lazy" e, ocultas, não são baixadas. */
+  @media (max-width: 47.99rem) {
+    .hero__palco {
+      display: none;
+    }
+  }
+</style>

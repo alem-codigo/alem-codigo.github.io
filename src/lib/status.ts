@@ -39,5 +39,16 @@ export function calcularStatus(c: Cronograma, hoje: string): StatusMentoria {
   return 'encerrada';
 }
 
-export const inscricoesAbertas = (c: Cronograma, hoje: string): boolean =>
+/** Variante de card por status (Q-08). O grafite (encerrada) é recuado e não tem ação principal. */
+export type VarianteCard = 'padrao' | 'violeta' | 'grafite';
+
+export const VARIANTE_CARD: Record<StatusMentoria, VarianteCard> = {
+  'em-breve': 'padrao',
+  'inscricoes-abertas': 'violeta',
+  'aguardando-inicio': 'padrao',
+  'em-andamento': 'padrao',
+  encerrada: 'grafite',
+};
+
+export const inscricoesAbertas =(c: Cronograma, hoje: string): boolean =>
   calcularStatus(c, hoje) === 'inscricoes-abertas';

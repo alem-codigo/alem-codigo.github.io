@@ -79,6 +79,28 @@
     --card-grafite-link: light-dark(#5f606e, #80818c);
     --card-grafite-botao: light-dark(#5f606e, #0478c7);
 
+    /* ---- Pílulas de status (Q-08): fundo opaco, texto e ponto. O texto carrega o significado;
+     * a cor nunca aparece sozinha. Verde só em "inscrições abertas" (única cor fora da paleta). */
+    --pilula-em-breve-fundo: light-dark(#f3e4f0, #3d1a3a);
+    --pilula-em-breve-texto: light-dark(#793670, #f0b8e6);
+    --pilula-em-breve-ponto: light-dark(#a3468f, #e07fcf);
+
+    --pilula-inscricoes-abertas-fundo: light-dark(#dcf3e5, #123323);
+    --pilula-inscricoes-abertas-texto: light-dark(#146235, #86e0a8);
+    --pilula-inscricoes-abertas-ponto: light-dark(#178a49, #3ccf7a);
+
+    --pilula-aguardando-inicio-fundo: light-dark(#ece3f4, #2f2147);
+    --pilula-aguardando-inicio-texto: light-dark(#5a3372, #d4bcff);
+    --pilula-aguardando-inicio-ponto: light-dark(#8650a6, #a67ee0);
+
+    --pilula-em-andamento-fundo: light-dark(#e0effb, #0f2a40);
+    --pilula-em-andamento-texto: light-dark(#0b5a94, #8fcbf8);
+    --pilula-em-andamento-ponto: light-dark(#0a7bc9, #2b9cf0);
+
+    --pilula-encerrada-fundo: light-dark(#d9dae0, #1f1d29);
+    --pilula-encerrada-texto: light-dark(#4f5060, #a3a4ae);
+    --pilula-encerrada-ponto: light-dark(#6e6f7b, #7a7b86);
+
     /* ---- Tipografia ----
      * `--fonte-texto` e `--fonte-mono` vêm da API de fontes do Astro (astro.config.mjs).
      * Escala fluida: 16px→18px de base, razão 1.2 (360px) → 1.25 (1240px). */

@@ -1,0 +1,11 @@
+---
+import { ROTULO_STATUS, type StatusMentoria } from '../lib/status';
+
+interface Props {
+  status: StatusMentoria;
+}
+
+const { status } = Astro.props;
+---
+
+<span class="pilula" data-status={status}>{ROTULO_STATUS[status]}</span>

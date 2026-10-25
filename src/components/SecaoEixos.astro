@@ -1,0 +1,95 @@
+---
+/** Chamada para os eixos de formação: um card por eixo, na ordem do campo `ordem`. */
+import { getCollection } from 'astro:content';
+
+const eixos = (await getCollection('eixos')).sort((a, b) => a.data.ordem - b.data.ordem);
+---
+
+<section class="secao eixos" aria-labelledby="eixos-titulo">
+  <div class="container pilha eixos__conteudo">
+    <header class="secao-cabecalho">
+      <div class="secao-cabecalho__texto">
+        <p class="rotulo">Eixos de formação</p>
+        <h2 id="eixos-titulo">{eixos.length} eixos para ir além do código</h2>
+        <p class="texto-suave">As mentorias se organizam em eixos; uma turma pode trabalhar um eixo ou combinar vários.</p>
+      </div>
+      <a class="link-seta" href="/eixos">Conhecer os eixos</a>
+    </header>
+
+    <ul class="grade eixos__lista" role="list">
+      {
+        eixos.map((e) => (
+          <li class="card card--brilho eixo">
+            <span class="eixo__numero mono">Eixo {e.data.numero}</span>
+            <h3>
+              <a class="eixo__link" href={`/eixos/${e.id}`}>
+                {e.data.titulo}
+              </a>
+            </h3>
+            <p class="texto-suave">{e.data.descricao}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .eixos {
+    background: var(--cor-faixa);
+    border-block: var(--borda);
+  }
+
+  .eixos__conteudo {
+    --pilha-espaco: var(--espaco-l);
+  }
+
+  .eixos__lista {
+    --grade-min: 12.5rem;
+  }
+
+  .eixo {
+    gap: var(--espaco-2xs);
+  }
+
+  .eixo:has(.eixo__link:focus-visible) {
+    outline: 3px solid var(--cor-foco);
+    outline-offset: 2px;
+  }
+
+  .eixo__numero {
+    color: var(--icone-cor);
+    font-size: var(--passo--1);
+    font-weight: 700;
+  }
+
+  .eixo h3 {
+    font-size: var(--passo-1);
+    line-height: 1.25;
+    /* Com 5 colunas, "trabalhabilidade" não cabe: hifeniza em vez de quebrar no meio da palavra. */
+    hyphens: auto;
+  }
+
+  .eixo__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .eixo__link:focus-visible {
+    outline: none;
+  }
+
+  .eixo__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+  }
+
+  .eixo:hover .eixo__link {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+</style>

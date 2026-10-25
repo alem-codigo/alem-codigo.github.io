@@ -1,44 +1,142 @@
 ---
+import { getCollection } from 'astro:content';
+import ComoFunciona from '../components/ComoFunciona.astro';
+import Hero from '../components/Hero.astro';
+import MentoriaCard from '../components/MentoriaCard.astro';
+import SecaoEixos from '../components/SecaoEixos.astro';
 import Base from '../layouts/Base.astro';
 import { hojeEmSaoPaulo } from '../lib/datas';
+import { agruparParaHome } from '../lib/mentorias';
 
-// Data do build em São Paulo (YYYY-MM-DD). Confirma TZ do CI e o cron diário.
-const buildDate = hojeEmSaoPaulo();
+const hoje = hojeEmSaoPaulo();
+const mentorias = await getCollection('mentorias');
+const { abertas, emBreve, emAndamento } = agruparParaHome(
+  mentorias.map((entrada) => ({ ...entrada.data, entrada })),
+  hoje,
+);
+
+// Com inscrições abertas, os botões da capa e da chamada final levam ao bloco da própria home.
+const linkInscricoes = abertas.length > 0 ? '#inscricoes-abertas' : null;
+const semMentorias = abertas.length + emBreve.length + emAndamento.length === 0;
+
+const blocos = [
+  {
+    id: 'inscricoes-abertas',
+    titulo: 'Inscrições abertas',
+    texto: 'Vagas limitadas. Confira se o seu curso está entre os elegíveis.',
+    itens: abertas,
+  },
+  {
+    id: 'em-breve',
+    titulo: 'Em breve',
+    texto: 'Turmas confirmadas, com inscrições abrindo nos próximos dias.',
+    itens: emBreve,
+  },
+  {
+    id: 'em-andamento',
+    titulo: 'Em andamento',
+    texto: 'Turmas em curso ou prestes a começar. Se você está inscrito, o portal da mentoria reúne aulas, materiais e próximas lives.',
+    itens: emAndamento,
+  },
+].filter((b) => b.itens.length > 0);
 ---
 
 <Base>
-  <section class="container secao pilha abertura">
-    <p class="abertura__chamada mono">Mentorias com professores e empresas parceiras</p>
-    <h1>Mentorias em tecnologia para quem estuda no Cluster de TI</h1>
-    <p class="abertura__texto">
-      Encontros ao vivo, materiais no Classroom e um caminho claro do primeiro projeto até o portfólio. O novo site
-      está em construção.
-    </p>
-    <div class="grupo">
-      <a class="botao" href="/mentorias">Ver mentorias</a>
-      <a class="botao botao--contorno" href="/como-participar">Como participar</a>
+  <Hero linkInscricoes={linkInscricoes} />
+
+  <div class="secao container pilha mentorias">
+    {
+      blocos.map((b) => (
+        <section class="pilha mentorias__bloco" id={b.id} aria-labelledby={`${b.id}-titulo`}>
+          <header class="secao-cabecalho">
+            <div class="secao-cabecalho__texto">
+              <h2 id={`${b.id}-titulo`}>{b.titulo}</h2>
+              <p class="texto-suave">{b.texto}</p>
+            </div>
+          </header>
+          <ul class="grade mentorias__lista" role="list">
+            {b.itens.map(({ mentoria, status }) => (
+              <li>
+                <MentoriaCard mentoria={mentoria.entrada} status={status} hoje={hoje} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+
+    {
+      semMentorias && (
+        <section class="mentorias__vazio" aria-labelledby="sem-mentorias-titulo">
+          <h2 id="sem-mentorias-titulo">Nenhuma inscrição aberta no momento</h2>
+          <p class="texto-suave">
+            Novas turmas abrem ao longo do semestre. Enquanto isso, conheça as mentorias anteriores e os eixos de
+            formação.
+          </p>
+        </section>
+      )
+    }
+
+    <p><a class="link-seta" href="/mentorias">Ver todas as mentorias</a></p>
+  </div>
+
+  <ComoFunciona />
+  <SecaoEixos />
+
+  <section class="secao container" aria-labelledby="chamada-titulo">
+    <div class="card card--brilho chamada" data-variante="violeta">
+      <h2 id="chamada-titulo">Pronto para ir além do código?</h2>
+      <p class="texto-suave">Veja as turmas abertas, confira a elegibilidade e garanta sua vaga.</p>
+      <div class="grupo">
+        {
+          linkInscricoes ? (
+            <a class="botao" href={linkInscricoes}>
+              Ver inscrições abertas
+            </a>
+          ) : (
+            <a class="botao" href="/mentorias">
+              Conhecer as mentorias
+            </a>
+          )
+        }
+        <a class="botao botao--contorno" href="/como-participar">Como participar</a>
+      </div>
     </div>
-    <p><small class="texto-suave">Build: <time datetime={buildDate}>{buildDate}</time></small></p>
   </section>
 </Base>
 
 <style>
-  .abertura {
+  .mentorias {
+    --pilha-espaco: var(--espaco-2xl);
+  }
+
+  .mentorias__bloco {
     --pilha-espaco: var(--espaco-m);
   }
 
-  .abertura__chamada {
-    color: var(--cor-texto-suave);
-    font-size: var(--passo--1);
-    font-weight: 600;
+  .mentorias__lista {
+    --grade-min: 20rem;
   }
 
-  .abertura h1 {
-    max-width: 20ch;
+  .mentorias__lista > li {
+    display: grid;
   }
 
-  .abertura__texto {
-    font-size: var(--passo-1);
-    max-width: 52ch;
+  .mentorias__vazio {
+    display: grid;
+    gap: var(--espaco-2xs);
+    padding: var(--espaco-l);
+    border: 1px dashed var(--cor-borda);
+    border-radius: var(--raio-l);
+  }
+
+  .chamada {
+    align-items: flex-start;
+    gap: var(--espaco-s);
+    padding: var(--espaco-xl) var(--espaco-l);
+  }
+
+  .chamada .botao {
+    align-self: auto;
   }
 </style>

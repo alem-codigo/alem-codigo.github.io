@@ -1,0 +1,104 @@
+---
+/** Resumo do passo a passo de `/como-participar` em quatro etapas. */
+const PASSOS = [
+  {
+    titulo: 'Escolha uma mentoria',
+    texto: 'Cada turma tem tema, período e cursos elegíveis definidos.',
+    icone: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm9 16-4-4',
+  },
+  {
+    titulo: 'Inscreva-se pelo formulário',
+    texto: 'Use o e-mail da sua conta Google: é para ele que vai o convite da turma.',
+    icone: 'M8 3h8l4 4v14H4V3h4m0 0v4h8M8 12h8M8 16h5',
+  },
+  {
+    titulo: 'Aceite o convite da turma',
+    texto: 'Ele chega por e-mail e libera o Classroom e os materiais.',
+    icone: 'M3 6h18v12H3zM3 7l9 6 9-6',
+  },
+  {
+    titulo: 'Participe e entregue o projeto final',
+    texto: 'Encontros ao vivo, atividades práticas e apoio dos mentores. A entrega final garante o certificado e pode contar como horas complementares.',
+    icone: 'M12 3a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-3.5 10.5L7 21l5-3 5 3-1.5-7.5',
+  },
+] as const;
+---
+
+<section class="secao" aria-labelledby="como-funciona-titulo">
+  <div class="container pilha como-funciona">
+    <header class="secao-cabecalho">
+      <div class="secao-cabecalho__texto">
+        <p class="rotulo">Como funciona</p>
+        <h2 id="como-funciona-titulo">Da inscrição ao certificado em quatro passos</h2>
+      </div>
+      <a class="link-seta" href="/como-participar">Passo a passo completo</a>
+    </header>
+
+    <ol class="como-funciona__passos" role="list">
+      {
+        PASSOS.map((p, i) => (
+          <li class="como-funciona__passo">
+            <span class="icone">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path
+                  d={p.icone}
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span class="como-funciona__numero mono" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h3>{p.titulo}</h3>
+            <p class="texto-suave">{p.texto}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .como-funciona {
+    --pilha-espaco: var(--espaco-l);
+  }
+
+  .como-funciona__passos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: var(--espaco-l) var(--espaco-m);
+    counter-reset: passo;
+  }
+
+  .como-funciona__passo {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-content: start;
+    gap: var(--espaco-2xs) var(--espaco-xs);
+    padding-block-start: var(--espaco-s);
+    border-block-start: var(--borda);
+  }
+
+  .como-funciona__numero {
+    align-self: center;
+    justify-self: end;
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+    font-weight: 600;
+  }
+
+  .como-funciona__passo h3,
+  .como-funciona__passo p {
+    grid-column: 1 / -1;
+  }
+
+  .como-funciona__passo h3 {
+    margin-block-start: var(--espaco-2xs);
+    font-size: var(--passo-1);
+  }
+</style>
