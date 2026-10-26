@@ -223,6 +223,7 @@ content:
         label: Cargo
         type: string
         required: true
+        description: 'Função profissional, sem a empresa (ela tem campo próprio). Ex.: Professora de Banco de Dados, Desenvolvedor Back-end Sênior.'
       - name: empresa
         label: Empresa
         type: string
@@ -313,10 +314,11 @@ settings:
   # Esconde o editor de configuração do painel: o .pages.yml só muda por commit.
   config: false
   commit:
-    # Commits feitos pelo app (pages-cms[bot]): disparam o deploy e não expõem e-mail pessoal (seção 10).
+    # Na prática, o painel grava com o usuário logado como autor (e-mail noreply do GitHub) e dispara o deploy.
+    # Não use {user}/{userEmail} nas mensagens: viram o e-mail da conta, público no histórico (seção 10).
     identity: app
     templates:
-      create: "conteúdo: cria {path} (painel, {user})"
-      update: "conteúdo: atualiza {path} (painel, {user})"
-      delete: "conteúdo: remove {path} (painel, {user})"
-      rename: "conteúdo: renomeia {oldPath} para {newPath} (painel, {user})"
+      create: "conteúdo: cria {path} (painel)"
+      update: "conteúdo: atualiza {path} (painel)"
+      delete: "conteúdo: remove {path} (painel)"
+      rename: "conteúdo: renomeia {oldPath} para {newPath} (painel)"
