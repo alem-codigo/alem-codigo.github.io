@@ -63,6 +63,8 @@ const pares: Par[] = [
     [`--card-${v}-texto-suave`, `--card-${v}-fundo`, AA.texto],
     [`--card-${v}-link`, `--card-${v}-fundo`, AA.texto],
     ['--botao-texto', `--card-${v}-botao`, AA.texto],
+    // Rodapé do card de mentoria ("Em parceria com")
+    [`--card-${v}-texto-suave`, `--card-${v}-rodape`, AA.texto],
   ]),
   // Botão principal do card. No grafite (encerrada), o card não tem ação principal.
   ['--card-padrao-botao', '--card-padrao-fundo', AA.componente],

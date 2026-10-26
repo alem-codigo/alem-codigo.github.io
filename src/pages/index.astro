@@ -6,79 +6,55 @@ import MentoriaCard from '../components/MentoriaCard.astro';
 import SecaoEixos from '../components/SecaoEixos.astro';
 import Base from '../layouts/Base.astro';
 import { hojeEmSaoPaulo } from '../lib/datas';
-import { agruparParaHome } from '../lib/mentorias';
+import { destaquesHome } from '../lib/mentorias';
+import { inscricoesAbertas } from '../lib/status';
 
 const hoje = hojeEmSaoPaulo();
 const mentorias = await getCollection('mentorias');
-const { abertas, emBreve, emAndamento } = agruparParaHome(
+// Uma seção só, "Conheça as mentorias": até 3 cards (abertas, depois em breve e em andamento).
+const destaques = destaquesHome(
   mentorias.map((entrada) => ({ ...entrada.data, entrada })),
   hoje,
 );
 
-// Com inscrições abertas, os botões da capa e da chamada final levam ao bloco da própria home.
-const linkInscricoes = abertas.length > 0 ? '#inscricoes-abertas' : null;
-const semMentorias = abertas.length + emBreve.length + emAndamento.length === 0;
-
-const blocos = [
-  {
-    id: 'inscricoes-abertas',
-    titulo: 'Inscrições abertas',
-    texto: 'Vagas limitadas. Confira se o seu curso está entre os elegíveis.',
-    itens: abertas,
-  },
-  {
-    id: 'em-breve',
-    titulo: 'Em breve',
-    texto: 'Turmas confirmadas, com inscrições abrindo nos próximos dias.',
-    itens: emBreve,
-  },
-  {
-    id: 'em-andamento',
-    titulo: 'Em andamento',
-    texto: 'Turmas em curso ou com inscrições encerradas, prestes a começar. Se você está inscrito, o portal da mentoria reúne aulas, materiais e próximas lives.',
-    itens: emAndamento,
-  },
-].filter((b) => b.itens.length > 0);
+// Com inscrições abertas, os botões da capa e da chamada final levam à seção da própria home.
+const linkInscricoes = mentorias.some((m) => inscricoesAbertas(m.data, hoje)) ? '#mentorias' : null;
 ---
 
 <Base>
   <Hero linkInscricoes={linkInscricoes} />
 
-  <div class="secao container pilha mentorias">
-    {
-      blocos.map((b) => (
-        <section class="pilha mentorias__bloco" id={b.id} aria-labelledby={`${b.id}-titulo`}>
-          <header class="secao-cabecalho">
-            <div class="secao-cabecalho__texto">
-              <h2 id={`${b.id}-titulo`}>{b.titulo}</h2>
-              <p class="texto-suave">{b.texto}</p>
-            </div>
-          </header>
-          <ul class="grade mentorias__lista" role="list">
-            {b.itens.map(({ mentoria, status }) => (
-              <li>
-                <MentoriaCard mentoria={mentoria.entrada} status={status} hoje={hoje} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))
-    }
+  <section class="secao container pilha mentorias" id="mentorias" aria-labelledby="mentorias-titulo">
+    <header class="secao-cabecalho">
+      <div class="secao-cabecalho__texto">
+        <p class="rotulo">Mentorias</p>
+        <h2 id="mentorias-titulo">Conheça as mentorias</h2>
+        <p class="texto-suave">Turmas com inscrições abertas, as próximas e as que estão em andamento.</p>
+      </div>
+    </header>
 
     {
-      semMentorias && (
-        <section class="mentorias__vazio" aria-labelledby="sem-mentorias-titulo">
-          <h2 id="sem-mentorias-titulo">Nenhuma inscrição aberta no momento</h2>
+      destaques.length > 0 ? (
+        <ul class="grade mentorias__lista" role="list">
+          {destaques.map(({ mentoria, status }) => (
+            <li>
+              <MentoriaCard mentoria={mentoria.entrada} status={status} hoje={hoje} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div class="mentorias__vazio">
+          <p class="mentorias__vazio-titulo">Nenhuma turma aberta ou em andamento no momento</p>
           <p class="texto-suave">
             Novas turmas abrem ao longo do semestre. Enquanto isso, conheça as mentorias anteriores e os eixos de
             formação.
           </p>
-        </section>
+        </div>
       )
     }
 
-    <p><a class="link-seta" href="/mentorias">Ver todas as mentorias</a></p>
-  </div>
+    <p><a class="link-seta" href="/mentorias">Veja todas as mentorias</a></p>
+  </section>
 
   <ComoFunciona />
   <SecaoEixos />
@@ -107,15 +83,17 @@ const blocos = [
 
 <style>
   .mentorias {
-    --pilha-espaco: var(--espaco-2xl);
+    --pilha-espaco: var(--espaco-l);
   }
 
-  .mentorias__bloco {
-    --pilha-espaco: var(--espaco-m);
-  }
-
+  /* Lado a lado, no máximo 3 por linha. */
   .mentorias__lista {
-    --grade-min: 20rem;
+    --grade-min: max(18rem, calc((100% - 2 * var(--espaco-m)) / 3));
+  }
+
+  .mentorias__vazio-titulo {
+    font-size: var(--passo-1);
+    font-weight: var(--peso-negrito);
   }
 
   .mentorias__lista > li {

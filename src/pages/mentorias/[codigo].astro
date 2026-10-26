@@ -1,0 +1,526 @@
+---
+/**
+ * Página da mentoria (/mentorias/m26-01). Gerada para toda mentoria cadastrada: o card da home só
+ * existe junto com esta página. Conteúdo: capa, status e selos, título, resumo, eixos, objetivo
+ * (corpo do arquivo), cursos e pré-requisitos, mentores e parceiro. À direita (no celular, no fim), o card de inscrição:
+ * botão do Forms nas inscrições abertas; data de abertura em "em breve"; campo "me avise" nos
+ * demais status (D-19). Portal do Classroom (cronograma, aulas, lives) entra na Fase 2.
+ */
+import type { GetStaticPaths } from 'astro';
+import { getCollection, getEntries, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import AvisoTurma from '../../components/AvisoTurma.astro';
+import StatusPilula from '../../components/StatusPilula.astro';
+import Base from '../../layouts/Base.astro';
+import { hojeEmSaoPaulo } from '../../lib/datas';
+import { ICONES_EIXO } from '../../lib/eixos';
+import { dataDestaque, formatarPeriodo, juntarLista } from '../../lib/mentorias';
+import { calcularStatus, VARIANTE_CARD } from '../../lib/status';
+
+export const getStaticPaths = (async () => {
+  const mentorias = await getCollection('mentorias');
+  return mentorias.map((mentoria) => {
+    // Seção 6.2: o objetivo (corpo do arquivo) é obrigatório na página.
+    if (!mentoria.body?.trim()) {
+      throw new Error(`Mentoria "${mentoria.id}" sem objetivo: preencha o campo Objetivo no painel.`);
+    }
+    return { params: { codigo: mentoria.id }, props: { mentoria } };
+  });
+}) satisfies GetStaticPaths;
+
+const { mentoria } = Astro.props;
+const m = mentoria.data;
+const hoje = hojeEmSaoPaulo();
+const status = calcularStatus(m, hoje);
+const variante = VARIANTE_CARD[status];
+const { Content } = await render(mentoria);
+const [eixos, mentores, selos] = await Promise.all([getEntries(m.eixos), getEntries(m.mentores), getEntries(m.selos)]);
+const eixosOrdenados = eixos.sort((a, b) => a.data.ordem - b.data.ordem);
+const periodoInscricoes = formatarPeriodo(m.inscricoes.abertura, m.inscricoes.fechamento, hoje);
+const periodoRealizacao = formatarPeriodo(m.realizacao.inicio, m.realizacao.fim, hoje);
+const abertura = dataDestaque(m.inscricoes.abertura);
+const fechamento = dataDestaque(m.inscricoes.fechamento);
+---
+
+<Base title={m.titulo} description={m.resumo}>
+  <article class="container mentoria-pagina">
+    <nav class="mentoria-pagina__trilha" aria-label="Trilha">
+      <a href="/">Início</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{m.titulo}</span>
+    </nav>
+
+    <div class="mentoria-pagina__banner">
+      {
+        m.capa ? (
+          <Image class="mentoria-pagina__capa" src={m.capa} alt="" widths={[720, 1200, 1600]} sizes="(min-width: 72rem) 72rem, 100vw" loading="eager" />
+        ) : (
+          <div class="mentoria-pagina__capa capa-padrao" />
+        )
+      }
+    </div>
+
+    <div class="mentoria-pagina__grade">
+      <header class="mentoria-pagina__cabecalho">
+        <div class="mentoria-pagina__pilulas">
+          <StatusPilula status={status} />
+          {selos.map((s) => <span class="selo">{s.data.nome}</span>)}
+        </div>
+        <h1>{m.titulo}</h1>
+        <p class="mentoria-pagina__resumo">{m.resumo}</p>
+        {/*
+          Desktop: ícone e nome. Celular: só o ícone; o toque abre o nome num balão (<details> com
+          `name`, um aberto por vez, sem JavaScript). O nome continua no <summary> para leitores de tela.
+        */}
+        <ul class="mentoria-pagina__eixos" role="list" aria-label="Eixos">
+          {
+            eixosOrdenados.map((e) => (
+              <li>
+                <details class="eixo-dica" name="eixos-da-mentoria">
+                  <summary class="mentoria-pagina__eixo">
+                    <span class="icone">
+                      <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d={ICONES_EIXO[e.data.icone].d} />
+                      </svg>
+                    </span>
+                    <span class="eixo-dica__nome">
+                      <span class="mentoria-pagina__eixo-numero mono">Eixo {e.data.numero}</span>
+                      {e.data.titulo}
+                    </span>
+                  </summary>
+                  <p class="eixo-dica__balao" aria-hidden="true">
+                    Eixo {e.data.numero} · {e.data.titulo}
+                  </p>
+                </details>
+              </li>
+            ))
+          }
+        </ul>
+      </header>
+
+      <aside class="mentoria-pagina__lateral" aria-label="Inscrição">
+        <div class="card mentoria-pagina__inscricao" data-variante={variante === 'padrao' ? undefined : variante}>
+          <StatusPilula status={status} />
+          {/* A encerrada não tem pílula (D-17); o status aparece como texto. */}
+          {status === 'encerrada' && <p class="mentoria-pagina__encerrada">Mentoria encerrada</p>}
+          <dl class="mentoria-pagina__datas">
+            <div>
+              <dt>Inscrições</dt>
+              <dd>{periodoInscricoes}</dd>
+            </div>
+            <div>
+              <dt>Realização</dt>
+              <dd>{periodoRealizacao}</dd>
+            </div>
+          </dl>
+
+          {
+            status === 'inscricoes-abertas' && (
+              <>
+                <a class="botao mentoria-pagina__inscrever" href={m.formUrl}>
+                  Inscrever-se
+                  <span class="visualmente-oculto">(formulário do Google)</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+                    <path d="M7 17 17 7M9 7h8v8" />
+                  </svg>
+                </a>
+                <p class="mentoria-pagina__nota">
+                  Inscrições até {fechamento.extenso}. Use o e-mail da sua conta Google: o convite da turma chega nele.
+                </p>
+              </>
+            )
+          }
+          {
+            status === 'em-breve' && (
+              <p class="mentoria-pagina__nota mentoria-pagina__nota--destaque">Inscrições abrem em {abertura.extenso}.</p>
+            )
+          }
+          {
+            (status === 'inscricoes-encerradas' || status === 'em-andamento' || status === 'encerrada') && (
+              <AvisoTurma mentoria={`${m.codigo} · ${m.titulo}`} />
+            )
+          }
+        </div>
+      </aside>
+
+      <div class="mentoria-pagina__conteudo">
+        <section aria-labelledby="objetivo">
+          <h2 id="objetivo">Objetivo</h2>
+          <div class="prosa"><Content /></div>
+        </section>
+
+        <section aria-labelledby="para-quem">
+          <h2 id="para-quem">Para quem é</h2>
+          <dl class="mentoria-pagina__lista">
+            <div>
+              <dt>Cursos elegíveis</dt>
+              <dd>{juntarLista(m.cursos)}</dd>
+            </div>
+            {
+              m.prerequisitos.length > 0 && (
+                <div>
+                  <dt>Pré-requisitos</dt>
+                  <dd>
+                    <ul>
+                      {m.prerequisitos.map((p) => (
+                        <li>{p}</li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+              )
+            }
+          </dl>
+        </section>
+
+        <section aria-labelledby="mentores">
+          <h2 id="mentores">{mentores.length > 1 ? 'Mentores' : 'Mentoria com'}</h2>
+          <ul class="mentoria-pagina__mentores" role="list">
+            {
+              mentores.map((p) => (
+                <li class="mentor">
+                  <Image class="mentor__foto" src={p.data.foto} alt="" width={160} height={160} />
+                  <div class="mentor__texto">
+                    <h3>{p.data.nome}</h3>
+                    <p class="mentor__cargo">{[p.data.cargo, p.data.empresa].filter(Boolean).join(' · ')}</p>
+                    <p>{p.data.bio}</p>
+                    {(p.data.linkedin || p.data.github) && (
+                      <p class="mentor__links">
+                        {p.data.linkedin && <a href={p.data.linkedin}>LinkedIn<span class="visualmente-oculto"> de {p.data.nome}</span></a>}
+                        {p.data.github && <a href={p.data.github}>GitHub<span class="visualmente-oculto"> de {p.data.nome}</span></a>}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))
+            }
+          </ul>
+        </section>
+
+        {
+          m.parceiro && (
+            <section class="mentoria-pagina__parceiro" aria-labelledby="parceiro">
+              <h2 id="parceiro">Em parceria com</h2>
+              <a href={m.parceiro.url}>
+                <Image src={m.parceiro.logo} alt={m.parceiro.nome} height={96} />
+              </a>
+            </section>
+          )
+        }
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .mentoria-pagina {
+    display: grid;
+    gap: var(--espaco-m);
+    padding-block: var(--espaco-l) var(--espaco-2xl);
+  }
+
+  .mentoria-pagina__trilha {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-2xs);
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  /* ---- Banner: faixa larga (21:9), mais baixa no celular ---- */
+  .mentoria-pagina__banner {
+    overflow: hidden;
+    aspect-ratio: 21 / 9;
+    border: var(--borda);
+    border-radius: var(--raio-l);
+  }
+
+  .mentoria-pagina__capa {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media (width < 48rem) {
+    .mentoria-pagina__banner {
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  /* ---- Grade: conteúdo à esquerda, card de inscrição à direita (no celular, no final) ---- */
+  .mentoria-pagina__grade {
+    display: grid;
+    grid-template-areas: 'cabecalho' 'conteudo' 'lateral';
+    gap: var(--espaco-l);
+  }
+
+  @media (width >= 64rem) {
+    .mentoria-pagina__grade {
+      grid-template-areas: 'cabecalho lateral' 'conteudo lateral';
+      grid-template-columns: minmax(0, 1fr) 22rem;
+      grid-template-rows: auto 1fr;
+      column-gap: var(--espaco-xl);
+    }
+  }
+
+  .mentoria-pagina__cabecalho {
+    grid-area: cabecalho;
+    display: grid;
+    gap: var(--espaco-s);
+  }
+
+  .mentoria-pagina__lateral {
+    grid-area: lateral;
+  }
+
+  .mentoria-pagina__conteudo {
+    grid-area: conteudo;
+    display: grid;
+    gap: var(--espaco-xl);
+    align-content: start;
+  }
+
+  .mentoria-pagina__conteudo section {
+    display: grid;
+    gap: var(--espaco-s);
+  }
+
+  .mentoria-pagina__pilulas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-3xs);
+  }
+
+  .mentoria-pagina h1 {
+    font-size: var(--passo-4);
+  }
+
+  .mentoria-pagina__resumo {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo-1);
+  }
+
+  .mentoria-pagina__eixos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-xs) var(--espaco-m);
+  }
+
+  .mentoria-pagina__eixo {
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-2xs);
+    font-weight: var(--peso-negrito);
+  }
+
+  .eixo-dica__nome {
+    display: grid;
+    line-height: 1.25;
+  }
+
+  /* No desktop o nome já está visível: o <summary> não abre nada. */
+  .mentoria-pagina__eixo {
+    list-style: none;
+    cursor: default;
+  }
+
+  .mentoria-pagina__eixo::-webkit-details-marker {
+    display: none;
+  }
+
+  .eixo-dica__balao {
+    display: none;
+  }
+
+  @media (width < 48rem) {
+    .mentoria-pagina__eixos {
+      gap: var(--espaco-2xs);
+    }
+
+    .mentoria-pagina__eixos li {
+      position: relative;
+    }
+
+    .eixo-dica__nome {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .mentoria-pagina__eixo {
+      cursor: pointer;
+      border-radius: var(--raio-m);
+    }
+
+    .mentoria-pagina__eixo .icone {
+      width: 2.75rem; /* alvo de toque de 44px */
+      height: 2.75rem;
+    }
+
+    .eixo-dica[open] .icone {
+      box-shadow: inset 0 0 0 2px var(--icone-cor);
+    }
+
+    .eixo-dica[open] .eixo-dica__balao {
+      position: absolute;
+      z-index: 3;
+      top: calc(100% + 0.4rem);
+      left: 0;
+      display: block;
+      width: max-content;
+      max-width: 15rem;
+      padding: 0.4rem 0.65rem;
+      border: var(--borda);
+      border-radius: var(--raio-s);
+      background: var(--card-padrao-fundo);
+      box-shadow: 0 6px 18px rgb(0 0 0 / 0.25);
+      color: var(--cor-texto);
+      font-size: var(--passo--1);
+      font-weight: var(--peso-negrito);
+    }
+  }
+
+  .mentoria-pagina__eixo-numero {
+    color: var(--icone-cor);
+    font-size: var(--passo--1);
+  }
+
+  .mentoria-pagina svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ---- Card de inscrição: acompanha a rolagem no desktop ---- */
+  .mentoria-pagina__inscricao {
+    gap: var(--espaco-s);
+  }
+
+  @media (width >= 64rem) {
+    .mentoria-pagina__inscricao {
+      position: sticky;
+      top: var(--espaco-l);
+    }
+  }
+
+  .mentoria-pagina__inscricao > :global(.pilula) {
+    align-self: flex-start;
+  }
+
+  .mentoria-pagina__encerrada {
+    font-weight: var(--peso-negrito);
+  }
+
+  .mentoria-pagina__datas {
+    display: grid;
+    gap: var(--espaco-xs);
+  }
+
+  .mentoria-pagina__datas dt {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .mentoria-pagina__datas dd {
+    margin: 0;
+    font-size: var(--passo-1);
+    font-weight: var(--peso-negrito);
+  }
+
+  .mentoria-pagina__inscrever {
+    width: 100%;
+  }
+
+  .mentoria-pagina__nota {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .mentoria-pagina__nota--destaque {
+    color: var(--_texto);
+    font-size: var(--passo-0);
+    font-weight: var(--peso-negrito);
+  }
+
+  /* ---- Texto do objetivo (Markdown do painel) ---- */
+  .prosa :global(> * + *) {
+    margin-block-start: var(--espaco-s);
+  }
+
+  .prosa :global(ul),
+  .prosa :global(ol) {
+    padding-inline-start: 1.25em;
+  }
+
+  .mentoria-pagina__lista {
+    display: grid;
+    gap: var(--espaco-s);
+  }
+
+  .mentoria-pagina__lista dt {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+  }
+
+  .mentoria-pagina__lista dd {
+    margin: 0;
+  }
+
+  .mentoria-pagina__lista ul {
+    padding-inline-start: 1.25em;
+  }
+
+  /* ---- Mentores: foto redonda e mini currículo ---- */
+  .mentoria-pagina__mentores {
+    display: grid;
+    gap: var(--espaco-m);
+  }
+
+  .mentor {
+    display: grid;
+    grid-template-columns: 5rem 1fr;
+    gap: var(--espaco-s);
+    align-items: start;
+  }
+
+  .mentor__foto {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .mentor__texto {
+    display: grid;
+    gap: var(--espaco-3xs);
+  }
+
+  .mentor h3 {
+    font-size: var(--passo-1);
+  }
+
+  .mentor__cargo {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .mentor__links {
+    display: flex;
+    gap: var(--espaco-s);
+    font-size: var(--passo--1);
+  }
+
+  .mentoria-pagina__parceiro img {
+    width: auto;
+    max-width: 14rem;
+    height: 3rem;
+    object-fit: contain;
+  }
+</style>

@@ -1,0 +1,124 @@
+---
+/**
+ * "Me avise da próxima turma" (D-19): e-mail e consentimento enviados para o Google Forms único,
+ * sem sair do site. Nada é gravado no repositório (seção 10).
+ *
+ * Sem JavaScript, o formulário é enviado normalmente e o Google abre a confirmação numa nova aba.
+ * Com JavaScript, o envio é feito em segundo plano (`no-cors`): o navegador não deixa ler a
+ * resposta do Google, então a mensagem de sucesso é mostrada assim que o envio sai.
+ * Só aparece com FORM_AVISO configurado em src/lib/site.ts.
+ */
+import { FORM_AVISO } from '../lib/site';
+
+interface Props {
+  /** Ex.: `M26-01 · Análise de Dados com a Qlik` (vai para a planilha do Forms). */
+  mentoria: string;
+}
+
+const { mentoria } = Astro.props;
+const f = FORM_AVISO;
+---
+
+{
+  f && (
+    <form class="aviso" action={f.acao} method="post" target="_blank" data-aviso>
+      <p class="aviso__titulo">Quer participar da próxima turma?</p>
+      <p class="aviso__texto">Deixe seu e-mail e avisamos quando houver uma nova oferta desta mentoria.</p>
+      <input type="hidden" name={f.campos.mentoria} value={mentoria} />
+      <label class="aviso__rotulo" for="aviso-email">E-mail</label>
+      <input
+        class="aviso__email"
+        id="aviso-email"
+        type="email"
+        name={f.campos.email}
+        autocomplete="email"
+        required
+        placeholder="voce@exemplo.com"
+      />
+      <label class="aviso__consentimento">
+        <input type="checkbox" name={f.campos.consentimento} value={f.consentimento} required />
+        <span>{f.consentimento}</span>
+      </label>
+      <button class="botao" type="submit">Avise-me</button>
+      <p class="aviso__retorno" role="status" aria-live="polite" data-aviso-retorno></p>
+    </form>
+  )
+}
+
+<script>
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-aviso]')) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const retorno = form.querySelector<HTMLElement>('[data-aviso-retorno]')!;
+      const botao = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      botao.disabled = true;
+      try {
+        await fetch(form.action, { method: 'POST', mode: 'no-cors', body: new FormData(form) });
+        form.reset();
+        retorno.textContent = 'Pronto! Vamos avisar você quando houver uma nova turma.';
+      } catch {
+        retorno.textContent = 'Não foi possível enviar agora. Verifique a conexão e tente de novo.';
+      } finally {
+        botao.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .aviso {
+    display: grid;
+    gap: var(--espaco-2xs);
+  }
+
+  .aviso__titulo {
+    font-weight: var(--peso-negrito);
+  }
+
+  .aviso__texto,
+  .aviso__consentimento {
+    color: var(--_texto-suave, var(--cor-texto-suave));
+    font-size: var(--passo--1);
+  }
+
+  .aviso__rotulo {
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+  }
+
+  .aviso__email {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--_borda, var(--cor-borda));
+    border-radius: var(--raio-m);
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+    font: inherit;
+  }
+
+  .aviso__consentimento {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--espaco-2xs);
+  }
+
+  .aviso__consentimento input {
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-block-start: 0.2em;
+    accent-color: var(--cor-link);
+  }
+
+  .aviso .botao {
+    justify-self: start;
+  }
+
+  .aviso__retorno:empty {
+    display: none;
+  }
+
+  .aviso__retorno {
+    font-weight: var(--peso-negrito);
+  }
+</style>

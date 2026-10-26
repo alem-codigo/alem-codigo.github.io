@@ -62,6 +62,8 @@
     --card-padrao-texto-suave: light-dark(#535367, #c4c5ca);
     --card-padrao-link: light-dark(#693d84, #c9a7ff);
     --card-padrao-botao: light-dark(#693d84, #0478c7);
+    /* Rodapé do card de mentoria (parceiro e eixos): faixa em tom mais escuro que o card. */
+    --card-padrao-rodape: light-dark(#f1f1f4, #0f0d15);
 
     --card-violeta-fundo: light-dark(#f1ebf6, #2a1d3b);
     --card-violeta-borda: light-dark(#e4d8ee, #3f2d55);
@@ -69,6 +71,7 @@
     --card-violeta-texto-suave: light-dark(#535367, #c4c5ca);
     --card-violeta-link: light-dark(#693d84, #c9a7ff);
     --card-violeta-botao: light-dark(#693d84, #0478c7);
+    --card-violeta-rodape: light-dark(#e7e0ee, #171020);
 
     /* Grafite: recuado e com texto propositalmente apagado (encerrada), no limite do AA.
      * Sem botão principal. */
@@ -78,6 +81,8 @@
     --card-grafite-texto-suave: light-dark(#666775, #7a7b86);
     --card-grafite-link: light-dark(#5f606e, #80818c);
     --card-grafite-botao: light-dark(#5f606e, #0478c7);
+    /* No claro, o texto apagado já está no limite do AA: o rodapé não escurece. */
+    --card-grafite-rodape: light-dark(#e6e7eb, #09080d);
 
     /* ---- Pílulas de status (D-17): fundo opaco, texto e ponto. O texto carrega o significado;
      * a cor nunca aparece sozinha. Verde só em "inscrições abertas" (única cor fora da paleta).

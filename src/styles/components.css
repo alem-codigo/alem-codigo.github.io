@@ -109,6 +109,7 @@
     --_texto-suave: var(--card-padrao-texto-suave);
     --_link: var(--card-padrao-link);
     --_botao: var(--card-padrao-botao);
+    --_rodape: var(--card-padrao-rodape);
 
     position: relative;
     isolation: isolate;
@@ -129,6 +130,7 @@
     --_texto-suave: var(--card-violeta-texto-suave);
     --_link: var(--card-violeta-link);
     --_botao: var(--card-violeta-botao);
+    --_rodape: var(--card-violeta-rodape);
   }
 
   .card[data-variante='grafite'] {
@@ -138,6 +140,7 @@
     --_texto-suave: var(--card-grafite-texto-suave);
     --_link: var(--card-grafite-link);
     --_botao: var(--card-grafite-botao);
+    --_rodape: var(--card-grafite-rodape);
   }
 
   .card[data-variante='grafite'] .icone {
@@ -286,6 +289,28 @@
 
   .link-seta:hover::after {
     translate: 0.2em 0;
+  }
+
+  /* ---- Capa padrão: mentoria sem imagem de capa (card e página) ----
+   * Degradê da marca (violeta → ameixa, com brilho azul) e o símbolo sem texto em marca d'água,
+   * no canto superior direito. */
+  .capa-padrao {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 85% 20%, rgb(12 145 237 / 0.45), transparent 55%),
+      linear-gradient(135deg, #693d84, #793670);
+  }
+
+  .capa-padrao::after {
+    content: '';
+    position: absolute;
+    top: 9%;
+    right: 3.5%;
+    height: 38%;
+    aspect-ratio: 103 / 127;
+    background: url('/marca/simbolo-branco.svg') center / contain no-repeat;
+    opacity: 0.09;
   }
 
   /* ---- Selo (livre, cadastrado no painel) ----

@@ -21,20 +21,38 @@ export function formatarPeriodo(inicio: string, fim: string, hoje: string, comAn
   return `${textoInicio} – ${textoFim}`;
 }
 
-/** Frase de data que o card mostra em destaque, conforme o status. */
-export function textoDataStatus(c: Cronograma, status: StatusMentoria, hoje: string): string {
+/** Linha de inscrições do card, conforme o status. */
+export function textoInscricoes(c: Cronograma, status: StatusMentoria, hoje: string): string {
+  const { abertura, fechamento } = c.inscricoes;
   switch (status) {
     case 'em-breve':
-      return `Inscrições a partir de ${formatarData(c.inscricoes.abertura, hoje)}`;
+      return `Inscrições de ${formatarData(abertura, hoje)} a ${formatarData(fechamento, hoje)}`;
     case 'inscricoes-abertas':
-      return `Inscrições até ${formatarData(c.inscricoes.fechamento, hoje)}`;
-    case 'inscricoes-encerradas':
-      return `Começa em ${formatarData(c.realizacao.inicio, hoje)}`;
-    case 'em-andamento':
-      return `Termina em ${formatarData(c.realizacao.fim, hoje)}`;
-    case 'encerrada':
-      return formatarPeriodo(c.realizacao.inicio, c.realizacao.fim, hoje, true);
+      return `Inscrições até ${formatarData(fechamento, hoje)}`;
+    default:
+      return `Inscrições encerradas em ${formatarData(fechamento, hoje)}`;
   }
+}
+
+const MESES = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'] as const;
+const MESES_EXTENSO = [
+  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+] as const;
+
+export interface DataDestaque {
+  dia: string;
+  mes: string;
+  ano: string;
+  /** Para leitores de tela: `11 de janeiro de 2027`. */
+  extenso: string;
+}
+
+/** Data em destaque no banner do card (início da realização): `2027-01-11` → 11 / JAN / 2027. */
+export function dataDestaque(data: string): DataDestaque {
+  const [ano = '', mes = '', dia = ''] = data.split('-');
+  const i = Number(mes) - 1;
+  return { dia, mes: MESES[i] ?? '', ano, extenso: `${Number(dia)} de ${MESES_EXTENSO[i] ?? ''} de ${ano}` };
 }
 
 export interface ComStatus<T> {
@@ -66,6 +84,15 @@ export function agruparParaHome<T extends Cronograma>(mentorias: readonly T[], h
       ...de('inscricoes-encerradas').sort(porData((c) => c.realizacao.inicio)),
     ],
   };
+}
+
+/**
+ * Mentorias em destaque na home ("Conheça as mentorias"): inscrições abertas primeiro, depois
+ * em breve e em andamento (mesma ordem de `agruparParaHome`). Encerradas ficam de fora.
+ */
+export function destaquesHome<T extends Cronograma>(mentorias: readonly T[], hoje: string, limite = 3): ComStatus<T>[] {
+  const { abertas, emBreve, emAndamento } = agruparParaHome(mentorias, hoje);
+  return [...abertas, ...emBreve, ...emAndamento].slice(0, limite);
 }
 
 /** `['A', 'B', 'C']` → `A, B e C`. */

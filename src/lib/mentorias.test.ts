@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { agruparParaHome, formatarData, formatarPeriodo, juntarLista, textoDataStatus } from './mentorias';
+import { agruparParaHome, dataDestaque, destaquesHome, formatarData, formatarPeriodo, juntarLista, textoInscricoes } from './mentorias';
 import { STATUS_MENTORIA, VARIANTE_CARD, type Cronograma } from './status';
 
 const hoje = '2026-11-05';
@@ -38,19 +38,25 @@ describe('formatarPeriodo', () => {
   });
 });
 
-describe('textoDataStatus', () => {
+describe('textoInscricoes', () => {
   const c: Cronograma = m('x', '2026-11-01', '2026-11-10', '2026-11-20', '2026-12-15');
 
   it.each([
-    ['em-breve', 'Inscrições a partir de 01/11'],
+    ['em-breve', 'Inscrições de 01/11 a 10/11'],
     ['inscricoes-abertas', 'Inscrições até 10/11'],
-    ['inscricoes-encerradas', 'Começa em 20/11'],
-    ['em-andamento', 'Termina em 15/12'],
-    ['encerrada', '20/11 – 15/12/2026'],
+    ['inscricoes-encerradas', 'Inscrições encerradas em 10/11'],
+    ['em-andamento', 'Inscrições encerradas em 10/11'],
+    ['encerrada', 'Inscrições encerradas em 10/11'],
   ] as const)('%s → %s', (status, esperado) => {
-    expect(textoDataStatus(c, status, hoje)).toBe(esperado);
+    expect(textoInscricoes(c, status, hoje)).toBe(esperado);
   });
+});
 
+describe('dataDestaque', () => {
+  it('separa dia, mês abreviado e ano, sem passar por Date', () => {
+    expect(dataDestaque('2027-01-11')).toEqual({ dia: '11', mes: 'JAN', ano: '2027', extenso: '11 de janeiro de 2027' });
+    expect(dataDestaque('2026-12-01')).toMatchObject({ dia: '01', mes: 'DEZ', extenso: '1 de dezembro de 2026' });
+  });
 });
 
 describe('agruparParaHome', () => {
@@ -110,5 +116,20 @@ describe('juntarLista', () => {
     [['A', 'B', 'C'], 'A, B e C'],
   ])('%j → %s', (itens, esperado) => {
     expect(juntarLista(itens)).toBe(esperado);
+  });
+});
+
+describe('destaquesHome', () => {
+  const lista = [
+    m('encerrada', '2026-09-01', '2026-09-10', '2026-09-20', '2026-10-30'),
+    m('andamento', '2026-10-01', '2026-10-10', '2026-10-20', '2026-12-20'),
+    m('breve', '2026-12-01', '2026-12-10', '2027-01-10', '2027-02-20'),
+    m('aberta', '2026-11-01', '2026-11-20', '2026-11-25', '2026-12-20'),
+    m('breve-2', '2026-11-20', '2026-11-30', '2026-12-05', '2026-12-30'),
+  ];
+
+  it('abertas primeiro, depois em breve e em andamento; sem encerradas; no máximo 3', () => {
+    expect(destaquesHome(lista, hoje).map((d) => d.mentoria.id)).toEqual(['aberta', 'breve-2', 'breve']);
+    expect(destaquesHome(lista, hoje, 10).map((d) => d.mentoria.id)).toEqual(['aberta', 'breve-2', 'breve', 'andamento']);
   });
 });

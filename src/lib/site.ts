@@ -7,6 +7,22 @@ export const SITE = {
   vinculo: 'Projeto do Cluster de TI da UniCesumar EaD, mantido de forma independente.',
 } as const;
 
+/**
+ * Formulário "me avise" da página da mentoria (D-19): um Google Forms único, que recebe o e-mail
+ * e a mentoria sem sair do site. Enquanto for `null`, o campo não aparece.
+ *
+ * Como preencher: no Forms, crie as perguntas (resposta curta "Mentoria", resposta curta
+ * "E-mail" e caixa de seleção com o texto de `consentimento`), sem exigir login nem coletar
+ * e-mail automaticamente. Em "Gerar link pré-preenchido", copie os `entry.<número>` de cada
+ * pergunta. `acao` é o endereço do formulário com `/viewform` trocado por `/formResponse`.
+ */
+export const FORM_AVISO: {
+  acao: string;
+  campos: { mentoria: string; email: string; consentimento: string };
+  /** Texto exato da opção da caixa de seleção no Forms (o Google só aceita se for igual). */
+  consentimento: string;
+} | null = null;
+
 /** Links do rodapé, agrupados. */
 export const RODAPE: readonly { titulo: string; itens: readonly ItemNavegacao[] }[] = [
   {

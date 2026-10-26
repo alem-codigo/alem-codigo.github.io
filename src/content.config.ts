@@ -1,6 +1,7 @@
 import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { NOMES_ICONES_EIXO } from './lib/eixos';
 import {
   codigoMentoria,
   cronograma,
@@ -23,6 +24,8 @@ const eixos = defineCollection({
     titulo: texto,
     descricao: texto,
     ordem: z.number().int(),
+    /** Ícone exibido nos cards de mentoria (lista em src/lib/eixos.ts). */
+    icone: z.enum(NOMES_ICONES_EIXO, 'Escolha um dos ícones disponíveis'),
   }),
 });
 

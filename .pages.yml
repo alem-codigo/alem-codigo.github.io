@@ -289,6 +289,25 @@ content:
         description: 'Posição na lista do site (1 = primeiro). Normalmente igual ao número.'
         options:
           step: 1
+      - name: icone
+        label: Ícone
+        type: select
+        required: true
+        description: 'Aparece no canto dos cards das mentorias deste eixo. Para um ícone novo, peça ao mantenedor.'
+        options:
+          values:
+            - value: maleta
+              label: Maleta (currículo, trabalho)
+            - value: codigo
+              label: Código </> (prática)
+            - value: livro
+              label: Livro aberto (conteúdo técnico)
+            - value: ferramenta
+              label: Chave inglesa
+            - value: capelo
+              label: Capelo de formatura (vida acadêmica)
+            - value: grafico
+              label: Gráfico subindo (carreira)
 
   - name: selos
     label: Selos

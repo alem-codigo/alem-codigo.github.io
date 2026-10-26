@@ -1,13 +1,16 @@
 ---
 /**
- * Card de mentoria. A variante (padrão, violeta, grafite) e a pílula vêm do status calculado (6.3, Q-08).
- * O card inteiro leva ao portal da mentoria (link do título esticado); o botão "Inscrever-se", só em
- * inscrições abertas, leva direto ao Google Forms e fica acima do link do card.
+ * Card de mentoria, com a mesma estrutura em todos os status para manter a altura igual na grade:
+ * banner (capa ou fundo da marca) com a data de início em destaque, pílulas (status e selos),
+ * título, inscrições, realização, mentores e rodapé com o parceiro e os ícones dos eixos.
+ * A variante (padrão, violeta, grafite) e a pílula vêm do status calculado (6.3, D-17).
+ * O card inteiro leva à página da mentoria (link do título esticado).
  */
 import type { CollectionEntry } from 'astro:content';
 import { getEntries } from 'astro:content';
 import { Image } from 'astro:assets';
-import { formatarPeriodo, juntarLista, textoDataStatus } from '../lib/mentorias';
+import { ICONES_EIXO } from '../lib/eixos';
+import { dataDestaque, formatarPeriodo, juntarLista, textoInscricoes } from '../lib/mentorias';
 import { VARIANTE_CARD, type StatusMentoria } from '../lib/status';
 import StatusPilula from './StatusPilula.astro';
 
@@ -24,8 +27,16 @@ const m = mentoria.data;
 const variante = VARIANTE_CARD[status];
 const [eixos, mentores, selos] = await Promise.all([getEntries(m.eixos), getEntries(m.mentores), getEntries(m.selos)]);
 const eixosOrdenados = eixos.sort((a, b) => a.data.ordem - b.data.ordem);
-const mostrarRealizacao = status === 'em-breve' || status === 'inscricoes-abertas';
+const nomesMentores = juntarLista(mentores.map((p) => p.data.nome));
+const inicio = dataDestaque(m.realizacao.inicio);
 const idTitulo = `mentoria-${mentoria.id}`;
+
+/** Ícones das linhas de dados (traçados do Lucide, ISC). */
+const ICONE_LINHA = {
+  inscricoes: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2ZM9 16l2 2 4-4',
+  realizacao: 'M12 6v6l4 2M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z',
+  mentores: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+} as const;
 ---
 
 <article
@@ -33,85 +44,89 @@ const idTitulo = `mentoria-${mentoria.id}`;
   data-variante={variante === 'padrao' ? undefined : variante}
   aria-labelledby={idTitulo}
 >
-  {m.capa && <Image class="mentoria__capa" src={m.capa} alt="" widths={[400, 800]} sizes="(min-width: 64rem) 22rem, 90vw" />}
-
-  <div class="mentoria__topo">
-    <StatusPilula status={status} />
-    <span class="mentoria__codigo mono">{m.codigo}</span>
+  <div class="mentoria__banner">
+    {
+      m.capa ? (
+        <Image class="mentoria__capa" src={m.capa} alt="" widths={[400, 800]} sizes="(min-width: 64rem) 22rem, 90vw" />
+      ) : (
+        <div class="mentoria__capa capa-padrao" />
+      )
+    }
+    <p class="mentoria__dia">
+      <span class="visualmente-oculto">Início em {inicio.extenso}</span>
+      <span class="mentoria__dia-numero" aria-hidden="true">{inicio.dia}</span>
+      <span class="mentoria__dia-mes" aria-hidden="true">{inicio.mes}</span>
+      <span class="mentoria__dia-ano" aria-hidden="true">{inicio.ano}</span>
+    </p>
   </div>
 
-  {
-    selos.length > 0 && (
-      <ul class="mentoria__selos" role="list" aria-label="Selos">
-        {selos.map((s) => (
-          <li class="selo">{s.data.nome}</li>
-        ))}
-      </ul>
-    )
-  }
-
-  <Titulo class="mentoria__titulo" id={idTitulo}>
-    <a class="mentoria__link" href={`/mentorias/${mentoria.id}`}>{m.titulo}</a>
-  </Titulo>
-
-  <p class="mentoria__data">{textoDataStatus(m, status, hoje)}</p>
-  <p class="mentoria__resumo texto-suave">{m.resumo}</p>
-
-  <dl class="mentoria__dados">
+  <div class="mentoria__corpo">
     {
-      mostrarRealizacao && (
-        <div>
-          <dt>Realização</dt>
-          <dd>{formatarPeriodo(m.realizacao.inicio, m.realizacao.fim, hoje)}</dd>
+      (status !== 'encerrada' || selos.length > 0) && (
+        <div class="mentoria__pilulas">
+          <StatusPilula status={status} />
+          {selos.map((s) => (
+            <span class="selo">{s.data.nome}</span>
+          ))}
         </div>
       )
     }
-    <div>
-      <dt>Cursos</dt>
-      <dd>{juntarLista(m.cursos)}</dd>
+
+    <Titulo class="mentoria__titulo" id={idTitulo}>
+      <a class="mentoria__link" href={`/mentorias/${mentoria.id}`}>{m.titulo}</a>
+    </Titulo>
+
+    <ul class="mentoria__dados" role="list">
+      <li>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d={ICONE_LINHA.inscricoes} /></svg>
+        <span>{textoInscricoes(m, status, hoje)}</span>
+      </li>
+      <li>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d={ICONE_LINHA.realizacao} /></svg>
+        <span>Realização: {formatarPeriodo(m.realizacao.inicio, m.realizacao.fim, hoje)}</span>
+      </li>
+      <li title={nomesMentores}>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d={ICONE_LINHA.mentores} /></svg>
+        <span><span class="visualmente-oculto">{mentores.length > 1 ? 'Mentores: ' : 'Mentoria: '}</span>{nomesMentores}</span>
+      </li>
+    </ul>
+
+    <div class="mentoria__rodape">
+      {
+        m.parceiro ? (
+          <p class="mentoria__parceiro">
+            <span>Em parceria com</span>
+            <span class="mentoria__parceiro-logo">
+              <Image src={m.parceiro.logo} alt={m.parceiro.nome} height={40} />
+            </span>
+          </p>
+        ) : (
+          <span />
+        )
+      }
+      <ul class="mentoria__eixos" role="list" aria-label="Eixos">
+        {
+          eixosOrdenados.map((e) => (
+            <li class="icone mentoria__eixo" title={`Eixo ${e.data.numero} · ${e.data.titulo}`}>
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d={ICONES_EIXO[e.data.icone].d} />
+              </svg>
+              <span class="visualmente-oculto">
+                Eixo {e.data.numero}: {e.data.titulo}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
     </div>
-    <div>
-      <dt>{mentores.length > 1 ? 'Mentores' : 'Mentoria'}</dt>
-      <dd>{juntarLista(mentores.map((p) => p.data.nome))}</dd>
-    </div>
-  </dl>
-
-  <ul class="mentoria__eixos" role="list" aria-label="Eixos">
-    {eixosOrdenados.map((e) => <li>Eixo {e.data.numero} · {e.data.titulo}</li>)}
-  </ul>
-
-  {
-    m.parceiro && (
-      <p class="mentoria__parceiro texto-suave">
-        Em parceria com
-        <Image src={m.parceiro.logo} alt={m.parceiro.nome} height={24} class="mentoria__parceiro-logo" />
-      </p>
-    )
-  }
-
-  {
-    status === 'inscricoes-abertas' && (
-      <a class="botao mentoria__acao" href={m.formUrl}>
-        Inscrever-se
-        <span class="visualmente-oculto">na mentoria {m.titulo} (formulário do Google)</span>
-        <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
-          <path
-            d="M7 17 17 7M9 7h8v8"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </a>
-    )
-  }
+  </div>
 </article>
 
 <style>
   .mentoria {
-    gap: var(--espaco-xs);
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
   }
 
   /* Foco do link esticado: contorno no card inteiro. */
@@ -120,37 +135,81 @@ const idTitulo = `mentoria-${mentoria.id}`;
     outline-offset: 2px;
   }
 
-  .mentoria__capa {
-    width: calc(100% + 2 * var(--espaco-m));
-    max-width: none;
-    margin: calc(-1 * var(--espaco-m)) calc(-1 * var(--espaco-m)) var(--espaco-3xs);
+  /* ---- Banner: altura fixa (16:9), com ou sem capa ---- */
+  .mentoria__banner {
+    position: relative;
     aspect-ratio: 16 / 9;
+  }
+
+  .mentoria__capa {
+    display: block;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border-radius: var(--raio-l) var(--raio-l) 0 0;
   }
 
-  .mentoria__topo {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--espaco-2xs);
+  [data-variante='grafite'] .mentoria__capa {
+    filter: saturate(0.25) brightness(0.85);
   }
 
-  .mentoria__selos {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--espaco-3xs);
-    margin-block-start: calc(-1 * var(--espaco-3xs));
+  /* Data de início: selo claro nos dois temas, como num calendário. */
+  .mentoria__dia {
+    position: absolute;
+    top: var(--espaco-xs);
+    left: var(--espaco-xs);
+    display: grid;
+    justify-items: center;
+    min-width: 3.6rem;
+    padding: 0.35rem 0.6rem 0.4rem;
+    border-radius: var(--raio-m);
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.25);
+    color: #2b2b3d;
+    line-height: 1.05;
   }
 
-  .mentoria__codigo {
-    color: var(--_texto-suave);
+  .mentoria__dia-numero {
+    font-size: var(--passo-2);
+    font-weight: 800;
+  }
+
+  .mentoria__dia-mes {
+    color: #693d84;
     font-size: var(--passo--1);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+  }
+
+  .mentoria__dia-ano {
+    color: #535367;
+    font-size: 0.75rem;
     font-weight: 600;
   }
 
+  /* ---- Corpo: rodapé sempre no fim, para os cards da mesma linha terminarem alinhados ---- */
+  .mentoria__corpo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--espaco-xs);
+    padding: var(--espaco-s) var(--espaco-m) var(--espaco-m);
+  }
+
+  .mentoria__pilulas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espaco-3xs);
+  }
+
+  /* Título em até 2 linhas, ocupando sempre o espaço de 2. */
   .mentoria__titulo {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    min-height: calc(2 * 1.25em);
     font-size: var(--passo-1);
     line-height: 1.25;
   }
@@ -158,6 +217,10 @@ const idTitulo = `mentoria-${mentoria.id}`;
   .mentoria__link {
     color: inherit;
     text-decoration: none;
+  }
+
+  .card .mentoria__link {
+    color: inherit;
   }
 
   .mentoria__link:focus-visible {
@@ -179,68 +242,112 @@ const idTitulo = `mentoria-${mentoria.id}`;
     text-underline-offset: 0.18em;
   }
 
-  .mentoria__data {
-    font-weight: var(--peso-negrito);
-  }
-
-  .mentoria__resumo {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    overflow: hidden;
-  }
-
+  /* Uma linha por dado; texto longo (ex.: vários mentores) termina em reticências. */
   .mentoria__dados {
     display: grid;
     gap: var(--espaco-3xs);
+    color: var(--_texto-suave);
     font-size: var(--passo--1);
   }
 
-  .mentoria__dados div {
-    display: grid;
-    grid-template-columns: 6.5rem 1fr;
+  .mentoria__dados li {
+    display: flex;
+    align-items: center;
     gap: var(--espaco-2xs);
+    min-width: 0;
   }
 
-  .mentoria__dados dt {
+  .mentoria__dados li > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mentoria__dados svg {
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--icone-cor);
+  }
+
+  .mentoria svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ---- Rodapé: parceiro à esquerda, ícones dos eixos no canto inferior direito ---- */
+  .mentoria__rodape {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--espaco-xs);
+    /* Faixa de ponta a ponta, em tom mais escuro (--card-*-rodape), sempre no fim do card. */
+    margin: auto calc(-1 * var(--espaco-m)) calc(-1 * var(--espaco-m));
+    padding: var(--espaco-xs) var(--espaco-m);
+    border-block-start: 1px solid var(--_borda);
+    background: var(--_rodape);
+    /* Mesma altura com ou sem parceiro (rótulo + logo). */
+    min-height: 4.75rem;
+  }
+
+  .mentoria__parceiro {
+    display: grid;
+    gap: 0.2rem;
     color: var(--_texto-suave);
+    font-size: 0.75rem;
   }
 
-  .mentoria__dados dd {
-    margin: 0;
+  /* Logo sem fundo (PNG/SVG transparente), direto sobre o rodapé. */
+  .mentoria__parceiro-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+  }
+
+  .mentoria__parceiro-logo img {
+    width: auto;
+    max-width: 7rem;
+    height: 1.5rem;
+    object-fit: contain;
   }
 
   .mentoria__eixos {
     display: flex;
-    flex-wrap: wrap;
     gap: var(--espaco-3xs);
-    font-size: var(--passo--1);
+    margin-inline-start: auto;
   }
 
-  .mentoria__eixos li {
-    padding: 0.1em 0.6em;
-    border: 1px solid var(--_borda);
+  .mentoria__eixo {
+    width: 2rem;
+    height: 2rem;
     border-radius: var(--raio-s);
-    color: var(--_texto-suave);
   }
 
-  .mentoria__parceiro {
-    display: flex;
-    align-items: center;
-    gap: var(--espaco-2xs);
-    font-size: var(--passo--1);
+  .mentoria__eixo svg {
+    width: 1.1rem;
+    height: 1.1rem;
   }
 
-  .mentoria__parceiro-logo {
-    height: 24px;
-    width: auto;
-  }
+  /* Celular: o banner encolhe para a altura do selo da data (a capa vira uma faixa). */
+  @media (width < 48rem) {
+    .mentoria__banner {
+      display: flex;
+      aspect-ratio: auto;
+      padding: var(--espaco-2xs);
+    }
 
-  /* Acima do link esticado; empurrado para o rodapé do card. */
-  .mentoria__acao {
-    position: relative;
-    z-index: 2;
-    margin-block-start: auto;
+    .mentoria__capa {
+      position: absolute;
+      inset: 0;
+    }
+
+    .mentoria__dia {
+      position: relative;
+      top: auto;
+      left: auto;
+    }
   }
 </style>
