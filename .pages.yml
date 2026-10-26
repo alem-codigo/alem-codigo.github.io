@@ -7,7 +7,8 @@
 # - Imagens: `output` relativo (../../assets/images/...) porque o `image()` resolve o caminho a partir
 #   do arquivo de conteúdo. Todas as coleções ficam em src/content/<colecao>/, a dois níveis de src/.
 # - Referências: o painel grava o nome do arquivo (`fulano.yaml`); o schema remove a extensão
-#   (`idDeReferencia` em src/lib/schemas.ts). Por isso renomear mentores, eixos e selos fica desativado.
+#   (`idDeReferencia` em src/lib/schemas.ts). Renomear mentor, eixo ou selo não atualiza as mentorias:
+#   se já estiver em uso, o build falha com "Conteúdo inconsistente" até a seleção ser refeita.
 # - Datas: gravadas como AAAA-MM-DD sem aspas; o schema normaliza o Date do YAML (seção 6.2).
 #   `default: ""` evita que uma data nova venha preenchida com o dia de hoje.
 
@@ -191,13 +192,11 @@ content:
 
   - name: mentores
     label: Mentores
+    description: 'Renomeie o arquivo só antes de usar em mentorias; depois disso, selecione de novo nas mentorias que o usam, senão o site não é atualizado.'
     type: collection
     path: src/content/mentores
     format: yaml
     filename: "{nome}.yaml"
-    operations:
-      # O nome do arquivo é o identificador usado nas mentorias; renomear quebraria as referências.
-      rename: false
     view:
       primary: nome
       fields: [nome, cargo, empresa]
@@ -211,7 +210,7 @@ content:
         label: Nome
         type: string
         required: true
-        description: 'Nome como deve aparecer no site. Define o nome do arquivo na criação; corrigir depois não muda o arquivo.'
+        description: 'Nome como deve aparecer no site, sem título (Prof., Profa.). Define o nome do arquivo na criação; corrigir o nome depois não muda o arquivo.'
       - name: foto
         label: Foto
         type: image
@@ -232,7 +231,9 @@ content:
         label: Bio curta
         type: text
         required: true
-        description: 'Duas ou três frases.'
+        description: 'Duas ou três frases (até 300 caracteres): quem é e em que pode ajudar o aluno. O currículo completo fica no LinkedIn.'
+        options:
+          maxlength: 300
       - name: linkedin
         label: LinkedIn
         type: string
@@ -250,12 +251,11 @@ content:
 
   - name: eixos
     label: Eixos
+    description: 'Renomeie o arquivo só antes de usar em mentorias; depois disso, selecione de novo nas mentorias que o usam, senão o site não é atualizado.'
     type: collection
     path: src/content/eixos
     format: yaml
     filename: "{titulo}.yaml"
-    operations:
-      rename: false
     view:
       primary: titulo
       fields: [numero, titulo]
@@ -292,14 +292,12 @@ content:
 
   - name: selos
     label: Selos
-    description: 'Rótulos livres exibidos nos cards. Antes de excluir um selo, retire-o das mentorias que o usam.'
+    description: 'Rótulos livres exibidos nos cards. Antes de excluir ou renomear um selo já usado, retire-o das mentorias que o usam.'
     type: collection
     path: src/content/selos
     format: yaml
     filename: "{nome}.yaml"
     exclude: [README.md]
-    operations:
-      rename: false
     view:
       primary: nome
       fields: [nome]
