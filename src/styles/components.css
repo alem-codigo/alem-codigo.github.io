@@ -200,6 +200,41 @@
     }
   }
 
+  /* Tema claro: sem a luz; o card "salta" para a frente (sobe um pouco e ganha sombra),
+   * com o mouse ou com o foco do teclado dentro dele. O grafite (encerrada) continua parado. */
+  .card--brilho {
+    transition:
+      translate var(--duracao-lenta) var(--curva),
+      box-shadow var(--duracao-lenta) var(--curva);
+  }
+
+  :root[data-tema='claro'] .card--brilho::before,
+  :root[data-tema='claro'] .card--brilho::after {
+    display: none;
+  }
+
+  :root[data-tema='claro'] .card--brilho:not([data-variante='grafite']):has(:focus-visible) {
+    translate: 0 -6px;
+    box-shadow:
+      0 22px 44px -16px rgb(43 43 61 / 0.28),
+      0 8px 16px -8px rgb(43 43 61 / 0.14);
+  }
+
+  @media (hover: hover) {
+    :root[data-tema='claro'] .card--brilho:not([data-variante='grafite']):hover {
+      translate: 0 -6px;
+      box-shadow:
+        0 22px 44px -16px rgb(43 43 61 / 0.28),
+        0 8px 16px -8px rgb(43 43 61 / 0.14);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root[data-tema='claro'] .card--brilho:not([data-variante='grafite']):is(:hover, :has(:focus-visible)) {
+      translate: none;
+    }
+  }
+
   /* ---- Pílula de status (Q-08) ----
    * <span class="pilula" data-status="inscricoes-abertas">. Cores por status em tokens.css
    * (--pilula-<status>-*); borda fina na cor do texto, porque o fundo quase some sobre o card. */

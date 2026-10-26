@@ -103,6 +103,11 @@ const TRILHA = 'M356 244 C420 236 472 218 466 196 C460 174 430 160 430 135 C430 
 </script>
 
 <style>
+  /* A cena encosta no rodapé (sem o espaço que o rodapé deixa acima dele nas outras páginas). */
+  :global(main:has(.cena) + .rodape) {
+    margin-block-start: 0;
+  }
+
   .cena {
     --cena-fundo: light-dark(#ddd3ea, #221832);
     --cena-monte: light-dark(#c3b0da, #34264b);
