@@ -156,6 +156,10 @@ content:
         pattern:
           regex: '^\d*$'
           message: O ID da turma tem só números.
+      - name: destaque
+        label: Destaque no menu
+        type: boolean
+        description: 'Mostra esta mentoria no bloco grande do menu Mentorias. Marque só uma; se houver mais de uma, vale a que aparece primeiro na home. Encerradas não aparecem.'
       - name: capa
         label: Imagem de capa
         type: image
@@ -245,6 +249,41 @@ content:
         label: GitHub
         type: string
         description: 'Opcional. Link completo do perfil, começando com https://'
+        pattern:
+          regex: '^(https://\S+)?$'
+          message: Cole o link completo, começando com https://
+      - name: youtube
+        label: YouTube
+        type: string
+        description: 'Opcional. Link do canal, começando com https://'
+        pattern:
+          regex: '^(https://\S+)?$'
+          message: Cole o link completo, começando com https://
+      - name: medium
+        label: Medium
+        type: string
+        description: 'Opcional. Link do perfil, começando com https://'
+        pattern:
+          regex: '^(https://\S+)?$'
+          message: Cole o link completo, começando com https://
+      - name: instagram
+        label: Instagram
+        type: string
+        description: 'Opcional. Link do perfil, começando com https://'
+        pattern:
+          regex: '^(https://\S+)?$'
+          message: Cole o link completo, começando com https://
+      - name: lattes
+        label: Currículo Lattes
+        type: string
+        description: 'Opcional. Link do currículo, começando com https:// (ex.: https://lattes.cnpq.br/…)'
+        pattern:
+          regex: '^(https://\S+)?$'
+          message: Cole o link completo, começando com https://
+      - name: site
+        label: Site pessoal ou portfólio
+        type: string
+        description: 'Opcional. Link completo, começando com https://'
         pattern:
           regex: '^(https://\S+)?$'
           message: Cole o link completo, começando com https://

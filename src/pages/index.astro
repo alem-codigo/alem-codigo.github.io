@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import CenaMontanha from '../components/CenaMontanha.astro';
 import ComoFunciona from '../components/ComoFunciona.astro';
 import Hero from '../components/Hero.astro';
 import MentoriaCard from '../components/MentoriaCard.astro';
@@ -79,6 +80,7 @@ const linkInscricoes = mentorias.some((m) => inscricoesAbertas(m.data, hoje)) ? 
       </div>
     </div>
   </section>
+  <CenaMontanha />
 </Base>
 
 <style>

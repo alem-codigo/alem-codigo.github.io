@@ -1,0 +1,140 @@
+---
+/**
+ * "Adicionar ao calendário": menu com Google Agenda, Outlook (pessoal e empresa) e arquivo .ics.
+ * Evento conforme o status (src/lib/calendario.ts). <details> abre e fecha sem JavaScript;
+ * o script só fecha o menu ao clicar fora ou com Esc.
+ */
+import { linksCalendario, type EventoCalendario } from '../lib/calendario';
+
+interface Props {
+  evento: EventoCalendario;
+  /** Caminho do .ics gerado no build (ex.: /mentorias/m27-01.ics). */
+  ics: string;
+  /** Nome sugerido para o arquivo baixado. */
+  arquivo: string;
+}
+
+const { evento, ics, arquivo } = Astro.props;
+const links = linksCalendario(evento);
+const opcoes = [
+  { rotulo: 'Google Agenda', href: links.google },
+  { rotulo: 'Outlook (conta pessoal)', href: links.outlookPessoal },
+  { rotulo: 'Outlook (conta da empresa)', href: links.outlookEmpresa },
+];
+---
+
+<details class="calendario" data-menu>
+  <summary class="botao botao--contorno calendario__botao">
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2ZM12 14v4M10 16h4" />
+    </svg>
+    Adicionar ao calendário
+  </summary>
+  <ul class="calendario__menu" role="list">
+    {
+      opcoes.map((o) => (
+        <li>
+          <a href={o.href} target="_blank" rel="noopener">
+            {o.rotulo}
+            <span class="visualmente-oculto">(abre em nova aba)</span>
+          </a>
+        </li>
+      ))
+    }
+    <li>
+      <a href={ics} download={arquivo}>Baixar arquivo .ics <span class="calendario__dica">Apple, Thunderbird e outros</span></a>
+    </li>
+  </ul>
+  <p class="calendario__evento">{evento.titulo}</p>
+</details>
+
+<script>
+  // Fecha menus <details data-menu> ao clicar fora ou com Esc (devolvendo o foco ao botão).
+  document.addEventListener('click', (e) => {
+    for (const menu of document.querySelectorAll<HTMLDetailsElement>('details[data-menu][open]')) {
+      if (!(e.target instanceof Node) || !menu.contains(e.target)) menu.open = false;
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    for (const menu of document.querySelectorAll<HTMLDetailsElement>('details[data-menu][open]')) {
+      menu.open = false;
+      menu.querySelector('summary')?.focus();
+    }
+  });
+</script>
+
+<style>
+  .calendario {
+    position: relative;
+  }
+
+  .calendario__botao {
+    width: 100%;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .calendario__botao::-webkit-details-marker {
+    display: none;
+  }
+
+  .calendario__botao svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .calendario__botao svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .calendario__menu {
+    position: absolute;
+    z-index: 5;
+    top: calc(100% + 0.35rem);
+    left: 0;
+    right: 0;
+    display: grid;
+    padding: 0.35rem;
+    border: var(--borda);
+    border-radius: var(--raio-m);
+    background: var(--card-padrao-fundo);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.3);
+  }
+
+  .calendario__menu a {
+    display: grid;
+    min-height: 2.75rem;
+    align-content: center;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--raio-s);
+    color: var(--cor-texto);
+    font-weight: var(--peso-negrito);
+    text-decoration: none;
+  }
+
+  .calendario__menu a:hover,
+  .calendario__menu a:focus-visible {
+    background: var(--icone-fundo);
+  }
+
+  .calendario__dica {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+    font-weight: var(--peso-normal);
+  }
+
+  .calendario__evento {
+    margin-block-start: var(--espaco-3xs);
+    color: var(--_texto-suave, var(--cor-texto-suave));
+    font-size: 0.75rem;
+  }
+
+  .calendario[open] .calendario__evento {
+    visibility: hidden;
+  }
+</style>

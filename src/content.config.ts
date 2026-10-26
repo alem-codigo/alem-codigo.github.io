@@ -49,8 +49,14 @@ const mentores = defineCollection({
       bio: texto,
       cargo: texto,
       empresa: opcional(texto),
+      // Redes (src/lib/icones.ts → REDES_MENTOR): a página mostra só as preenchidas.
       linkedin: opcional(urlHttps),
       github: opcional(urlHttps),
+      youtube: opcional(urlHttps),
+      medium: opcional(urlHttps),
+      instagram: opcional(urlHttps),
+      lattes: opcional(urlHttps),
+      site: opcional(urlHttps),
     }),
 });
 
@@ -81,6 +87,8 @@ const mentorias = defineCollection({
         classroomCourseId: opcional(idTurmaClassroom),
         parceiro: opcional(z.object({ nome: texto, logo: image(), url: urlHttps })),
         capa: opcional(image()),
+        /** Bloco grande do menu de Mentorias. Se houver mais de uma, vale a primeira da ordem da home. */
+        destaque: z.preprocess((v) => v ?? false, z.boolean()),
       })
       .superRefine(validarCronograma)
       .superRefine(validarCodigo),

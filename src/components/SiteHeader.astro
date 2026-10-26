@@ -1,14 +1,18 @@
 ---
 import { getCollection } from 'astro:content';
 import { hojeEmSaoPaulo } from '../lib/datas';
+import { menuMentorias } from '../lib/mentorias';
 import { destinoInscricoes, itemAtivo, NAVEGACAO_PRINCIPAL } from '../lib/navegacao';
 import Logo from './Logo.astro';
 import LogoAnimado from './LogoAnimado.astro';
+import MenuMentorias from './MenuMentorias.astro';
 import TemaAlternar from './TemaAlternar.astro';
 
 const caminho = Astro.url.pathname;
 const mentorias = (await getCollection('mentorias')).map((m) => ({ id: m.id, ...m.data }));
 const linkInscricoes = destinoInscricoes(mentorias, hojeEmSaoPaulo());
+// O painel do item Mentorias só existe com ao menos uma mentoria não encerrada.
+const temMenuMentorias = menuMentorias(mentorias, hojeEmSaoPaulo()).destaque !== null;
 ---
 
 <header class="cabecalho">
@@ -41,17 +45,30 @@ const linkInscricoes = destinoInscricoes(mentorias, hojeEmSaoPaulo());
         </div>
         <ul class="navegacao__lista" role="list">
           {
-            NAVEGACAO_PRINCIPAL.map((item) => (
-              <li>
-                <a
-                  class="navegacao__link"
-                  href={item.href}
-                  aria-current={itemAtivo(caminho, item.href) ? 'page' : undefined}
-                >
-                  {item.rotulo}
-                </a>
-              </li>
-            ))
+            NAVEGACAO_PRINCIPAL.map((item) => {
+              const comPainel = item.href === '/mentorias' && temMenuMentorias;
+              return (
+                <li class:list={[comPainel && 'navegacao__item--painel']} data-painel={comPainel ? '' : undefined}>
+                  <a
+                    class="navegacao__link"
+                    href={item.href}
+                    aria-current={itemAtivo(caminho, item.href) ? 'page' : undefined}
+                  >
+                    {item.rotulo}
+                    {comPainel && (
+                      <svg class="navegacao__seta" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16">
+                        <path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    )}
+                  </a>
+                  {comPainel && (
+                    <div class="navegacao__submenu">
+                      <MenuMentorias />
+                    </div>
+                  )}
+                </li>
+              );
+            })
           }
           {
             linkInscricoes && (
@@ -70,13 +87,35 @@ const linkInscricoes = destinoInscricoes(mentorias, hojeEmSaoPaulo());
   </div>
 </header>
 
+<script>
+  // Painel de Mentorias: Esc fecha (e mantém fechado até o mouse ou o foco saírem do item).
+  for (const item of document.querySelectorAll<HTMLElement>('[data-painel]')) {
+    item.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      item.dataset.fechado = '';
+      item.querySelector<HTMLElement>('.navegacao__link')?.focus();
+    });
+    const reabrir = () => delete item.dataset.fechado;
+    item.addEventListener('pointerleave', reabrir);
+    item.addEventListener('focusout', (e) => {
+      if (!(e.relatedTarget instanceof Node) || !item.contains(e.relatedTarget)) reabrir();
+    });
+  }
+</script>
+
 <style>
   .cabecalho {
     background: var(--cor-faixa);
     border-block-end: var(--borda);
   }
 
+  .cabecalho {
+    position: relative;
+    z-index: 20;
+  }
+
   .cabecalho__barra {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -175,6 +214,12 @@ const linkInscricoes = destinoInscricoes(mentorias, hojeEmSaoPaulo());
     margin-block-start: var(--espaco-s);
   }
 
+  /* No celular, Mentorias é só um link. */
+  .navegacao__submenu,
+  .navegacao__seta {
+    display: none;
+  }
+
   /* ---- Desktop: lista sempre visível na barra ---- */
   @media (min-width: 60rem) {
     .navegacao__abrir,
@@ -210,6 +255,56 @@ const linkInscricoes = destinoInscricoes(mentorias, hojeEmSaoPaulo());
 
     .navegacao__cta {
       margin: 0 0 0 var(--espaco-2xs);
+    }
+
+    /* ---- Painel de Mentorias (estilo Railway) ---- */
+    .navegacao__seta {
+      display: inline;
+      margin-inline-start: 0.2rem;
+      transition: rotate var(--duracao) var(--curva);
+    }
+
+    .navegacao__link {
+      gap: 0.1rem;
+    }
+
+    .navegacao__submenu {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      display: block;
+      width: min(48rem, 100% - 2 * var(--margem-lateral));
+      padding-block-start: var(--espaco-2xs);
+      translate: -50% 0.4rem;
+      opacity: 0;
+      visibility: hidden;
+      /* Ao sair, espera um pouco: dá tempo de levar o mouse do link ao painel. */
+      transition:
+        opacity var(--duracao) var(--curva) 0.15s,
+        translate var(--duracao) var(--curva) 0.15s,
+        visibility 0s linear calc(var(--duracao) + 0.15s);
+    }
+
+    .navegacao__item--painel:is(:hover, :focus-within):not([data-fechado]) .navegacao__submenu {
+      translate: -50% 0;
+      opacity: 1;
+      visibility: visible;
+      transition:
+        opacity var(--duracao) var(--curva),
+        translate var(--duracao) var(--curva),
+        visibility 0s;
+    }
+
+    .navegacao__item--painel:is(:hover, :focus-within):not([data-fechado]) .navegacao__seta {
+      rotate: 180deg;
+    }
+  }
+
+  @media (min-width: 60rem) and (prefers-reduced-motion: reduce) {
+    .navegacao__submenu,
+    .navegacao__item--painel:is(:hover, :focus-within) .navegacao__submenu {
+      translate: -50% 0;
+      transition: none;
     }
   }
 </style>

@@ -1,0 +1,219 @@
+---
+/**
+ * Fechamento da home (inspirado no trem do rodapé do Railway): só a metade de cima da montanha, à
+ * direita; uma pessoa sobe a trilha e finca a bandeira no topo. A frase (SLOGAN em src/lib/site.ts)
+ * fica por cima da cena inteira, na largura toda, semitransparente, e ganha força com a bandeira.
+ *
+ * - Sem JavaScript ou com movimento reduzido: mostra a cena final, parada.
+ * - Com JavaScript: a animação (SMIL, sem bibliotecas) começa uma vez, quando a cena entra na tela.
+ * Decorativa: a frase também existe como texto para leitores de tela; o desenho é aria-hidden.
+ */
+import { SLOGAN } from '../lib/site';
+
+// Trilha pela face iluminada, da linha de corte (meio da montanha) até o topo, ao lado do mastro.
+const TRILHA = 'M356 244 C420 236 472 218 466 196 C460 174 430 160 430 135 C430 105 455 90 462 71';
+---
+
+<section class="cena" aria-label="Encerramento" data-cena>
+  <div class="container cena__grade">
+    <p class="cena__frase" aria-hidden="true">{SLOGAN}</p>
+    <p class="visualmente-oculto">{SLOGAN}</p>
+
+    <!-- Recorte: só do meio da montanha para cima (viewBox até y=240). -->
+    <svg class="cena__desenho" viewBox="0 0 640 240" aria-hidden="true" focusable="false">
+      <!-- Montanhas -->
+      <polygon class="cena__fundo" points="90,420 290,165 380,255 470,420" />
+      <polygon class="cena__monte" points="200,420 470,60 640,300 640,420" />
+      <polygon class="cena__sombra" points="470,60 640,300 640,420 520,420" />
+      <polygon class="cena__neve" points="470,60 432,110 446,104 458,118 472,104 488,116 505,110" />
+
+      <!-- Trilha: desenhada aos poucos durante a subida -->
+      <path class="cena__trilha" d={TRILHA} pathLength="1">
+        <animate attributeName="stroke-dashoffset" from="1" to="0" dur="2.6s" begin="subida.begin" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.3 1" />
+      </path>
+
+      <!-- Mastro e bandeira (cena final por padrão; o script os esconde antes de animar) -->
+      <line class="cena__mastro" x1="470" y1="6" x2="470" y2="64">
+        <animate id="mastro" attributeName="y1" from="64" to="6" dur="0.5s" begin="subida.end" fill="freeze" />
+      </line>
+      <g class="cena__bandeira">
+        <path d="M471 7 L514 19 L471 31 Z" />
+      </g>
+
+      <!-- Pessoa: parada no topo (final) e a versão que sobe a trilha -->
+      <g class="cena__pessoa cena__pessoa--final" transform="translate(462 71)">
+        <use href="#cena-figura" />
+      </g>
+      <g class="cena__pessoa cena__pessoa--animada">
+        <use href="#cena-figura" />
+        <animateMotion id="subida" dur="2.6s" begin="indefinite" fill="freeze" path={TRILHA} calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.3 1" />
+      </g>
+
+      <defs>
+        <!-- Figura com os pés na origem (0,0): cabeça, corpo, mochila, braços e pernas. -->
+        <g id="cena-figura" transform="scale(1.7)">
+          <circle cx="0" cy="-17" r="3.6" />
+          <path d="M0 -13 L0 -5 M0 -11 L5 -7 M0 -11 L-4 -8 M0 -5 L-3.5 0 M0 -5 L3.5 0" />
+          <rect x="-4.6" y="-12.5" width="3.4" height="6" rx="1.2" />
+        </g>
+      </defs>
+    </svg>
+  </div>
+</section>
+
+<script>
+  const cena = document.querySelector<HTMLElement>('[data-cena]');
+  const reduzido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const subida = cena?.querySelector<SVGAnimationElement>('#subida');
+  const mastro = cena?.querySelector<SVGAnimationElement>('#mastro');
+
+  if (cena && subida && mastro && !reduzido && 'IntersectionObserver' in window) {
+    cena.classList.add('cena--preparada');
+    subida.addEventListener('endEvent', () => cena.classList.add('cena--topo'));
+    mastro.addEventListener('endEvent', () => cena.classList.add('cena--fincada'));
+    const observador = new IntersectionObserver(
+      (entradas) => {
+        if (!entradas.some((e) => e.isIntersecting)) return;
+        observador.disconnect();
+        cena.classList.add('cena--subindo');
+        subida.beginElement();
+      },
+      { threshold: 0.45 },
+    );
+    observador.observe(cena);
+  }
+</script>
+
+<style>
+  .cena {
+    --cena-fundo: light-dark(#ddd3ea, #221832);
+    --cena-monte: light-dark(#c3b0da, #34264b);
+    --cena-sombra: light-dark(#ab95c8, #281d3b);
+    --cena-neve: light-dark(#ffffff, #e9e1f5);
+    --cena-trilha: light-dark(#793670, #e07fcf);
+    --cena-pessoa: light-dark(#2b2b3d, #f5f5f5);
+    --cena-bandeira: light-dark(#693d84, #a67ee0);
+    /* Marca d'água em tom escuro (pouco acima do fundo); fica mais forte com a bandeira. */
+    --cena-frase: light-dark(rgb(43 43 61 / 0.05), rgb(201 167 255 / 0.06));
+    --cena-frase-forte: light-dark(rgb(43 43 61 / 0.09), rgb(201 167 255 / 0.11));
+
+    overflow: hidden;
+    padding-block: var(--espaco-2xl) 0;
+  }
+
+  .cena__grade {
+    position: relative;
+    container-type: inline-size;
+    display: grid;
+  }
+
+  /* Frase por cima da cena, do início do conteúdo até o meio da montanha (perto da trilha).
+   * 12cqi preencheria a largura toda (medido); o desenho ocupa min(100%, 40rem) à direita e o topo
+   * fica a 72% dele, então a frase encolhe 28% da largura do desenho: 12 × 0,28 = 3,36.
+   * Semitransparente: sobre o fundo e sobre a montanha aparece só como um tom. */
+  .cena__frase {
+    position: absolute;
+    z-index: 1;
+    /* Alinhada ao conteúdo (dentro do padding do .container). */
+    inset-inline: var(--margem-lateral);
+    bottom: 2%;
+    max-width: none;
+    color: var(--cena-frase);
+    font-size: calc(12cqi - min(3.36cqi, 1.344rem));
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: color 1.2s var(--curva);
+  }
+
+  .cena--fincada .cena__frase,
+  .cena:not(.cena--preparada) .cena__frase {
+    color: var(--cena-frase-forte);
+  }
+
+  .cena__desenho {
+    display: block;
+    justify-self: end;
+    width: min(100%, 40rem);
+    height: auto;
+    margin-block-end: -1px;
+  }
+
+  .cena__fundo { fill: var(--cena-fundo); }
+  .cena__monte { fill: var(--cena-monte); }
+  .cena__sombra { fill: var(--cena-sombra); }
+  .cena__neve { fill: var(--cena-neve); }
+
+  .cena__trilha {
+    fill: none;
+    stroke: var(--cena-trilha);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    opacity: 0.75;
+  }
+
+  .cena__mastro {
+    stroke: var(--cena-pessoa);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .cena__bandeira {
+    fill: var(--cena-bandeira);
+    transform-box: fill-box;
+    transform-origin: left center;
+    animation: tremular 2.4s ease-in-out infinite;
+  }
+
+  .cena__pessoa {
+    fill: var(--cena-pessoa);
+    stroke: var(--cena-pessoa);
+    stroke-width: 1.2;
+    stroke-linecap: round;
+  }
+
+  .cena__pessoa :global(rect) {
+    stroke: none;
+    fill: var(--cena-trilha);
+  }
+
+  .cena__pessoa--animada {
+    display: none;
+  }
+
+  /* ---- Antes de animar: só a montanha ---- */
+  .cena--preparada .cena__trilha { stroke-dashoffset: 1; }
+  .cena--preparada .cena__pessoa--final { display: none; }
+  .cena--preparada .cena__mastro { opacity: 0; }
+  .cena--preparada .cena__bandeira { opacity: 0; animation: none; }
+
+  /* ---- Subindo: a pessoa segue a trilha (animateMotion) ---- */
+  .cena--subindo .cena__pessoa--animada { display: inline; }
+  .cena--topo .cena__mastro { opacity: 1; }
+
+  /* ---- Fincada: a bandeira se abre e tremula ---- */
+  .cena--fincada .cena__bandeira {
+    opacity: 1;
+    animation:
+      abrir 0.45s var(--curva) both,
+      tremular 2.4s ease-in-out 0.45s infinite;
+  }
+
+  @keyframes abrir {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  @keyframes tremular {
+    0%, 100% { transform: skewY(0deg) scaleX(1); }
+    50% { transform: skewY(-6deg) scaleX(0.92); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cena__bandeira { animation: none; }
+  }
+</style>

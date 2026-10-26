@@ -1,19 +1,25 @@
 ---
 /**
  * Página da mentoria (/mentorias/m26-01). Gerada para toda mentoria cadastrada: o card da home só
- * existe junto com esta página. Conteúdo: capa, status e selos, título, resumo, eixos, objetivo
- * (corpo do arquivo), cursos e pré-requisitos, mentores e parceiro. À direita (no celular, no fim), o card de inscrição:
- * botão do Forms nas inscrições abertas; data de abertura em "em breve"; campo "me avise" nos
- * demais status (D-19). Portal do Classroom (cronograma, aulas, lives) entra na Fase 2.
+ * existe junto com esta página. Informações em blocos (estilo "bento" do Railway): capa e título;
+ * card de inscrição à direita (no celular, no fim); mentores, eixos, parceiro, público e objetivo.
+ * Inscrição: botão do Forms nas inscrições abertas; data de abertura em "em breve"; campo "me avise"
+ * nos demais status (D-19); "Adicionar ao calendário" conforme o status. Portal do Classroom
+ * (cronograma, aulas, lives) entra na Fase 2.
  */
 import type { GetStaticPaths } from 'astro';
 import { getCollection, getEntries, render } from 'astro:content';
 import { Image } from 'astro:assets';
+import AdicionarCalendario from '../../components/AdicionarCalendario.astro';
 import AvisoTurma from '../../components/AvisoTurma.astro';
+import Compartilhar from '../../components/Compartilhar.astro';
+import Icone from '../../components/Icone.astro';
 import StatusPilula from '../../components/StatusPilula.astro';
 import Base from '../../layouts/Base.astro';
 import { hojeEmSaoPaulo } from '../../lib/datas';
 import { ICONES_EIXO } from '../../lib/eixos';
+import { REDES_MENTOR } from '../../lib/icones';
+import { eventoCalendario } from '../../lib/calendario';
 import { dataDestaque, formatarPeriodo, juntarLista } from '../../lib/mentorias';
 import { calcularStatus, VARIANTE_CARD } from '../../lib/status';
 
@@ -40,16 +46,20 @@ const periodoInscricoes = formatarPeriodo(m.inscricoes.abertura, m.inscricoes.fe
 const periodoRealizacao = formatarPeriodo(m.realizacao.inicio, m.realizacao.fim, hoje);
 const abertura = dataDestaque(m.inscricoes.abertura);
 const fechamento = dataDestaque(m.inscricoes.fechamento);
+const urlPagina = new URL(`/mentorias/${mentoria.id}/`, Astro.site).toString();
+const evento = eventoCalendario(m, status, mentoria.id, urlPagina);
 ---
 
 <Base title={m.titulo} description={m.resumo}>
-  <article class="container mentoria-pagina">
+  <article class="container mentoria-pagina bento-pagina">
     <nav class="mentoria-pagina__trilha" aria-label="Trilha">
       <a href="/">Início</a>
       <span aria-hidden="true">/</span>
       <span aria-current="page">{m.titulo}</span>
     </nav>
 
+    <div class="bento" data-sem-parceiro={m.parceiro ? undefined : ''}>
+      <header class="card bento__bloco bento__capa">
     <div class="mentoria-pagina__banner">
       {
         m.capa ? (
@@ -59,46 +69,20 @@ const fechamento = dataDestaque(m.inscricoes.fechamento);
         )
       }
     </div>
-
-    <div class="mentoria-pagina__grade">
-      <header class="mentoria-pagina__cabecalho">
-        <div class="mentoria-pagina__pilulas">
-          <StatusPilula status={status} />
-          {selos.map((s) => <span class="selo">{s.data.nome}</span>)}
+        <div class="bento__capa-texto">
+        <div class="mentoria-pagina__topo">
+          <div class="mentoria-pagina__pilulas">
+            <StatusPilula status={status} />
+            {selos.map((s) => <span class="selo">{s.data.nome}</span>)}
+          </div>
+          <Compartilhar url={urlPagina} titulo={m.titulo} />
         </div>
-        <h1>{m.titulo}</h1>
-        <p class="mentoria-pagina__resumo">{m.resumo}</p>
-        {/*
-          Desktop: ícone e nome. Celular: só o ícone; o toque abre o nome num balão (<details> com
-          `name`, um aberto por vez, sem JavaScript). O nome continua no <summary> para leitores de tela.
-        */}
-        <ul class="mentoria-pagina__eixos" role="list" aria-label="Eixos">
-          {
-            eixosOrdenados.map((e) => (
-              <li>
-                <details class="eixo-dica" name="eixos-da-mentoria">
-                  <summary class="mentoria-pagina__eixo">
-                    <span class="icone">
-                      <svg aria-hidden="true" viewBox="0 0 24 24">
-                        <path d={ICONES_EIXO[e.data.icone].d} />
-                      </svg>
-                    </span>
-                    <span class="eixo-dica__nome">
-                      <span class="mentoria-pagina__eixo-numero mono">Eixo {e.data.numero}</span>
-                      {e.data.titulo}
-                    </span>
-                  </summary>
-                  <p class="eixo-dica__balao" aria-hidden="true">
-                    Eixo {e.data.numero} · {e.data.titulo}
-                  </p>
-                </details>
-              </li>
-            ))
-          }
-        </ul>
+          <h1>{m.titulo}</h1>
+          <p class="mentoria-pagina__resumo">{m.resumo}</p>
+        </div>
       </header>
 
-      <aside class="mentoria-pagina__lateral" aria-label="Inscrição">
+      <aside class="bento__inscricao" aria-label="Inscrição">
         <div class="card mentoria-pagina__inscricao" data-variante={variante === 'padrao' ? undefined : variante}>
           <StatusPilula status={status} />
           {/* A encerrada não tem pílula (D-17); o status aparece como texto. */}
@@ -140,15 +124,46 @@ const fechamento = dataDestaque(m.inscricoes.fechamento);
               <AvisoTurma mentoria={`${m.codigo} · ${m.titulo}`} />
             )
           }
+          {evento && <AdicionarCalendario evento={evento} ics={`/mentorias/${mentoria.id}.ics`} arquivo={`${mentoria.id}.ics`} />}
         </div>
       </aside>
 
-      <div class="mentoria-pagina__conteudo">
+      <div class="card bento__bloco bento__objetivo">
         <section aria-labelledby="objetivo">
           <h2 id="objetivo">Objetivo</h2>
           <div class="prosa"><Content /></div>
         </section>
+      </div>
 
+      <div class="card bento__bloco bento__eixos">
+        <h2 class="bento__rotulo">Eixos</h2>
+        <ul class="mentoria-pagina__eixos" role="list" aria-label="Eixos">
+          {
+            eixosOrdenados.map((e) => (
+              <li>
+                <details class="eixo-dica" name="eixos-da-mentoria">
+                  <summary class="mentoria-pagina__eixo">
+                    <span class="icone">
+                      <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d={ICONES_EIXO[e.data.icone].d} />
+                      </svg>
+                    </span>
+                    <span class="eixo-dica__nome">
+                      <span class="mentoria-pagina__eixo-numero mono">Eixo {e.data.numero}</span>
+                      {e.data.titulo}
+                    </span>
+                  </summary>
+                  <p class="eixo-dica__balao" aria-hidden="true">
+                    Eixo {e.data.numero} · {e.data.titulo}
+                  </p>
+                </details>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="card bento__bloco bento__publico">
         <section aria-labelledby="para-quem">
           <h2 id="para-quem">Para quem é</h2>
           <dl class="mentoria-pagina__lista">
@@ -172,7 +187,9 @@ const fechamento = dataDestaque(m.inscricoes.fechamento);
             }
           </dl>
         </section>
+      </div>
 
+      <div class="card bento__bloco bento__mentores">
         <section aria-labelledby="mentores">
           <h2 id="mentores">{mentores.length > 1 ? 'Mentores' : 'Mentoria com'}</h2>
           <ul class="mentoria-pagina__mentores" role="list">
@@ -184,11 +201,17 @@ const fechamento = dataDestaque(m.inscricoes.fechamento);
                     <h3>{p.data.nome}</h3>
                     <p class="mentor__cargo">{[p.data.cargo, p.data.empresa].filter(Boolean).join(' · ')}</p>
                     <p>{p.data.bio}</p>
-                    {(p.data.linkedin || p.data.github) && (
-                      <p class="mentor__links">
-                        {p.data.linkedin && <a href={p.data.linkedin}>LinkedIn<span class="visualmente-oculto"> de {p.data.nome}</span></a>}
-                        {p.data.github && <a href={p.data.github}>GitHub<span class="visualmente-oculto"> de {p.data.nome}</span></a>}
-                      </p>
+                    {REDES_MENTOR.some((r) => p.data[r.campo]) && (
+                      <ul class="mentor__redes" role="list" aria-label={`Redes de ${p.data.nome}`}>
+                        {REDES_MENTOR.filter((r) => p.data[r.campo]).map((r) => (
+                          <li>
+                            <a class="mentor__rede" href={p.data[r.campo]} title={r.rotulo}>
+                              <Icone nome={r.campo} />
+                              <span class="visualmente-oculto">{r.rotulo} de {p.data.nome}</span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </div>
                 </li>
@@ -196,21 +219,22 @@ const fechamento = dataDestaque(m.inscricoes.fechamento);
             }
           </ul>
         </section>
-
-        {
-          m.parceiro && (
-            <section class="mentoria-pagina__parceiro" aria-labelledby="parceiro">
-              <h2 id="parceiro">Em parceria com</h2>
-              <a href={m.parceiro.url}>
-                <Image src={m.parceiro.logo} alt={m.parceiro.nome} height={96} />
-              </a>
-            </section>
-          )
-        }
       </div>
+
+      {
+        m.parceiro && (
+          <section class="card bento__bloco bento__parceiro" aria-labelledby="parceiro">
+            <h2 id="parceiro">Em parceria com</h2>
+            <a href={m.parceiro.url}>
+              <Image src={m.parceiro.logo} alt={m.parceiro.nome} height={96} />
+            </a>
+          </section>
+        )
+      }
     </div>
   </article>
 </Base>
+
 
 <style>
   .mentoria-pagina {
@@ -246,44 +270,6 @@ const fechamento = dataDestaque(m.inscricoes.fechamento);
     .mentoria-pagina__banner {
       aspect-ratio: 16 / 9;
     }
-  }
-
-  /* ---- Grade: conteúdo à esquerda, card de inscrição à direita (no celular, no final) ---- */
-  .mentoria-pagina__grade {
-    display: grid;
-    grid-template-areas: 'cabecalho' 'conteudo' 'lateral';
-    gap: var(--espaco-l);
-  }
-
-  @media (width >= 64rem) {
-    .mentoria-pagina__grade {
-      grid-template-areas: 'cabecalho lateral' 'conteudo lateral';
-      grid-template-columns: minmax(0, 1fr) 22rem;
-      grid-template-rows: auto 1fr;
-      column-gap: var(--espaco-xl);
-    }
-  }
-
-  .mentoria-pagina__cabecalho {
-    grid-area: cabecalho;
-    display: grid;
-    gap: var(--espaco-s);
-  }
-
-  .mentoria-pagina__lateral {
-    grid-area: lateral;
-  }
-
-  .mentoria-pagina__conteudo {
-    grid-area: conteudo;
-    display: grid;
-    gap: var(--espaco-xl);
-    align-content: start;
-  }
-
-  .mentoria-pagina__conteudo section {
-    display: grid;
-    gap: var(--espaco-s);
   }
 
   .mentoria-pagina__pilulas {
@@ -397,16 +383,8 @@ const fechamento = dataDestaque(m.inscricoes.fechamento);
     stroke-linejoin: round;
   }
 
-  /* ---- Card de inscrição: acompanha a rolagem no desktop ---- */
   .mentoria-pagina__inscricao {
     gap: var(--espaco-s);
-  }
-
-  @media (width >= 64rem) {
-    .mentoria-pagina__inscricao {
-      position: sticky;
-      top: var(--espaco-l);
-    }
   }
 
   .mentoria-pagina__inscricao > :global(.pilula) {
@@ -511,16 +489,115 @@ const fechamento = dataDestaque(m.inscricoes.fechamento);
     font-size: var(--passo--1);
   }
 
-  .mentor__links {
+  /* Só as redes cadastradas; alvo de toque de 44px. */
+  .mentor__redes {
     display: flex;
-    gap: var(--espaco-s);
-    font-size: var(--passo--1);
+    flex-wrap: wrap;
+    gap: var(--espaco-3xs);
+    margin-inline-start: -0.6rem;
   }
 
-  .mentoria-pagina__parceiro img {
+  .mentor__rede {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--raio-m);
+    color: var(--cor-texto);
+    transition: background var(--duracao) var(--curva), color var(--duracao) var(--curva);
+  }
+
+  .mentor__rede:hover {
+    background: var(--icone-fundo);
+    color: var(--icone-cor);
+  }
+
+  .bento__parceiro img {
     width: auto;
     max-width: 14rem;
     height: 3rem;
     object-fit: contain;
   }
+</style>
+
+<style>
+  /* ---- Blocos (estilo "bento" do Railway) ----
+   * Desktop: capa e inscrição no topo; mentores ao lado de eixos, parceiro e público; objetivo
+   * embaixo, na largura toda. Celular: capa, eixos, mentores, parceiro, objetivo, público e
+   * inscrição no fim. Sem parceiro, o público ocupa o espaço dele. */
+  .bento {
+    display: grid;
+    gap: var(--espaco-s);
+    grid-template-areas: 'capa' 'eixos' 'mentores' 'parceiro' 'objetivo' 'publico' 'inscricao';
+  }
+
+  .bento[data-sem-parceiro] {
+    grid-template-areas: 'capa' 'eixos' 'mentores' 'objetivo' 'publico' 'inscricao';
+  }
+
+  @media (width >= 64rem) {
+    .bento {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-template-areas:
+        'capa capa capa capa capa capa capa capa inscricao inscricao inscricao inscricao'
+        'mentores mentores mentores mentores mentores eixos eixos eixos inscricao inscricao inscricao inscricao'
+        'mentores mentores mentores mentores mentores parceiro parceiro parceiro publico publico publico publico'
+        'objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo';
+      align-items: stretch;
+    }
+
+    .bento[data-sem-parceiro] {
+      grid-template-areas:
+        'capa capa capa capa capa capa capa capa inscricao inscricao inscricao inscricao'
+        'mentores mentores mentores mentores mentores eixos eixos eixos inscricao inscricao inscricao inscricao'
+        'mentores mentores mentores mentores mentores publico publico publico publico publico publico publico'
+        'objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo';
+    }
+  }
+
+  .bento__capa { grid-area: capa; padding: 0; overflow: hidden; gap: 0; }
+  .bento__inscricao { grid-area: inscricao; }
+  .bento__objetivo { grid-area: objetivo; }
+  .bento__eixos { grid-area: eixos; }
+  .bento__publico { grid-area: publico; }
+  .bento__mentores { grid-area: mentores; }
+  .bento__parceiro { grid-area: parceiro; }
+
+  .bento__bloco { gap: var(--espaco-xs); }
+
+  .bento .mentoria-pagina__banner {
+    aspect-ratio: 21 / 9;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .bento__capa-texto {
+    display: grid;
+    gap: var(--espaco-xs);
+    padding: var(--espaco-m);
+  }
+
+  .bento h1 { font-size: var(--passo-3); }
+
+  /* Títulos dos blocos menores, como rótulos (no estilo do Railway). */
+  .bento__bloco :global(h2),
+  .bento__rotulo {
+    color: var(--_texto-suave);
+    font-family: var(--fonte-mono);
+    font-size: var(--passo--1);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .bento__bloco section { display: grid; gap: var(--espaco-xs); }
+
+  /* Desktop: um eixo por linha, com o nome. Celular: só os ícones, lado a lado (toque mostra o nome). */
+  @media (width >= 48rem) {
+    .bento__eixos .mentoria-pagina__eixos { flex-direction: column; }
+  }
+
+  .bento__parceiro { justify-content: center; }
+
+  .bento .mentoria-pagina__inscricao { height: 100%; }
 </style>

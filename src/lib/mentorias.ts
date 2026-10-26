@@ -95,6 +95,24 @@ export function destaquesHome<T extends Cronograma>(mentorias: readonly T[], hoj
   return [...abertas, ...emBreve, ...emAndamento].slice(0, limite);
 }
 
+export interface MenuMentorias<T> {
+  /** Bloco grande: a marcada como destaque ou, sem nenhuma, a primeira da home. */
+  destaque: ComStatus<T> | null;
+  /** Blocos menores: as próximas na ordem da home, sem o destaque. */
+  proximas: ComStatus<T>[];
+}
+
+/** Conteúdo do menu de Mentorias do cabeçalho. Encerradas nunca entram. */
+export function menuMentorias<T extends Cronograma & { destaque: boolean }>(
+  mentorias: readonly T[],
+  hoje: string,
+  quantidade = 3,
+): MenuMentorias<T> {
+  const ordem = destaquesHome(mentorias, hoje, Infinity);
+  const destaque = ordem.find((d) => d.mentoria.destaque) ?? ordem[0] ?? null;
+  return { destaque, proximas: ordem.filter((d) => d !== destaque).slice(0, quantidade) };
+}
+
 /** `['A', 'B', 'C']` → `A, B e C`. */
 export function juntarLista(itens: readonly string[]): string {
   if (itens.length <= 1) return itens.join('');

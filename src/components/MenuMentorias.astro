@@ -1,0 +1,176 @@
+---
+/**
+ * Painel do item "Mentorias" do cabeçalho (desktop, a partir de 60rem), inspirado no menu do Railway:
+ * bloco grande com a mentoria em destaque (campo `destaque` no painel) e, ao lado, as próximas.
+ * Abre com o mouse (com atraso ao sair, para dar tempo de chegar ao painel) e com o teclado
+ * (foco dentro do item); Esc fecha. No celular, o item continua um link simples.
+ */
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import { hojeEmSaoPaulo } from '../lib/datas';
+import { formatarPeriodo, menuMentorias, textoInscricoes } from '../lib/mentorias';
+import StatusPilula from './StatusPilula.astro';
+
+const hoje = hojeEmSaoPaulo();
+const mentorias = await getCollection('mentorias');
+const { destaque, proximas } = menuMentorias(
+  mentorias.map((entrada) => ({ ...entrada.data, entrada })),
+  hoje,
+);
+---
+
+{
+  destaque && (
+    <div class="menu-mentorias" id="menu-mentorias">
+      <a class="menu-mentorias__destaque" href={`/mentorias/${destaque.mentoria.entrada.id}`}>
+        {destaque.mentoria.capa ? (
+          <Image class="menu-mentorias__capa" src={destaque.mentoria.capa} alt="" widths={[480, 960]} sizes="28rem" />
+        ) : (
+          <span class="menu-mentorias__capa capa-padrao" />
+        )}
+        <span class="menu-mentorias__texto">
+          <StatusPilula status={destaque.status} />
+          <span class="menu-mentorias__titulo">{destaque.mentoria.titulo}</span>
+          <span class="menu-mentorias__resumo">{destaque.mentoria.resumo}</span>
+          <span class="menu-mentorias__data">{textoInscricoes(destaque.mentoria, destaque.status, hoje)}</span>
+        </span>
+      </a>
+
+      <ul class="menu-mentorias__lista" role="list">
+        {proximas.map((p) => (
+          <li>
+            <a class="menu-mentorias__item" href={`/mentorias/${p.mentoria.entrada.id}`}>
+              <span class="menu-mentorias__item-titulo">{p.mentoria.titulo}</span>
+              <span class="menu-mentorias__item-data">
+                {p.status === 'inscricoes-abertas' || p.status === 'em-breve'
+                  ? textoInscricoes(p.mentoria, p.status, hoje)
+                  : `Realização: ${formatarPeriodo(p.mentoria.realizacao.inicio, p.mentoria.realizacao.fim, hoje)}`}
+              </span>
+              <StatusPilula status={p.status} />
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <a class="menu-mentorias__todas link-seta" href="/mentorias">Todas as mentorias, inclusive as encerradas</a>
+    </div>
+  )
+}
+
+<style>
+  .menu-mentorias {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: var(--espaco-2xs);
+    padding: var(--espaco-2xs);
+    border: var(--borda);
+    border-radius: var(--raio-l);
+    /* Mesmo fundo da barra do cabeçalho. */
+    background: var(--cor-faixa);
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.35);
+  }
+
+  .menu-mentorias a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* ---- Bloco grande: capa + texto ---- */
+  .menu-mentorias__destaque {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+    border: 1px solid var(--card-padrao-borda);
+    border-radius: var(--raio-m);
+    background: var(--card-padrao-fundo);
+    transition: border-color var(--duracao) var(--curva);
+  }
+
+  .menu-mentorias__capa {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    object-fit: cover;
+  }
+
+  .menu-mentorias__texto {
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: var(--espaco-3xs);
+    padding: var(--espaco-s);
+  }
+
+  .menu-mentorias__titulo {
+    font-size: var(--passo-1);
+    font-weight: var(--peso-titulo);
+    line-height: 1.2;
+  }
+
+  .menu-mentorias__resumo {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .menu-mentorias__data {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+  }
+
+  /* ---- Blocos menores ---- */
+  .menu-mentorias__lista {
+    display: grid;
+    gap: var(--espaco-2xs);
+    grid-auto-rows: 1fr;
+  }
+
+  .menu-mentorias__item {
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: 0.2rem;
+    height: 100%;
+    padding: var(--espaco-xs) var(--espaco-s);
+    border: 1px solid var(--card-padrao-borda);
+    border-radius: var(--raio-m);
+    background: var(--card-padrao-fundo);
+    transition: border-color var(--duracao) var(--curva);
+  }
+
+  .menu-mentorias__item-titulo {
+    font-weight: var(--peso-negrito);
+    line-height: 1.25;
+  }
+
+  .menu-mentorias__item-data {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .menu-mentorias__todas {
+    grid-column: 1 / -1;
+    justify-self: start;
+    padding: var(--espaco-3xs) var(--espaco-2xs);
+    color: var(--cor-link) !important;
+    font-size: var(--passo--1);
+  }
+
+  .menu-mentorias__destaque:hover,
+  .menu-mentorias__destaque:focus-visible,
+  .menu-mentorias__item:hover,
+  .menu-mentorias__item:focus-visible {
+    border-color: var(--icone-cor);
+  }
+
+  .menu-mentorias__destaque:hover .menu-mentorias__titulo,
+  .menu-mentorias__item:hover .menu-mentorias__item-titulo {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+</style>

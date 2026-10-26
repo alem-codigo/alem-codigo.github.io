@@ -1,0 +1,36 @@
+---
+/** Ícone de marca ou de link (src/lib/icones.ts). Decorativo: o texto acessível fica no elemento pai. */
+import { ICONES_MARCA, type NomeIcone } from '../lib/icones';
+
+interface Props {
+  nome: NomeIcone;
+  class?: string;
+}
+
+const { nome, class: classe } = Astro.props;
+const icone = ICONES_MARCA[nome];
+---
+
+<svg class:list={['icone-marca', classe]} aria-hidden="true" viewBox="0 0 24 24" data-traco={icone.traco ? '' : undefined}>
+  <path d={icone.d} />
+</svg>
+
+<style>
+  .icone-marca {
+    width: 1.15rem;
+    height: 1.15rem;
+    flex: none;
+  }
+
+  .icone-marca path {
+    fill: currentColor;
+  }
+
+  .icone-marca[data-traco] path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>

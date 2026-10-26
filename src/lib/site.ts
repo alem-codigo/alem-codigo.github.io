@@ -23,6 +23,9 @@ export const FORM_AVISO: {
   consentimento: string;
 } | null = null;
 
+/** Frase em marca d'água da cena da montanha, no fim da home (provisória: slogan ainda não definido). */
+export const SLOGAN = 'Cada passo conta.';
+
 /** Links do rodapé, agrupados. */
 export const RODAPE: readonly { titulo: string; itens: readonly ItemNavegacao[] }[] = [
   {

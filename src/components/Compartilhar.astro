@@ -1,0 +1,150 @@
+---
+/**
+ * Compartilhar a página: WhatsApp, LinkedIn e Facebook por link; Instagram e "copiar link" com
+ * JavaScript. O Instagram não aceita compartilhar por link: no celular, abre o menu de
+ * compartilhamento do sistema (onde o Instagram aparece); no computador, copia o link.
+ * Sem JavaScript, os dois botões não aparecem. A prévia do link depende do Open Graph (SEO, Fase 1).
+ */
+import Icone from './Icone.astro';
+
+interface Props {
+  url: string;
+  titulo: string;
+}
+
+const { url, titulo } = Astro.props;
+const texto = `${titulo} · Além do Código`;
+const links = [
+  { rotulo: 'WhatsApp', icone: 'whatsapp', href: `https://wa.me/?text=${encodeURIComponent(`${texto} ${url}`)}` },
+  { rotulo: 'LinkedIn', icone: 'linkedin', href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}` },
+  { rotulo: 'Facebook', icone: 'facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}` },
+] as const;
+---
+
+<div class="compartilhar" data-compartilhar data-url={url} data-titulo={texto}>
+  <span class="compartilhar__rotulo">Compartilhar</span>
+  <ul class="compartilhar__lista" role="list">
+    <li>
+      <a class="compartilhar__item" href={links[0].href} target="_blank" rel="noopener" title="WhatsApp">
+        <Icone nome="whatsapp" /><span class="visualmente-oculto">Compartilhar no WhatsApp</span>
+      </a>
+    </li>
+    <li>
+      <a class="compartilhar__item" href={links[1].href} target="_blank" rel="noopener" title="LinkedIn">
+        <Icone nome="linkedin" /><span class="visualmente-oculto">Compartilhar no LinkedIn</span>
+      </a>
+    </li>
+    <li data-requer-js>
+      <button class="compartilhar__item" type="button" title="Instagram" data-acao="instagram">
+        <Icone nome="instagram" /><span class="visualmente-oculto">Compartilhar no Instagram</span>
+      </button>
+    </li>
+    <li>
+      <a class="compartilhar__item" href={links[2].href} target="_blank" rel="noopener" title="Facebook">
+        <Icone nome="facebook" /><span class="visualmente-oculto">Compartilhar no Facebook</span>
+      </a>
+    </li>
+    <li data-requer-js>
+      <button class="compartilhar__item" type="button" title="Copiar link" data-acao="copiar">
+        <Icone nome="link" /><span class="visualmente-oculto">Copiar link da página</span>
+      </button>
+    </li>
+  </ul>
+  <p class="compartilhar__retorno" role="status" aria-live="polite" data-retorno></p>
+</div>
+
+<script>
+  for (const bloco of document.querySelectorAll<HTMLElement>('[data-compartilhar]')) {
+    const url = bloco.dataset.url!;
+    const titulo = bloco.dataset.titulo!;
+    const retorno = bloco.querySelector<HTMLElement>('[data-retorno]')!;
+    let limpar: number | undefined;
+    const avisar = (msg: string) => {
+      retorno.textContent = msg;
+      clearTimeout(limpar);
+      limpar = window.setTimeout(() => (retorno.textContent = ''), 4000);
+    };
+    const copiar = async (msg: string) => {
+      try {
+        await navigator.clipboard.writeText(url);
+        avisar(msg);
+      } catch {
+        avisar(`Copie o link: ${url}`);
+      }
+    };
+    bloco.querySelector('[data-acao="copiar"]')?.addEventListener('click', () => copiar('Link copiado.'));
+    bloco.querySelector('[data-acao="instagram"]')?.addEventListener('click', async () => {
+      // Celular: menu do sistema (inclui o Instagram). Computador: copia para colar no Instagram.
+      if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+        try {
+          await navigator.share({ title: titulo, url });
+        } catch {
+          /* cancelado pelo usuário */
+        }
+      } else {
+        copiar('Link copiado. Cole no seu story, post ou bio do Instagram.');
+      }
+    });
+  }
+</script>
+
+<style>
+  .compartilhar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-2xs);
+  }
+
+  .compartilhar__rotulo {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .compartilhar__lista {
+    display: flex;
+  }
+
+  :global(:root:not(.js)) [data-requer-js] {
+    display: none;
+  }
+
+  .compartilhar__item {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--raio-m);
+    background: none;
+    color: var(--cor-texto-suave);
+    cursor: pointer;
+    transition: background var(--duracao) var(--curva), color var(--duracao) var(--curva);
+  }
+
+  .compartilhar__item:hover {
+    background: var(--icone-fundo);
+    color: var(--icone-cor);
+  }
+
+  .compartilhar__retorno {
+    position: absolute;
+    z-index: 4;
+    top: calc(100% + 0.25rem);
+    right: 0;
+    width: max-content;
+    max-width: 18rem;
+    padding: 0.4rem 0.65rem;
+    border: var(--borda);
+    border-radius: var(--raio-s);
+    background: var(--card-padrao-fundo);
+    box-shadow: 0 6px 18px rgb(0 0 0 / 0.25);
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+  }
+
+  .compartilhar__retorno:empty {
+    display: none;
+  }
+</style>

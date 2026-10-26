@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { agruparParaHome, dataDestaque, destaquesHome, formatarData, formatarPeriodo, juntarLista, textoInscricoes } from './mentorias';
+import { agruparParaHome, dataDestaque, destaquesHome, menuMentorias, formatarData, formatarPeriodo, juntarLista, textoInscricoes } from './mentorias';
 import { STATUS_MENTORIA, VARIANTE_CARD, type Cronograma } from './status';
 
 const hoje = '2026-11-05';
@@ -131,5 +131,31 @@ describe('destaquesHome', () => {
   it('abertas primeiro, depois em breve e em andamento; sem encerradas; no máximo 3', () => {
     expect(destaquesHome(lista, hoje).map((d) => d.mentoria.id)).toEqual(['aberta', 'breve-2', 'breve']);
     expect(destaquesHome(lista, hoje, 10).map((d) => d.mentoria.id)).toEqual(['aberta', 'breve-2', 'breve', 'andamento']);
+  });
+});
+
+describe('menuMentorias', () => {
+  const d = (id: string, destaque: boolean, ...datas: [string, string, string, string]) => ({ ...m(id, ...datas), destaque });
+  const lista = [
+    d('encerrada', true, '2026-09-01', '2026-09-10', '2026-09-20', '2026-10-30'),
+    d('aberta', false, '2026-11-01', '2026-11-20', '2026-11-25', '2026-12-20'),
+    d('breve', true, '2026-12-01', '2026-12-10', '2027-01-10', '2027-02-20'),
+    d('breve-2', false, '2026-11-20', '2026-11-30', '2026-12-05', '2026-12-30'),
+    d('andamento', false, '2026-10-01', '2026-10-10', '2026-10-20', '2026-12-20'),
+  ];
+
+  it('destaque marcado (ignorando encerradas) e as próximas sem ele', () => {
+    const menu = menuMentorias(lista, hoje);
+    expect(menu.destaque?.mentoria.id).toBe('breve');
+    expect(menu.proximas.map((p) => p.mentoria.id)).toEqual(['aberta', 'breve-2', 'andamento']);
+  });
+
+  it('sem marcação: a primeira da home', () => {
+    const menu = menuMentorias(lista.map((x) => ({ ...x, destaque: false })), hoje);
+    expect(menu.destaque?.mentoria.id).toBe('aberta');
+  });
+
+  it('sem mentorias ativas: vazio', () => {
+    expect(menuMentorias([lista[0]!], hoje)).toEqual({ destaque: null, proximas: [] });
   });
 });
