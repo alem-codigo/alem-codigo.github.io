@@ -13,9 +13,11 @@ import { FORM_AVISO } from '../lib/site';
 interface Props {
   /** Ex.: `M26-01 · Análise de Dados com a Qlik` (vai para a planilha do Forms). */
   mentoria: string;
+  /** Status da mentoria no momento do pedido (ex.: `Encerrada`), se o Forms tiver o campo. */
+  situacao: string;
 }
 
-const { mentoria } = Astro.props;
+const { mentoria, situacao } = Astro.props;
 const f = FORM_AVISO;
 ---
 
@@ -25,6 +27,7 @@ const f = FORM_AVISO;
       <p class="aviso__titulo">Quer participar da próxima turma?</p>
       <p class="aviso__texto">Deixe seu e-mail e avisamos quando houver uma nova oferta desta mentoria.</p>
       <input type="hidden" name={f.campos.mentoria} value={mentoria} />
+      {f.campos.situacao && <input type="hidden" name={f.campos.situacao} value={situacao} />}
       <label class="aviso__rotulo" for="aviso-email">E-mail</label>
       <input
         class="aviso__email"

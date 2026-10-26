@@ -21,7 +21,7 @@ import { ICONES_EIXO } from '../../lib/eixos';
 import { REDES_MENTOR } from '../../lib/icones';
 import { eventoCalendario } from '../../lib/calendario';
 import { dataDestaque, formatarPeriodo, juntarLista } from '../../lib/mentorias';
-import { calcularStatus, VARIANTE_CARD } from '../../lib/status';
+import { calcularStatus, ROTULO_STATUS, VARIANTE_CARD } from '../../lib/status';
 
 export const getStaticPaths = (async () => {
   const mentorias = await getCollection('mentorias');
@@ -121,7 +121,7 @@ const evento = eventoCalendario(m, status, mentoria.id, urlPagina);
           }
           {
             (status === 'inscricoes-encerradas' || status === 'em-andamento' || status === 'encerrada') && (
-              <AvisoTurma mentoria={`${m.codigo} · ${m.titulo}`} />
+              <AvisoTurma mentoria={`${m.codigo} · ${m.titulo}`} situacao={ROTULO_STATUS[status]} />
             )
           }
           {evento && <AdicionarCalendario evento={evento} ics={`/mentorias/${mentoria.id}.ics`} arquivo={`${mentoria.id}.ics`} />}

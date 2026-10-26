@@ -5,7 +5,8 @@
  * fica por cima da cena inteira, na largura toda, semitransparente, e ganha força com a bandeira.
  *
  * - Sem JavaScript ou com movimento reduzido: mostra a cena final, parada.
- * - Com JavaScript: a animação (SMIL, sem bibliotecas) começa uma vez, quando a cena entra na tela.
+ * - Com JavaScript: a animação (SMIL, sem bibliotecas) começa quando a cena entra na tela e
+ *   recomeça sempre que ela sai por completo e volta (como no Railway).
  * Decorativa: a frase também existe como texto para leitores de tela; o desenho é aria-hidden.
  */
 import { SLOGAN } from '../lib/site';
@@ -68,17 +69,34 @@ const TRILHA = 'M356 244 C420 236 472 218 466 196 C460 174 430 160 430 135 C430 
   const mastro = cena?.querySelector<SVGAnimationElement>('#mastro');
 
   if (cena && subida && mastro && !reduzido && 'IntersectionObserver' in window) {
+    // Como no Railway: a cena recomeça toda vez que volta à tela (depois de sair dela por completo).
+    const DURACAO_SUBIDA = 2600;
+    let inicio = 0;
+    const etapas = ['cena--subindo', 'cena--topo', 'cena--fincada'];
     cena.classList.add('cena--preparada');
-    subida.addEventListener('endEvent', () => cena.classList.add('cena--topo'));
-    mastro.addEventListener('endEvent', () => cena.classList.add('cena--fincada'));
+
+    // Reiniciar a subida pode disparar o fim da subida anterior: só vale o fim da subida atual.
+    subida.addEventListener('endEvent', () => {
+      if (inicio && performance.now() - inicio >= DURACAO_SUBIDA - 100) cena.classList.add('cena--topo');
+    });
+    mastro.addEventListener('endEvent', () => {
+      if (cena.classList.contains('cena--topo')) cena.classList.add('cena--fincada');
+    });
+
     const observador = new IntersectionObserver(
       (entradas) => {
-        if (!entradas.some((e) => e.isIntersecting)) return;
-        observador.disconnect();
-        cena.classList.add('cena--subindo');
-        subida.beginElement();
+        const e = entradas[entradas.length - 1]!;
+        if (e.intersectionRatio === 0) {
+          inicio = 0;
+          cena.classList.remove(...etapas);
+        } else if (e.intersectionRatio >= 0.45 && !inicio) {
+          cena.classList.remove(...etapas);
+          cena.classList.add('cena--subindo');
+          inicio = performance.now();
+          subida.beginElement();
+        }
       },
-      { threshold: 0.45 },
+      { threshold: [0, 0.45] },
     );
     observador.observe(cena);
   }

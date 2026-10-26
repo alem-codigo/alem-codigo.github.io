@@ -12,13 +12,15 @@ export const SITE = {
  * e a mentoria sem sair do site. Enquanto for `null`, o campo não aparece.
  *
  * Como preencher: no Forms, crie as perguntas (resposta curta "Mentoria", resposta curta
- * "E-mail" e caixa de seleção com o texto de `consentimento`), sem exigir login nem coletar
- * e-mail automaticamente. Em "Gerar link pré-preenchido", copie os `entry.<número>` de cada
+ * "E-mail", resposta curta "Situação da mentoria" e caixa de seleção com o texto de
+ * `consentimento`), sem exigir login nem coletar e-mail automaticamente. A data e a hora de cada
+ * pedido ficam na coluna "Carimbo de data/hora" que o próprio Forms grava na planilha. Em "Gerar link pré-preenchido", copie os `entry.<número>` de cada
  * pergunta. `acao` é o endereço do formulário com `/viewform` trocado por `/formResponse`.
  */
 export const FORM_AVISO: {
   acao: string;
-  campos: { mentoria: string; email: string; consentimento: string };
+  /** `situacao` é opcional: status da mentoria quando a pessoa pediu o aviso (ex.: "Encerrada"). */
+  campos: { mentoria: string; email: string; consentimento: string; situacao?: string };
   /** Texto exato da opção da caixa de seleção no Forms (o Google só aceita se for igual). */
   consentimento: string;
 } | null = null;
