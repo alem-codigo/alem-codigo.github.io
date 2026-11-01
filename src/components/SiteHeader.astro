@@ -109,9 +109,27 @@ const temMenuMentorias = menuMentorias(mentorias, hojeEmSaoPaulo()).destaque !==
     border-block-end: var(--borda);
   }
 
+  /* Fixo no topo ao rolar a página. Fundo opaco (a faixa), para o conteúdo não aparecer por trás. */
   .cabecalho {
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 20;
+  }
+
+  /* Sombra só depois que a página rola (animação ligada à rolagem, sem JavaScript; navegadores
+   * sem suporte ficam só com a borda). */
+  @supports (animation-timeline: scroll()) {
+    .cabecalho {
+      animation: cabecalho-sombra linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 4rem;
+    }
+
+    @keyframes cabecalho-sombra {
+      to {
+        box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.45);
+      }
+    }
   }
 
   .cabecalho__barra {

@@ -1,6 +1,7 @@
 @layer base {
   html {
-    scroll-padding-top: var(--espaco-l);
+    /* Âncoras (#secao) param abaixo do cabeçalho fixo (4.5rem de altura mínima). */
+    scroll-padding-top: calc(4.5rem + var(--espaco-l));
   }
 
   body {

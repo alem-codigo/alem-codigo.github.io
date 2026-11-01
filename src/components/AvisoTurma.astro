@@ -15,17 +15,25 @@ interface Props {
   mentoria: string;
   /** Status da mentoria no momento do pedido (ex.: `Encerrada`), se o Forms tiver o campo. */
   situacao: string;
+  /** Textos do topo; o padrão é o da página da mentoria. */
+  titulo?: string;
+  texto?: string;
 }
 
-const { mentoria, situacao } = Astro.props;
+const {
+  mentoria,
+  situacao,
+  titulo = 'Quer participar da próxima turma?',
+  texto = 'Deixe seu e-mail e avisamos quando houver uma nova oferta desta mentoria.',
+} = Astro.props;
 const f = FORM_AVISO;
 ---
 
 {
   f && (
     <form class="aviso" action={f.acao} method="post" target="_blank" data-aviso>
-      <p class="aviso__titulo">Quer participar da próxima turma?</p>
-      <p class="aviso__texto">Deixe seu e-mail e avisamos quando houver uma nova oferta desta mentoria.</p>
+      {titulo && <p class="aviso__titulo">{titulo}</p>}
+      <p class="aviso__texto">{texto}</p>
       <input type="hidden" name={f.campos.mentoria} value={mentoria} />
       {f.campos.situacao && <input type="hidden" name={f.campos.situacao} value={situacao} />}
       <label class="aviso__rotulo" for="aviso-email">E-mail</label>

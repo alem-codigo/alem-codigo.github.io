@@ -57,7 +57,10 @@ export const RODAPE: readonly { titulo: string; itens: readonly ItemNavegacao[] 
  * Canais oficiais (YouTube, Substack etc.). A coluna "Canais" do rodapé só aparece quando
  * houver ao menos um. Use sempre URLs https completas.
  */
+/** Newsletter do programa (Substack): aviso geral de novas mentorias enquanto não houver FORM_AVISO. */
+export const NEWSLETTER = 'https://alemcodigo.substack.com/';
+
 export const CANAIS: readonly ItemNavegacao[] = [
   { rotulo: 'YouTube', href: 'https://www.youtube.com/@alemdocodigo-mentoria' },
-  { rotulo: 'Newsletter (Substack)', href: 'https://alemcodigo.substack.com/' },
+  { rotulo: 'Newsletter (Substack)', href: NEWSLETTER },
 ];
