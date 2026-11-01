@@ -1,3 +1,4 @@
+import { caminhoMentoria } from './mentorias';
 import { calcularStatus, type Cronograma } from './status';
 
 export interface ItemNavegacao {
@@ -31,11 +32,12 @@ export interface MentoriaResumo extends Cronograma {
 
 /**
  * Destino do botão "Inscrições abertas" do cabeçalho, ou `null` se nenhuma mentoria
- * estiver com inscrições abertas (o botão não aparece). Com uma só, leva direto a ela.
+ * estiver com inscrições abertas (o botão não aparece). Com uma só, leva direto a ela; com mais
+ * de uma, à listagem já filtrada (sem JavaScript, a listagem mostra todas).
  */
 export function destinoInscricoes(mentorias: readonly MentoriaResumo[], hoje: string): string | null {
   const abertas = mentorias.filter((m) => calcularStatus(m, hoje) === 'inscricoes-abertas');
   if (abertas.length === 0) return null;
-  if (abertas.length === 1) return `/mentorias/${abertas[0]!.id}`;
-  return '/mentorias#inscricoes-abertas';
+  if (abertas.length === 1) return caminhoMentoria(abertas[0]!.id);
+  return '/mentorias/?status=inscricoes-abertas';
 }

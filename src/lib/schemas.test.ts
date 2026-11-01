@@ -7,6 +7,7 @@ import {
   dataCalendario,
   idDeReferencia,
   opcional,
+  resultadoTurma,
   slugDoCodigo,
   urlHttps,
   validarCodigo,
@@ -134,5 +135,49 @@ describe('codigosDuplicados', () => {
 
   it('não acusa nada sem repetição ou sem código', () => {
     expect(codigosDuplicados({ 'a.md': md('M26-01'), 'b.md': md('M26-02'), 'c.md': 'sem frontmatter' })).toEqual([]);
+  });
+});
+
+describe('resultadoTurma', () => {
+  const ok = (v: unknown) => resultadoTurma.safeParse(v);
+
+  it('vazio ou grupos vazios do painel viram ausente', () => {
+    expect(ok(undefined).data).toBeUndefined();
+    expect(ok({}).data).toBeUndefined();
+    expect(ok({ avaliacao: { media: null, respostas: null }, depoimentos: [] }).data).toBeUndefined();
+  });
+
+  it('aceita o resultado completo', () => {
+    const r = ok({
+      inscritos: 120,
+      concluintes: 80,
+      avaliacao: { media: 4.7, respostas: 32 },
+      depoimentos: [{ texto: 'Mudou meu portfólio.', autor: 'Ana S., ADS', autorizado: true }],
+    });
+    expect(r.success).toBe(true);
+    expect(r.data?.depoimentos).toHaveLength(1);
+  });
+
+  it('depoimento sem autorização quebra o build', () => {
+    const r = ok({ depoimentos: [{ texto: 'Ótimo', autor: 'Ana', autorizado: false }] });
+    expect(r.success).toBe(false);
+    expect(r.error?.issues[0]?.message).toMatch(/autorização/);
+    expect(ok({ depoimentos: [{ texto: 'Ótimo', autor: 'Ana' }] }).success).toBe(false);
+  });
+
+  it('confere as contagens', () => {
+    expect(ok({ inscritos: 10, concluintes: 11 }).success).toBe(false);
+    expect(ok({ inscritos: 10, avaliacao: { media: 4, respostas: 12 } }).success).toBe(false);
+    expect(ok({ inscritos: -1 }).success).toBe(false);
+    expect(ok({ inscritos: 10.5 }).success).toBe(false);
+    expect(ok({ avaliacao: { media: 5.2, respostas: 3 } }).success).toBe(false);
+  });
+
+  it('avaliação pela metade é erro (média sem respostas)', () => {
+    expect(ok({ avaliacao: { media: 4.5 } }).success).toBe(false);
+  });
+
+  it('depoimento acima de 280 caracteres', () => {
+    expect(ok({ depoimentos: [{ texto: 'a'.repeat(281), autor: 'Ana', autorizado: true }] }).success).toBe(false);
   });
 });

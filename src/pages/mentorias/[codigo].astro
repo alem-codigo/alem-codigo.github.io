@@ -20,7 +20,15 @@ import { hojeEmSaoPaulo } from '../../lib/datas';
 import { ICONES_EIXO } from '../../lib/eixos';
 import { REDES_MENTOR } from '../../lib/icones';
 import { eventoCalendario } from '../../lib/calendario';
-import { dataDestaque, formatarPeriodo, juntarLista } from '../../lib/mentorias';
+import {
+  avaliacaoPublicavel,
+  caminhoMentoria,
+  dataDestaque,
+  formatarInteiro,
+  formatarNota,
+  formatarPeriodo,
+  juntarLista,
+} from '../../lib/mentorias';
 import { calcularStatus, ROTULO_STATUS, VARIANTE_CARD } from '../../lib/status';
 
 export const getStaticPaths = (async () => {
@@ -46,14 +54,35 @@ const periodoInscricoes = formatarPeriodo(m.inscricoes.abertura, m.inscricoes.fe
 const periodoRealizacao = formatarPeriodo(m.realizacao.inicio, m.realizacao.fim, hoje);
 const abertura = dataDestaque(m.inscricoes.abertura);
 const fechamento = dataDestaque(m.inscricoes.fechamento);
-const urlPagina = new URL(`/mentorias/${mentoria.id}/`, Astro.site).toString();
+const urlPagina = new URL(caminhoMentoria(mentoria.id), Astro.site).toString();
 const evento = eventoCalendario(m, status, mentoria.id, urlPagina);
+
+// Resultado da turma: só depois que ela começa (antes disso, os números ainda mudam).
+const r = status === 'em-andamento' || status === 'encerrada' ? m.resultado : undefined;
+const nota = avaliacaoPublicavel(r);
+const numerosTurma = [
+  r?.inscritos !== undefined && { rotulo: 'Inscritos', valor: formatarInteiro(r.inscritos) },
+  r?.concluintes !== undefined && { rotulo: 'Concluintes', valor: formatarInteiro(r.concluintes) },
+  nota && {
+    rotulo: 'Avaliação dos alunos',
+    valor: `${formatarNota(nota.media)} de 5`,
+    detalhe: `${formatarInteiro(nota.respostas)} avaliações`,
+  },
+].filter((n): n is { rotulo: string; valor: string; detalhe?: string } => Boolean(n));
+const depoimentos = r?.depoimentos ?? [];
 ---
 
-<Base title={m.titulo} description={m.resumo}>
+<Base
+  title={m.titulo}
+  description={m.resumo}
+  imagem={m.capa}
+  imagemAlt={m.capa ? `Capa da mentoria ${m.titulo}` : undefined}
+>
   <article class="container mentoria-pagina bento-pagina">
     <nav class="mentoria-pagina__trilha" aria-label="Trilha">
       <a href="/">Início</a>
+      <span aria-hidden="true">/</span>
+      <a href="/mentorias/">Mentorias</a>
       <span aria-hidden="true">/</span>
       <span aria-current="page">{m.titulo}</span>
     </nav>
@@ -232,6 +261,43 @@ const evento = eventoCalendario(m, status, mentoria.id, urlPagina);
         )
       }
     </div>
+
+    {
+      (numerosTurma.length > 0 || depoimentos.length > 0) && (
+        <section class="card turma" aria-labelledby="turma-titulo">
+          <h2 class="turma__titulo" id="turma-titulo">
+            {status === 'encerrada' ? 'Como foi a turma' : 'A turma'}
+          </h2>
+          {numerosTurma.length > 0 && (
+            <dl class="turma__numeros">
+              {numerosTurma.map((n) => (
+                <div class="turma__numero">
+                  <dt>{n.rotulo}</dt>
+                  <dd>
+                    <span class="turma__valor">{n.valor}</span>
+                    {n.detalhe && <span class="turma__detalhe">{n.detalhe}</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {depoimentos.length > 0 && (
+            <ul class="turma__depoimentos" role="list" aria-label="Depoimentos dos alunos">
+              {depoimentos.map((d) => (
+                <li>
+                  <figure class="depoimento">
+                    <blockquote>
+                      <p>{d.texto}</p>
+                    </blockquote>
+                    <figcaption>{d.autor}</figcaption>
+                  </figure>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )
+    }
   </article>
 </Base>
 
@@ -600,4 +666,86 @@ const evento = eventoCalendario(m, status, mentoria.id, urlPagina);
   .bento__parceiro { justify-content: center; }
 
   .bento .mentoria-pagina__inscricao { height: 100%; }
+
+  /* ---- Resultado da turma (em andamento e encerrada): números e depoimentos ---- */
+  .turma {
+    gap: var(--espaco-m);
+    margin-block-start: var(--espaco-s);
+  }
+
+  .turma__titulo {
+    color: var(--_texto-suave);
+    font-family: var(--fonte-mono);
+    font-size: var(--passo--1);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .turma__numeros {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: var(--espaco-s);
+  }
+
+  .turma__numero {
+    display: grid;
+    align-content: start;
+    gap: var(--espaco-3xs);
+    padding-inline-start: var(--espaco-s);
+    border-inline-start: 3px solid var(--icone-cor);
+  }
+
+  .turma__numero dt {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .turma__numero dd {
+    display: grid;
+  }
+
+  .turma__valor {
+    font-size: var(--passo-3);
+    font-weight: var(--peso-titulo);
+    line-height: 1.1;
+  }
+
+  .turma__detalhe {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .turma__depoimentos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: var(--espaco-s);
+  }
+
+  .depoimento {
+    display: grid;
+    gap: var(--espaco-2xs);
+    height: 100%;
+    margin: 0;
+    padding: var(--espaco-s) var(--espaco-m);
+    border: 1px solid var(--_borda);
+    border-radius: var(--raio-m);
+    background: var(--_rodape);
+  }
+
+  .depoimento blockquote {
+    margin: 0;
+    font-style: italic;
+  }
+
+  .depoimento blockquote p::before { content: '“'; }
+  .depoimento blockquote p::after { content: '”'; }
+
+  .depoimento figcaption {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+  }
+
+  .depoimento figcaption::before { content: '— '; }
 </style>

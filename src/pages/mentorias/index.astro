@@ -1,0 +1,433 @@
+---
+/**
+ * Listagem de mentorias (/mentorias). Ativas primeiro, na ordem da home (abertas, em breve, em
+ * andamento e inscrições encerradas), em cards; encerradas numa seção própria, da mais recente para
+ * a mais antiga, num mosaico que rola para o lado (GaleriaEncerradas), sem pílula (D-17).
+ *
+ * Filtros por situação, eixo e parceria com JavaScript, refletidos na URL (`?status=…&eixo=…&parceria=…`),
+ * para o botão
+ * "Inscrições abertas" do cabeçalho chegar já filtrado e o link poder ser compartilhado.
+ * Sem JavaScript, os filtros não aparecem e a página mostra todas as mentorias.
+ */
+import { getCollection } from 'astro:content';
+import GaleriaEncerradas from '../../components/GaleriaEncerradas.astro';
+import MentoriaCard from '../../components/MentoriaCard.astro';
+import Base from '../../layouts/Base.astro';
+import { hojeEmSaoPaulo } from '../../lib/datas';
+import { listagemMentorias, opcoesParceria, slugParceiro } from '../../lib/mentorias';
+import { FORM_AVISO } from '../../lib/site';
+import { ROTULO_STATUS, STATUS_COM_PILULA } from '../../lib/status';
+
+const hoje = hojeEmSaoPaulo();
+const mentorias = await getCollection('mentorias');
+const eixos = (await getCollection('eixos')).sort((a, b) => a.data.ordem - b.data.ordem);
+const { ativas, encerradas } = listagemMentorias(
+  mentorias.map((entrada) => ({ ...entrada.data, entrada })),
+  hoje,
+);
+
+// Só oferece no filtro as situações, os eixos e os parceiros que têm alguma mentoria.
+const statusPresentes = STATUS_COM_PILULA.filter((s) => ativas.some((a) => a.status === s));
+const idsEixos = (m: (typeof ativas)[number]['mentoria']) => m.eixos.map((e) => e.id);
+const eixosPresentes = eixos.filter((e) => [...ativas, ...encerradas].some((a) => idsEixos(a.mentoria).includes(e.id)));
+const parceria = (m: (typeof ativas)[number]['mentoria']) => (m.parceiro ? slugParceiro(m.parceiro.nome) : '');
+const opcoesDeParceria = opcoesParceria([...ativas, ...encerradas].map((a) => a.mentoria.parceiro?.nome));
+const temFiltros = ativas.length + encerradas.length > 1;
+---
+
+<Base
+  title="Mentorias"
+  description="Todas as mentorias do Além do Código: inscrições abertas, próximas turmas, turmas em andamento e mentorias encerradas."
+>
+  <div class="container listagem">
+    <header class="secao-cabecalho">
+      <div class="secao-cabecalho__texto">
+        <p class="rotulo">Mentorias</p>
+        <h1>Todas as mentorias</h1>
+        <p class="texto-suave">
+          Turmas com inscrições abertas, as próximas, as que estão em andamento e as que já foram realizadas.
+        </p>
+      </div>
+    </header>
+
+    {
+      temFiltros && (
+        <form class="filtros" data-filtros aria-label="Filtrar mentorias">
+          {statusPresentes.length > 1 && (
+            <fieldset class="filtros__grupo">
+              <legend class="filtros__legenda">Situação</legend>
+              <div class="filtros__opcoes">
+                <label class="filtro">
+                  <input type="radio" name="status" value="" checked />
+                  <span>Todas</span>
+                </label>
+                {statusPresentes.map((s) => (
+                  <label class="filtro">
+                    <input type="radio" name="status" value={s} />
+                    <span>{ROTULO_STATUS[s]}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+          {eixosPresentes.length > 1 && (
+            <div class="filtros__grupo">
+              <label class="filtros__legenda" for="filtro-eixo">
+                Eixo
+              </label>
+              <select class="filtros__select" id="filtro-eixo" name="eixo">
+                <option value="">Todos os eixos</option>
+                {eixosPresentes.map((e) => (
+                  <option value={e.id}>
+                    Eixo {e.data.numero} · {e.data.titulo}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {opcoesDeParceria.length > 0 && (
+            <div class="filtros__grupo">
+              <label class="filtros__legenda" for="filtro-parceria">
+                Parceria
+              </label>
+              <select class="filtros__select" id="filtro-parceria" name="parceria">
+                <option value="">Com e sem parceria</option>
+                {opcoesDeParceria.map((o) => (
+                  <option value={o.valor}>{o.rotulo}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div class="filtros__resultado">
+            <p class="texto-suave" role="status" aria-live="polite" data-contagem />
+            <button class="filtros__limpar" type="reset" data-limpar hidden>
+              Limpar filtros
+            </button>
+          </div>
+        </form>
+      )
+    }
+
+    <section class="pilha listagem__secao" aria-labelledby="ativas-titulo" data-secao="ativas">
+      <h2 class="listagem__titulo" id="ativas-titulo">Abertas, próximas e em andamento</h2>
+      {
+        ativas.length > 0 ? (
+          <ul class="grade listagem__grade" role="list">
+            {ativas.map(({ mentoria, status }) => (
+              <li
+                data-item
+                data-status={status}
+                data-eixos={idsEixos(mentoria).join(' ')}
+                data-parceria={parceria(mentoria)}
+              >
+                <MentoriaCard mentoria={mentoria.entrada} status={status} hoje={hoje} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div class="listagem__vazio">
+            <p class="listagem__vazio-titulo">Nenhuma turma aberta ou em andamento no momento</p>
+            <p class="texto-suave">Novas turmas abrem ao longo do semestre. Veja abaixo as mentorias já realizadas.</p>
+          </div>
+        )
+      }
+      <div class="listagem__vazio" data-vazio-filtro hidden>
+        <p class="listagem__vazio-titulo">Nenhuma turma ativa com esses filtros</p>
+        <p class="texto-suave">Tente outra combinação de filtros.</p>
+      </div>
+    </section>
+
+  </div>
+
+  {
+    encerradas.length > 0 && (
+      <section class="encerradas" id="encerradas" aria-labelledby="encerradas-titulo" data-secao="encerradas">
+        <GaleriaEncerradas
+          rotuloId="encerradas-titulo"
+          itens={encerradas.map(({ mentoria }) => ({
+            entrada: mentoria.entrada,
+            eixos: idsEixos(mentoria).join(' '),
+            parceria: parceria(mentoria),
+          }))}
+        >
+          <Fragment slot="cabecalho">
+            <p class="rotulo">Já realizadas</p>
+            <h2 class="listagem__titulo" id="encerradas-titulo">
+              Mentorias encerradas
+            </h2>
+            <p class="texto-suave">
+              Turmas que já aconteceram. Em destaque, as feitas em parceria, as mais procuradas e as mais bem avaliadas.
+              {FORM_AVISO && ' Quer participar de uma nova turma? Deixe seu e-mail na página da mentoria.'}
+            </p>
+          </Fragment>
+        </GaleriaEncerradas>
+      </section>
+    )
+  }
+</Base>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-filtros]');
+
+  if (form) {
+    const itens = [...document.querySelectorAll<HTMLElement>('[data-item]')];
+    const secoes = [...document.querySelectorAll<HTMLElement>('[data-secao]')];
+    const contagem = form.querySelector<HTMLElement>('[data-contagem]')!;
+    const limpar = form.querySelector<HTMLButtonElement>('[data-limpar]')!;
+    const vazioFiltro = document.querySelector<HTMLElement>('[data-vazio-filtro]');
+
+    const valor = (nome: string): string => {
+      const campo = form.elements.namedItem(nome);
+      if (campo instanceof RadioNodeList || campo instanceof HTMLSelectElement) return campo.value;
+      return '';
+    };
+
+    const FILTROS = ['status', 'eixo', 'parceria'] as const;
+
+    // Só aceita da URL valores que existem nos filtros (ignora valores desconhecidos).
+    const aplicarDaUrl = () => {
+      const params = new URLSearchParams(location.search);
+      const status = params.get('status') ?? '';
+      const radio = form.querySelector<HTMLInputElement>(`input[name="status"][value="${CSS.escape(status)}"]`);
+      if (radio) radio.checked = true;
+      for (const nome of ['eixo', 'parceria']) {
+        const select = form.querySelector<HTMLSelectElement>(`select[name="${nome}"]`);
+        const v = params.get(nome) ?? '';
+        if (select && [...select.options].some((o) => o.value === v)) select.value = v;
+      }
+    };
+
+    const passaParceria = (item: HTMLElement, filtro: string): boolean => {
+      const p = item.dataset.parceria ?? '';
+      if (!filtro) return true;
+      return filtro === 'qualquer' ? p !== '' : p === filtro;
+    };
+
+    const filtrar = () => {
+      const status = valor('status');
+      const eixo = valor('eixo');
+      const parceria = valor('parceria');
+      let visiveis = 0;
+
+      for (const item of itens) {
+        const passaStatus = !status || item.dataset.status === status;
+        const passaEixo = !eixo || (item.dataset.eixos ?? '').split(' ').includes(eixo);
+        item.hidden = !(passaStatus && passaEixo && passaParceria(item, parceria));
+        if (!item.hidden) visiveis++;
+      }
+
+      // Seção sem nenhum card visível some; nas ativas, aparece o aviso de "nenhuma com esses filtros".
+      for (const secao of secoes) {
+        const itensDaSecao = secao.querySelectorAll('[data-item]');
+        const algum = [...itensDaSecao].some((i) => !(i as HTMLElement).hidden);
+        if (secao.dataset.secao === 'encerradas') secao.hidden = !algum;
+        else if (vazioFiltro) vazioFiltro.hidden = algum || itensDaSecao.length === 0;
+      }
+
+      const filtrando = Boolean(status || eixo || parceria);
+      limpar.hidden = !filtrando;
+      contagem.textContent = filtrando
+        ? `${visiveis} ${visiveis === 1 ? 'mentoria encontrada' : 'mentorias encontradas'}`
+        : `${itens.length} ${itens.length === 1 ? 'mentoria' : 'mentorias'}`;
+
+      const params = new URLSearchParams();
+      for (const nome of FILTROS) {
+        const v = valor(nome);
+        if (v) params.set(nome, v);
+      }
+      const busca = params.toString();
+      history.replaceState(null, '', busca ? `?${busca}${location.hash}` : location.pathname + location.hash);
+      // A galeria de encerradas remonta a rolagem com os itens visíveis.
+      document.dispatchEvent(new CustomEvent('listagem:filtrada'));
+    };
+
+    form.addEventListener('change', filtrar);
+    form.addEventListener('submit', (e) => e.preventDefault());
+    // O reset do formulário volta aos valores iniciais; filtra depois que o navegador os aplica.
+    form.addEventListener('reset', () => requestAnimationFrame(filtrar));
+    aplicarDaUrl();
+    filtrar();
+  }
+</script>
+
+<style>
+  .listagem {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-xl);
+    padding-block: var(--espaco-xl) var(--espaco-2xl);
+  }
+
+
+  .listagem__secao {
+    --pilha-espaco: var(--espaco-m);
+  }
+
+  .listagem__titulo {
+    font-size: var(--passo-2);
+  }
+
+  /* Até 3 cards por linha, como na home. */
+  .listagem__grade {
+    --grade-min: max(18rem, calc((100% - 2 * var(--espaco-m)) / 3));
+  }
+
+  .listagem__grade > li {
+    display: grid;
+  }
+
+  .listagem__grade > li[hidden],
+  .listagem__secao[hidden],
+  .encerradas[hidden] {
+    display: none;
+  }
+
+  /* Encerradas: faixa de ponta a ponta, para o mosaico rolar até as bordas da tela. */
+  .encerradas {
+    padding-block: var(--espaco-xl) var(--espaco-2xl);
+    border-block-start: var(--borda);
+    background: var(--cor-faixa);
+  }
+
+  .listagem__vazio {
+    display: grid;
+    gap: var(--espaco-2xs);
+    padding: var(--espaco-l);
+    border: 1px dashed var(--cor-borda);
+    border-radius: var(--raio-l);
+  }
+
+  .listagem__vazio[hidden] {
+    display: none;
+  }
+
+  .listagem__vazio-titulo {
+    font-size: var(--passo-1);
+    font-weight: var(--peso-negrito);
+  }
+
+  /* ---- Filtros: só com JavaScript (sem ele, a página mostra todas) ---- */
+  .filtros {
+    display: none;
+  }
+
+  :global(.js) .filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--espaco-s) var(--espaco-l);
+    padding: var(--espaco-s) var(--espaco-m);
+    border: var(--borda);
+    border-radius: var(--raio-l);
+    background: var(--cor-faixa);
+  }
+
+  /* Sem gap: a <legend> não participa do grid; a margem alinha os dois rótulos. */
+  .filtros__grupo {
+    display: grid;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .filtros__legenda {
+    padding: 0;
+    margin-block-end: var(--espaco-2xs);
+    color: var(--cor-texto-suave);
+    font-family: var(--fonte-mono);
+    font-size: var(--passo--1);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .filtros__opcoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-3xs);
+  }
+
+  /* Opção de situação: rádio nativo escondido, rótulo em forma de pílula com alvo de 44px. */
+  .filtro {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 var(--espaco-s);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-pilula);
+    background: var(--card-padrao-fundo);
+    color: var(--cor-texto);
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+    cursor: pointer;
+    transition: border-color var(--duracao) var(--curva);
+  }
+
+  .filtro:hover {
+    border-color: var(--cor-link);
+  }
+
+  .filtro input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .filtro:has(input:checked) {
+    border-color: var(--botao-fundo);
+    background: var(--botao-fundo);
+    color: var(--botao-texto);
+  }
+
+  .filtro:has(input:focus-visible) {
+    outline: 3px solid var(--cor-foco);
+    outline-offset: 2px;
+  }
+
+  .filtros__select {
+    min-height: 2.75rem;
+    max-width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-m);
+    background: var(--card-padrao-fundo);
+    color: var(--cor-texto);
+    font: inherit;
+    font-size: var(--passo--1);
+  }
+
+  .filtros__resultado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espaco-2xs) var(--espaco-s);
+    min-height: 2.75rem;
+    margin-inline-start: auto;
+    font-size: var(--passo--1);
+  }
+
+  .filtros__limpar {
+    min-height: 2.75rem;
+    padding: 0 var(--espaco-2xs);
+    border: 0;
+    background: none;
+    color: var(--cor-link);
+    font: inherit;
+    font-weight: var(--peso-negrito);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    cursor: pointer;
+  }
+
+  .filtros__limpar[hidden] {
+    display: none;
+  }
+
+  @media (width < 48rem) {
+    .filtros__resultado {
+      margin-inline-start: 0;
+    }
+  }
+</style>

@@ -186,6 +186,64 @@ content:
             pattern:
               regex: '^(https://\S+)?$'
               message: Cole o link completo, começando com https://
+      - name: resultado
+        label: Resultado da turma
+        type: object
+        description: 'Tudo opcional. Inscritos: depois que as inscrições fecharem. Concluintes, avaliação e depoimentos: ao fim da mentoria. Aparece na página só a partir do início da turma e define os destaques entre as encerradas.'
+        fields:
+          - name: inscritos
+            label: Inscritos
+            type: number
+            description: 'Total de inscrições válidas (sem respostas duplicadas no Forms).'
+            options:
+              min: 0
+              step: 1
+          - name: concluintes
+            label: Concluintes
+            type: number
+            description: 'Quem concluiu a mentoria. Não pode passar do número de inscritos.'
+            options:
+              min: 0
+              step: 1
+          - name: avaliacao
+            label: Avaliação dos alunos
+            type: object
+            description: 'Do formulário de feedback, nota de 1 a 5. Preencha os dois campos ou nenhum. O site só mostra a média com 5 respostas ou mais.'
+            fields:
+              - name: media
+                label: Nota média (1 a 5)
+                type: number
+                description: 'Com uma casa decimal, ex.: 4.7'
+                options:
+                  min: 1
+                  max: 5
+                  step: 0.1
+              - name: respostas
+                label: Número de respostas
+                type: number
+                options:
+                  min: 1
+                  step: 1
+          - name: depoimentos
+            label: Depoimentos
+            type: object
+            list: true
+            description: 'Só com autorização do aluno por escrito (ex.: pergunta de consentimento no formulário de feedback). O primeiro aparece no destaque da galeria de encerradas.'
+            fields:
+              - name: texto
+                label: Depoimento
+                type: text
+                description: 'Até 280 caracteres, nas palavras do aluno (corrija só erros de digitação).'
+                options:
+                  maxlength: 280
+              - name: autor
+                label: Como assinar
+                type: string
+                description: 'Como o aluno autorizou aparecer, ex.: Ana S., ADS. Sem sobrenome completo, e-mail ou foto.'
+              - name: autorizado
+                label: O aluno autorizou a publicação
+                type: boolean
+                description: 'Obrigatório. Sem esta marcação, o site não é atualizado.'
       - name: body
         label: Objetivo
         type: rich-text

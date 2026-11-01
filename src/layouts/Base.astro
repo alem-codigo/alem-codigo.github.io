@@ -1,5 +1,7 @@
 ---
-import { Font } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { Font, getImage } from 'astro:assets';
+import imagemPadrao from '../assets/og/padrao.png';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import { verificarIntegridade } from '../lib/integridade';
@@ -10,10 +12,34 @@ interface Props {
   /** Título da página; a home usa só o nome do programa. */
   title?: string;
   description?: string;
+  /**
+   * Imagem da prévia dos links (Open Graph): na página da mentoria, a capa. Sem ela, a imagem
+   * padrão com a logo (src/assets/og/padrao.png). Recortada para 1200×630 no build.
+   */
+  imagem?: ImageMetadata;
+  /** Texto alternativo da imagem da prévia. */
+  imagemAlt?: string;
+  /** Página que nunca deve ser indexada nem ter canônica (ex.: 404). */
+  semIndice?: boolean;
 }
 
-const { title, description = SITE.descricao } = Astro.props;
+const { title, description = SITE.descricao, imagem, imagemAlt, semIndice = false } = Astro.props;
 const tituloCompleto = title ? `${title} · ${SITE.nome}` : SITE.nome;
+const canonica = semIndice ? null : new URL(Astro.url.pathname, Astro.site).toString();
+
+// Prévia no WhatsApp, LinkedIn e Facebook: 1200×630 (1,91:1) em JPEG, que todos aceitam
+// (WebP e AVIF ainda falham em alguns). `fit: cover` recorta o centro da capa.
+const og = await getImage({
+  src: imagem ?? imagemPadrao,
+  width: 1200,
+  height: 630,
+  fit: 'cover',
+  format: 'jpg',
+  quality: 82,
+});
+const ogImagem = new URL(og.src, Astro.site).toString();
+const ogImagemAlt = imagemAlt ?? `${SITE.nome}: mentorias em tecnologia`;
+const robots = semIndice || !SITE.indexar ? 'noindex, nofollow' : 'index, follow';
 
 // Toda página usa este layout: referência quebrada no conteúdo falha o build.
 await verificarIntegridade();
@@ -43,12 +69,30 @@ await verificarIntegridade();
       })();
     </script>
     <meta name="description" content={description} />
-    <!-- Provisório até o lançamento (Fase 3): evita indexar o site em construção. -->
-    <meta name="robots" content="noindex, nofollow" />
+    <!-- noindex até o lançamento (SITE.indexar, Fase 3) e sempre em páginas como a 404. -->
+    <meta name="robots" content={robots} />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    {canonica && <link rel="canonical" href={canonica} />}
+    <link rel="sitemap" href="/sitemap.xml" />
+    <!-- Open Graph e Twitter Cards: prévia dos links compartilhados (D-21). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.nome} />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content={title ?? SITE.nome} />
+    <meta property="og:description" content={description} />
+    {canonica && <meta property="og:url" content={canonica} />}
+    <meta property="og:image" content={ogImagem} />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImagemAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title ?? SITE.nome} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImagem} />
+    <meta name="twitter:image:alt" content={ogImagemAlt} />
     <Font cssVariable="--fonte-texto" preload={[{ style: 'normal' }]} />
     <Font cssVariable="--fonte-mono" />
     <meta name="generator" content={Astro.generator} />

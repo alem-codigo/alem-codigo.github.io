@@ -10,7 +10,7 @@ import type { CollectionEntry } from 'astro:content';
 import { getEntries } from 'astro:content';
 import { Image } from 'astro:assets';
 import { ICONES_EIXO } from '../lib/eixos';
-import { dataDestaque, formatarPeriodo, juntarLista, textoInscricoes } from '../lib/mentorias';
+import { caminhoMentoria, dataDestaque, formatarPeriodo, juntarLista, textoInscricoes } from '../lib/mentorias';
 import { VARIANTE_CARD, type StatusMentoria } from '../lib/status';
 import StatusPilula from './StatusPilula.astro';
 
@@ -73,7 +73,7 @@ const ICONE_LINHA = {
     }
 
     <Titulo class="mentoria__titulo" id={idTitulo}>
-      <a class="mentoria__link" href={`/mentorias/${mentoria.id}`}>{m.titulo}</a>
+      <a class="mentoria__link" href={caminhoMentoria(mentoria.id)}>{m.titulo}</a>
     </Titulo>
 
     <ul class="mentoria__dados" role="list">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { agruparParaHome, dataDestaque, destaquesHome, menuMentorias, formatarData, formatarPeriodo, juntarLista, textoInscricoes } from './mentorias';
+import { agruparParaHome, caminhoMentoria, dataDestaque, avaliacaoPublicavel, destaquesDaGaleria, formatarInteiro, formatarNota, listagemMentorias, opcoesParceria, periodoCurto, slugParceiro, destaquesHome, menuMentorias, formatarData, formatarPeriodo, juntarLista, textoInscricoes } from './mentorias';
 import { STATUS_MENTORIA, VARIANTE_CARD, type Cronograma } from './status';
 
 const hoje = '2026-11-05';
@@ -157,5 +157,116 @@ describe('menuMentorias', () => {
 
   it('sem mentorias ativas: vazio', () => {
     expect(menuMentorias([lista[0]!], hoje)).toEqual({ destaque: null, proximas: [] });
+  });
+});
+
+describe('listagemMentorias', () => {
+  const lista = [
+    m('encerrada-antiga', '2026-01-01', '2026-01-10', '2026-02-01', '2026-03-01'),
+    m('aberta', '2026-11-01', '2026-11-20', '2026-12-01', '2026-12-20'),
+    m('encerrada-recente', '2026-08-01', '2026-08-10', '2026-09-01', '2026-10-30'),
+    m('em-breve', '2026-11-10', '2026-11-30', '2027-01-10', '2027-02-10'),
+  ];
+
+  it('separa as encerradas, da mais recente para a mais antiga', () => {
+    const { encerradas } = listagemMentorias(lista, hoje);
+    expect(encerradas.map((e) => e.mentoria.id)).toEqual(['encerrada-recente', 'encerrada-antiga']);
+    expect(encerradas.every((e) => e.status === 'encerrada')).toBe(true);
+  });
+
+  it('as ativas seguem a ordem da home, sem limite', () => {
+    const { ativas } = listagemMentorias(lista, hoje);
+    expect(ativas.map((a) => a.mentoria.id)).toEqual(['aberta', 'em-breve']);
+  });
+
+  it('lista vazia', () => {
+    expect(listagemMentorias([], hoje)).toEqual({ ativas: [], encerradas: [] });
+  });
+});
+
+describe('caminhoMentoria', () => {
+  it('termina com barra, igual à canônica', () => {
+    expect(caminhoMentoria('m26-01')).toBe('/mentorias/m26-01/');
+  });
+});
+
+describe('slugParceiro', () => {
+  it('sem acentos, minúsculas e hífens', () => {
+    expect(slugParceiro('  Qlik Brasil ')).toBe('qlik-brasil');
+    expect(slugParceiro('Ação & Código S.A.')).toBe('acao-codigo-s-a');
+  });
+});
+
+describe('opcoesParceria', () => {
+  it('sem parceria nenhuma, não há filtro', () => {
+    expect(opcoesParceria([undefined, undefined])).toEqual([]);
+  });
+
+  it('todas com o mesmo parceiro, não há filtro', () => {
+    expect(opcoesParceria(['Qlik', 'Qlik'])).toEqual([]);
+  });
+
+  it('um parceiro e mentorias sem parceria: só a opção do parceiro', () => {
+    expect(opcoesParceria(['Qlik', undefined])).toEqual([{ valor: 'qlik', rotulo: 'Em parceria com Qlik' }]);
+  });
+
+  it('vários parceiros: "qualquer" e um por parceiro, em ordem alfabética, sem repetir', () => {
+    expect(opcoesParceria(['Qlik', 'AWS', 'Qlik'])).toEqual([
+      { valor: 'qualquer', rotulo: 'Qualquer parceria' },
+      { valor: 'aws', rotulo: 'Em parceria com AWS' },
+      { valor: 'qlik', rotulo: 'Em parceria com Qlik' },
+    ]);
+  });
+});
+
+describe('periodoCurto', () => {
+  it('mesmo mês', () => expect(periodoCurto('2026-03-02', '2026-03-28')).toBe('mar 2026'));
+  it('meses diferentes no mesmo ano', () => expect(periodoCurto('2026-03-20', '2026-04-30')).toBe('mar – abr 2026'));
+  it('virada de ano', () => expect(periodoCurto('2026-12-10', '2027-02-05')).toBe('dez 2026 – fev 2027'));
+});
+
+const res = (r: Partial<{ inscritos: number; avaliacao: { media: number; respostas: number } }>) => ({
+  resultado: { depoimentos: [], ...r },
+});
+
+describe('avaliacaoPublicavel', () => {
+  it('só com 5 respostas ou mais', () => {
+    expect(avaliacaoPublicavel(res({ avaliacao: { media: 5, respostas: 4 } }).resultado)).toBeUndefined();
+    expect(avaliacaoPublicavel(res({ avaliacao: { media: 4.2, respostas: 5 } }).resultado)).toEqual({ media: 4.2, respostas: 5 });
+    expect(avaliacaoPublicavel(undefined)).toBeUndefined();
+  });
+});
+
+describe('destaquesDaGaleria', () => {
+  it('parceria é destaque', () => {
+    const a = { parceiro: { nome: 'Qlik' } };
+    const b = {};
+    expect([...destaquesDaGaleria([a, b])]).toEqual([a]);
+  });
+
+  it('nota alta com respostas suficientes é destaque; com poucas, não', () => {
+    const boa = res({ avaliacao: { media: 4.6, respostas: 20 } });
+    const poucas = res({ avaliacao: { media: 5, respostas: 3 } });
+    const media = res({ avaliacao: { media: 4.4, respostas: 20 } });
+    expect([...destaquesDaGaleria([boa, poucas, media])]).toEqual([boa]);
+  });
+
+  it('mais procuradas: quarto superior de inscritos, a partir de 4 com o número', () => {
+    const lista = [10, 200, 50, 80, 30, 120, 40, 60].map((n) => res({ inscritos: n }));
+    const destaques = [...destaquesDaGaleria(lista)].map((m) => m.resultado.inscritos ?? 0);
+    expect(destaques.sort((a, b) => b - a)).toEqual([200, 120]);
+  });
+
+  it('com menos de 4 números de inscritos, não compara', () => {
+    const lista = [10, 200, 50].map((n) => res({ inscritos: n }));
+    expect(destaquesDaGaleria(lista).size).toBe(0);
+  });
+});
+
+describe('formatação de números', () => {
+  it('inteiros e notas no padrão brasileiro', () => {
+    expect(formatarInteiro(1200)).toBe('1.200');
+    expect(formatarNota(4.7)).toBe('4,7');
+    expect(formatarNota(5)).toBe('5,0');
   });
 });

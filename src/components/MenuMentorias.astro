@@ -8,7 +8,7 @@
 import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import { hojeEmSaoPaulo } from '../lib/datas';
-import { formatarPeriodo, menuMentorias, textoInscricoes } from '../lib/mentorias';
+import { caminhoMentoria, formatarPeriodo, menuMentorias, textoInscricoes } from '../lib/mentorias';
 import StatusPilula from './StatusPilula.astro';
 
 const hoje = hojeEmSaoPaulo();
@@ -22,7 +22,7 @@ const { destaque, proximas } = menuMentorias(
 {
   destaque && (
     <div class="menu-mentorias" id="menu-mentorias">
-      <a class="menu-mentorias__destaque" href={`/mentorias/${destaque.mentoria.entrada.id}`}>
+      <a class="menu-mentorias__destaque" href={caminhoMentoria(destaque.mentoria.entrada.id)}>
         {destaque.mentoria.capa ? (
           <Image class="menu-mentorias__capa" src={destaque.mentoria.capa} alt="" widths={[480, 960]} sizes="28rem" />
         ) : (
@@ -39,7 +39,7 @@ const { destaque, proximas } = menuMentorias(
       <ul class="menu-mentorias__lista" role="list">
         {proximas.map((p) => (
           <li>
-            <a class="menu-mentorias__item" href={`/mentorias/${p.mentoria.entrada.id}`}>
+            <a class="menu-mentorias__item" href={caminhoMentoria(p.mentoria.entrada.id)}>
               <span class="menu-mentorias__item-titulo">{p.mentoria.titulo}</span>
               <span class="menu-mentorias__item-data">
                 {p.status === 'inscricoes-abertas' || p.status === 'em-breve'
@@ -52,7 +52,7 @@ const { destaque, proximas } = menuMentorias(
         ))}
       </ul>
 
-      <a class="menu-mentorias__todas link-seta" href="/mentorias">Todas as mentorias, inclusive as encerradas</a>
+      <a class="menu-mentorias__todas link-seta" href="/mentorias/">Todas as mentorias, inclusive as encerradas</a>
     </div>
   )
 }

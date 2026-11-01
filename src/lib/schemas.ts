@@ -121,3 +121,64 @@ export function validarCronograma(c: Cronograma, ctx: z.RefinementCtx): void {
     }
   });
 }
+
+/**
+ * Objeto opcional vindo do painel: sem nenhum valor preenchido (`{}`, `{ media: null }`, `""`),
+ * é tratado como ausente. Formulários costumam gravar o grupo vazio.
+ */
+export function semValores(valor: unknown): boolean {
+  if (valor === undefined || valor === null || valor === '') return true;
+  if (Array.isArray(valor)) return valor.length === 0;
+  if (typeof valor === 'object') return Object.values(valor).every(semValores);
+  return false;
+}
+
+export const grupoOpcional = <T extends z.ZodType>(schema: T) =>
+  z.preprocess((v) => (semValores(v) ? undefined : v), schema.optional());
+
+const contagem = (campo: string) =>
+  z.number(`${campo}: informe um número`).int(`${campo}: use um número inteiro`).min(0, `${campo}: não pode ser negativo`);
+
+/**
+ * Resultado da turma (preenchido no painel depois das inscrições e ao fim da mentoria).
+ * Só números agregados e depoimentos autorizados: nenhum dado pessoal além do nome que o aluno
+ * autorizou (seção 10 da spec).
+ */
+export const resultadoTurma = grupoOpcional(
+  z
+    .object({
+      inscritos: opcional(contagem('inscritos')),
+      concluintes: opcional(contagem('concluintes')),
+      avaliacao: grupoOpcional(
+        z.object({
+          media: z.number('média da avaliação: informe um número').min(1, 'média da avaliação: de 1 a 5').max(5, 'média da avaliação: de 1 a 5'),
+          respostas: contagem('respostas da avaliação').min(1, 'respostas da avaliação: ao menos 1'),
+        }),
+      ),
+      depoimentos: z.preprocess(
+        (v) => (Array.isArray(v) ? v.filter((d) => !semValores(d)) : v === null || v === undefined ? [] : v),
+        z.array(
+          z.object({
+            texto: texto.pipe(z.string().max(280, 'depoimento: até 280 caracteres')),
+            autor: texto,
+            autorizado: z.preprocess(
+              (v) => v ?? false,
+              z.literal(true, 'depoimento sem autorização do aluno: marque "O aluno autorizou a publicação" ou remova o depoimento'),
+            ),
+          }),
+        ),
+      ),
+    })
+    .superRefine((r, ctx) => {
+      if (r.inscritos !== undefined && r.concluintes !== undefined && r.concluintes > r.inscritos) {
+        ctx.addIssue({ code: 'custom', path: ['concluintes'], message: `concluintes (${r.concluintes}) não pode passar de inscritos (${r.inscritos})` });
+      }
+      if (r.inscritos !== undefined && r.avaliacao && r.avaliacao.respostas > r.inscritos) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['avaliacao', 'respostas'],
+          message: `respostas da avaliação (${r.avaliacao.respostas}) não pode passar de inscritos (${r.inscritos})`,
+        });
+      }
+    }),
+);

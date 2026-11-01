@@ -38,11 +38,11 @@ describe('destinoInscricoes', () => {
 
   it('com uma mentoria aberta, leva direto a ela', () => {
     const lista = [mentoria('m1-26a', '2026-11-01', '2026-11-10'), mentoria('m2-26a', '2026-11-10', '2026-11-20')];
-    expect(destinoInscricoes(lista, hoje)).toBe('/mentorias/m1-26a');
+    expect(destinoInscricoes(lista, hoje)).toBe('/mentorias/m1-26a/');
   });
 
-  it('com várias abertas, leva à seção da listagem', () => {
+  it('com várias abertas, leva à listagem filtrada', () => {
     const lista = [mentoria('m1-26a', '2026-11-01', '2026-11-10'), mentoria('m2-26a', '2026-11-05', '2026-11-05')];
-    expect(destinoInscricoes(lista, hoje)).toBe('/mentorias#inscricoes-abertas');
+    expect(destinoInscricoes(lista, hoje)).toBe('/mentorias/?status=inscricoes-abertas');
   });
 });

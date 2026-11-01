@@ -9,6 +9,7 @@ import {
   listaDeTextos,
   opcional,
   referenciaDoPainel,
+  resultadoTurma,
   slugDoCodigo,
   texto,
   urlHttps,
@@ -89,6 +90,8 @@ const mentorias = defineCollection({
         capa: opcional(image()),
         /** Bloco grande do menu de Mentorias. Se houver mais de uma, vale a primeira da ordem da home. */
         destaque: z.preprocess((v) => v ?? false, z.boolean()),
+        /** Inscritos, concluintes, avaliação e depoimentos, preenchidos depois da turma. */
+        resultado: resultadoTurma,
       })
       .superRefine(validarCronograma)
       .superRefine(validarCodigo),

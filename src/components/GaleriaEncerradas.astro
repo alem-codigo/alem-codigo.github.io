@@ -1,0 +1,528 @@
+---
+/**
+ * Galeria das mentorias encerradas (listagem /mentorias): mosaico em duas linhas, com blocos
+ * pequenos e blocos de destaque (2×2, critério em `destaquesDaGaleria`: parceria, nota alta ou mais
+ * procuradas), que rola sozinho para o lado. O destaque mostra os números da turma e, se houver,
+ * um depoimento no lugar do resumo.
+ *
+ * Rolagem: o próprio contêiner rola (scrollLeft), não uma animação de transform; assim o aluno
+ * também arrasta no celular, rola com o mouse/trackpad e o foco do teclado traz o bloco para a vista.
+ * Para o laço não ter emenda, o mosaico é duplicado (cópia `inert`, fora da árvore de acessibilidade)
+ * e a posição volta uma volta inteira (a largura de um mosaico) quando a cópia chega ao início.
+ *
+ * Pausa (WCAG 2.2.2): botão Pausar/Continuar, e pausa sozinha com o mouse em cima, com o foco
+ * dentro, ao tocar, fora da tela ou com a aba oculta. Não anda com `prefers-reduced-motion`, nem
+ * quando o mosaico cabe na tela. Sem JavaScript: rolagem manual, sem cópia.
+ *
+ * Integra-se aos filtros da página: os itens têm `data-item` e os atributos de filtro, e a galeria
+ * se remonta no evento `listagem:filtrada`.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import {
+  avaliacaoPublicavel,
+  caminhoMentoria,
+  destaquesDaGaleria,
+  formatarInteiro,
+  formatarNota,
+  periodoCurto,
+} from '../lib/mentorias';
+
+interface Props {
+  itens: { entrada: CollectionEntry<'mentorias'>; eixos: string; parceria: string }[];
+  /** Id do título da seção, para o rótulo da região. */
+  rotuloId: string;
+}
+
+const { itens, rotuloId } = Astro.props;
+const destaques = destaquesDaGaleria(itens.map((i) => i.entrada.data));
+
+/** "120 inscritos · nota 4,7" (só o que estiver preenchido e puder ser mostrado). */
+const numeros = (r: CollectionEntry<'mentorias'>['data']['resultado']): string => {
+  const nota = avaliacaoPublicavel(r);
+  return [
+    r?.inscritos !== undefined && `${formatarInteiro(r.inscritos)} inscritos`,
+    nota && `nota ${formatarNota(nota.media)}`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+};
+---
+
+<div class="galeria" data-galeria>
+  <div class="galeria__topo">
+    <div class="galeria__cabecalho"><slot name="cabecalho" /></div>
+    <button class="galeria__pausa" type="button" data-galeria-pausa aria-pressed="false" hidden>
+      <svg class="galeria__icone-pausar" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14" /></svg>
+      <svg class="galeria__icone-continuar" aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z" /></svg>
+      <span data-galeria-pausa-texto>Pausar rolagem</span>
+    </button>
+  </div>
+
+  <div class="galeria__janela" data-galeria-janela role="region" aria-labelledby={rotuloId} tabindex="0">
+    <div class="galeria__trilho" data-galeria-trilho>
+      <ul class="galeria__mosaico" role="list">
+        {
+          itens.map(({ entrada, eixos, parceria }) => {
+            const m = entrada.data;
+            const destaque = destaques.has(m);
+            const depoimento = m.resultado?.depoimentos[0];
+            return (
+              <li
+                class:list={['galeria__item', { 'galeria__item--destaque': destaque }]}
+                data-item
+                data-status="encerrada"
+                data-eixos={eixos}
+                data-parceria={parceria}
+              >
+                <a class="bloco" href={caminhoMentoria(entrada.id)}>
+                  {m.capa ? (
+                    <Image
+                      class="bloco__capa"
+                      src={m.capa}
+                      alt=""
+                      widths={destaque ? [480, 960] : [320, 640]}
+                      sizes={destaque ? '30rem' : '15rem'}
+                    />
+                  ) : (
+                    <span class="bloco__capa capa-padrao" />
+                  )}
+                  <span class="bloco__texto">
+                    {destaque && m.parceiro && <span class="bloco__parceiro">Em parceria com {m.parceiro.nome}</span>}
+                    <span class="bloco__titulo">{m.titulo}</span>
+                    {destaque &&
+                      (depoimento ? (
+                        <span class="bloco__resumo bloco__depoimento">
+                          “{depoimento.texto}” <span class="bloco__autor">— {depoimento.autor}</span>
+                        </span>
+                      ) : (
+                        <span class="bloco__resumo">{m.resumo}</span>
+                      ))}
+                    {destaque && numeros(m.resultado) && <span class="bloco__numeros">{numeros(m.resultado)}</span>}
+                    <span class="bloco__periodo">
+                      <span class="mono">{m.codigo}</span> · {periodoCurto(m.realizacao.inicio, m.realizacao.fim)}
+                    </span>
+                  </span>
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PX_POR_SEGUNDO = 32;
+  const RETOMAR_APOS_TOQUE_MS = 4000;
+
+  for (const galeria of document.querySelectorAll<HTMLElement>('[data-galeria]')) {
+    const janela = galeria.querySelector<HTMLElement>('[data-galeria-janela]')!;
+    const trilho = galeria.querySelector<HTMLElement>('[data-galeria-trilho]')!;
+    const original = trilho.querySelector<HTMLUListElement>('.galeria__mosaico')!;
+    const botao = galeria.querySelector<HTMLButtonElement>('[data-galeria-pausa]')!;
+    const textoBotao = galeria.querySelector<HTMLElement>('[data-galeria-pausa-texto]')!;
+    const movimentoReduzido = matchMedia('(prefers-reduced-motion: reduce)');
+
+    let pausadoPeloAluno = movimentoReduzido.matches;
+    let sobMouse = false;
+    let comFoco = false;
+    let tocando = false;
+    let visivel = false;
+    let rola = false;
+    let pos = 0;
+    let anterior = 0;
+    let quadro = 0;
+    let timerToque = 0;
+
+    const parado = () => pausadoPeloAluno || sobMouse || comFoco || tocando || !visivel || document.hidden || !rola;
+
+    const atualizarBotao = () => {
+      botao.hidden = !rola;
+      botao.setAttribute('aria-pressed', String(pausadoPeloAluno));
+      textoBotao.textContent = pausadoPeloAluno ? 'Continuar rolagem' : 'Pausar rolagem';
+      galeria.toggleAttribute('data-pausada', pausadoPeloAluno);
+    };
+
+    const passo = (agora: number) => {
+      quadro = 0;
+      if (parado()) return;
+      const dt = anterior ? Math.min(agora - anterior, 100) : 0;
+      anterior = agora;
+      const volta = original.offsetWidth; // largura de um mosaico + o espaço até a cópia
+      pos += (PX_POR_SEGUNDO * dt) / 1000;
+      if (pos >= recuo() + volta) pos -= volta;
+      janela.scrollLeft = pos;
+      marcarInicio();
+      quadro = requestAnimationFrame(passo);
+    };
+
+    const tocar = () => {
+      if (quadro || parado()) return;
+      pos = janela.scrollLeft; // retoma de onde o aluno deixou
+      anterior = 0;
+      quadro = requestAnimationFrame(passo);
+    };
+
+    const parar = () => {
+      cancelAnimationFrame(quadro);
+      quadro = 0;
+    };
+
+    // Recuo inicial do trilho (alinha o primeiro bloco com o conteúdo da página).
+    const recuo = () => parseFloat(getComputedStyle(trilho).paddingInlineStart) || 0;
+
+    // No começo da faixa, a borda esquerda não se dissolve (o primeiro bloco aparece inteiro).
+    const marcarInicio = () => galeria.toggleAttribute('data-inicio', janela.scrollLeft < 4);
+
+    const sincronizar = () => (parado() ? parar() : tocar());
+
+    // Remonta a cópia a partir dos itens visíveis (após filtros) e decide se há o que rolar.
+    const montar = () => {
+      parar();
+      trilho.querySelector('[data-galeria-copia]')?.remove();
+      janela.scrollLeft = 0;
+      rola = original.scrollWidth > janela.clientWidth + 1;
+      if (rola) {
+        const copia = original.cloneNode(true) as HTMLUListElement;
+        copia.setAttribute('data-galeria-copia', '');
+        copia.setAttribute('aria-hidden', 'true');
+        copia.inert = true;
+        copia.querySelectorAll('[data-item]').forEach((el) => el.removeAttribute('data-item'));
+        trilho.append(copia);
+      }
+      galeria.toggleAttribute('data-rolando', rola);
+      marcarInicio();
+      atualizarBotao();
+      sincronizar();
+    };
+
+    botao.addEventListener('click', () => {
+      pausadoPeloAluno = !pausadoPeloAluno;
+      atualizarBotao();
+      sincronizar();
+    });
+
+    const definir = (mudar: () => void) => {
+      mudar();
+      sincronizar();
+    };
+
+    janela.addEventListener('pointerenter', (e) => {
+      if (e.pointerType === 'mouse') definir(() => (sobMouse = true));
+    });
+    janela.addEventListener('pointerleave', (e) => {
+      if (e.pointerType === 'mouse') definir(() => (sobMouse = false));
+    });
+    janela.addEventListener('focusin', () => definir(() => (comFoco = true)));
+    janela.addEventListener('focusout', (e) => {
+      if (!janela.contains(e.relatedTarget as Node | null)) definir(() => (comFoco = false));
+    });
+    // Toque: pausa enquanto o aluno arrasta e retoma alguns segundos depois.
+    janela.addEventListener(
+      'touchstart',
+      () => {
+        clearTimeout(timerToque);
+        definir(() => (tocando = true));
+      },
+      { passive: true },
+    );
+    janela.addEventListener(
+      'touchend',
+      () => {
+        timerToque = window.setTimeout(() => definir(() => (tocando = false)), RETOMAR_APOS_TOQUE_MS);
+      },
+      { passive: true },
+    );
+    // Rolagem manual além da cópia (arrastar ou trackpad) também volta uma volta.
+    janela.addEventListener(
+      'scroll',
+      () => {
+        marcarInicio();
+        if (!rola || quadro) return;
+        const volta = original.offsetWidth;
+        if (janela.scrollLeft >= recuo() + volta) janela.scrollLeft -= volta;
+      },
+      { passive: true },
+    );
+
+    new IntersectionObserver(([e]) => {
+      visivel = Boolean(e?.isIntersecting);
+      sincronizar();
+    }).observe(janela);
+    document.addEventListener('visibilitychange', sincronizar);
+    movimentoReduzido.addEventListener('change', () => {
+      pausadoPeloAluno = movimentoReduzido.matches;
+      atualizarBotao();
+      sincronizar();
+    });
+    new ResizeObserver(() => montar()).observe(janela);
+    document.addEventListener('listagem:filtrada', () => requestAnimationFrame(montar));
+  }
+</script>
+
+<style>
+  .galeria {
+    --galeria-linha: 10.5rem;
+    --galeria-coluna: 15rem;
+    --galeria-espaco: var(--espaco-xs);
+
+    display: grid;
+    gap: var(--espaco-m);
+  }
+
+  .galeria {
+    /* Alinha com o .container quando a tela é mais larga que o conteúdo. */
+    --galeria-recuo: max(var(--margem-lateral), calc((100% - var(--largura-max)) / 2));
+  }
+
+  /* Título da seção (slot) à esquerda e o botão de pausa à direita, na mesma linha. */
+  .galeria__topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--espaco-s) var(--espaco-l);
+    padding-inline: var(--galeria-recuo);
+  }
+
+  .galeria__cabecalho {
+    display: grid;
+    gap: var(--espaco-2xs);
+    max-width: 42rem;
+  }
+
+  .galeria__pausa {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espaco-2xs);
+    min-height: 2.75rem;
+    padding: 0 var(--espaco-s);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-pilula);
+    background: var(--card-padrao-fundo);
+    color: var(--cor-texto);
+    font: inherit;
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+    cursor: pointer;
+  }
+
+  .galeria__pausa[hidden] {
+    display: none;
+  }
+
+  .galeria__pausa svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .galeria__icone-continuar,
+  [data-pausada] .galeria__icone-pausar {
+    display: none;
+  }
+
+  [data-pausada] .galeria__icone-continuar {
+    display: block;
+  }
+
+  /* Janela: rola na horizontal; as bordas se dissolvem no fundo quando há rolagem. */
+  .galeria__janela {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-block: var(--espaco-2xs);
+    scrollbar-width: thin;
+  }
+
+  .galeria__janela:focus-visible {
+    outline-offset: -3px;
+  }
+
+  [data-rolando] .galeria__janela {
+    mask: linear-gradient(90deg, transparent, #000 var(--margem-lateral), #000 calc(100% - var(--margem-lateral)), transparent);
+    scrollbar-width: none;
+  }
+
+  [data-rolando][data-inicio] .galeria__janela {
+    mask: linear-gradient(90deg, #000 calc(100% - var(--margem-lateral)), transparent);
+  }
+
+  [data-rolando] .galeria__janela::-webkit-scrollbar {
+    display: none;
+  }
+
+  .galeria__trilho {
+    display: flex;
+    width: max-content;
+    padding-inline: var(--galeria-recuo);
+  }
+
+  /* Com a cópia ao lado, só o recuo inicial: a cópia vem logo depois do mosaico, sem folga. */
+  [data-rolando] .galeria__trilho {
+    padding-inline-end: 0;
+  }
+
+  .galeria__mosaico {
+    display: grid;
+    grid-auto-flow: column dense;
+    grid-template-rows: repeat(2, var(--galeria-linha));
+    grid-auto-columns: var(--galeria-coluna);
+    gap: var(--galeria-espaco);
+    padding-inline-end: var(--galeria-espaco);
+  }
+
+  .galeria__item {
+    display: grid;
+    max-width: none;
+  }
+
+  .galeria__item[hidden] {
+    display: none;
+  }
+
+  .galeria__item--destaque {
+    grid-row: span 2;
+    grid-column: span 2;
+  }
+
+  /* ---- Bloco: capa ao fundo, texto sobre um véu escuro (igual nos dois temas) ---- */
+  .bloco {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-l);
+    background: #0e0c15;
+    color: #f5f5f5;
+    text-decoration: none;
+  }
+
+  .bloco__capa {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.35);
+    transition:
+      filter var(--duracao-lenta) var(--curva),
+      scale var(--duracao-lenta) var(--curva);
+  }
+
+  /* Véu: garante o contraste do texto branco sobre qualquer capa. */
+  .bloco::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(180deg, rgb(14 12 21 / 0.15) 0%, rgb(14 12 21 / 0.7) 45%, rgb(14 12 21 / 0.94) 100%);
+  }
+
+  .bloco:hover .bloco__capa,
+  .bloco:focus-visible .bloco__capa {
+    filter: none;
+    scale: 1.04;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bloco:hover .bloco__capa,
+    .bloco:focus-visible .bloco__capa {
+      scale: none;
+    }
+  }
+
+  .bloco:focus-visible {
+    outline: 3px solid var(--cor-foco);
+    outline-offset: -3px;
+  }
+
+  .bloco__texto {
+    display: grid;
+    gap: 0.2rem;
+    width: 100%;
+    padding: var(--espaco-xs) var(--espaco-s);
+  }
+
+  .bloco__titulo {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    font-size: var(--passo-0);
+    font-weight: var(--peso-negrito);
+    line-height: 1.25;
+  }
+
+  .bloco:hover .bloco__titulo {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .bloco__periodo,
+  .bloco__parceiro {
+    color: #d6d3de;
+    font-size: 0.8125rem;
+  }
+
+  .bloco__parceiro {
+    color: #f0b8e6;
+    font-weight: var(--peso-negrito);
+  }
+
+  .bloco__resumo {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    color: #d6d3de;
+    font-size: var(--passo--1);
+  }
+
+  .bloco__depoimento {
+    font-style: italic;
+  }
+
+  .bloco__autor {
+    font-style: normal;
+    white-space: nowrap;
+  }
+
+  .bloco__numeros {
+    color: #f5f5f5;
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+  }
+
+  .galeria__item--destaque .bloco__texto {
+    gap: var(--espaco-3xs);
+    padding: var(--espaco-m);
+  }
+
+  .galeria__item--destaque .bloco__titulo {
+    font-size: var(--passo-2);
+    font-weight: var(--peso-titulo);
+  }
+
+  @media (width < 48rem) {
+    .galeria {
+      --galeria-linha: 8.5rem;
+      --galeria-coluna: 10rem;
+    }
+
+    .galeria__item--destaque .bloco__resumo {
+      display: none;
+    }
+  }
+</style>

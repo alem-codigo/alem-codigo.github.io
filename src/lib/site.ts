@@ -5,6 +5,12 @@ export const SITE = {
   descricao: 'Programa de mentorias em tecnologia para estudantes e egressos do Cluster de TI da UniCesumar EaD.',
   /** Texto obrigatório no rodapé: o programa não é gerido pela instituição (D-03). */
   vinculo: 'Projeto do Cluster de TI da UniCesumar EaD, mantido de forma independente.',
+  /**
+   * Indexação pelos buscadores. `false` até o lançamento (Fase 3): todas as páginas saem com
+   * `noindex`. A prévia dos links (Open Graph) funciona mesmo assim, porque WhatsApp, LinkedIn e
+   * Facebook leem as meta tags sem respeitar o `noindex`; o robots.txt continua liberado.
+   */
+  indexar: false,
 } as const;
 
 /**

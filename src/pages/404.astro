@@ -1,0 +1,27 @@
+---
+/** Página de erro (o GitHub Pages serve /404.html para qualquer endereço inexistente). Fora do índice. */
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Página não encontrada" description="O endereço acessado não existe no site do Além do Código." semIndice>
+  <section class="secao container erro" aria-labelledby="erro-titulo">
+    <p class="rotulo">Erro 404</p>
+    <h1 id="erro-titulo">Essa trilha não leva a lugar nenhum</h1>
+    <p class="texto-suave">
+      O endereço pode ter mudado ou a página ainda não existe. Confira o link ou volte por um destes caminhos:
+    </p>
+    <div class="grupo">
+      <a class="botao" href="/mentorias/">Ver as mentorias</a>
+      <a class="botao botao--contorno" href="/">Página inicial</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .erro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-s);
+    padding-block: var(--espaco-3xl);
+  }
+</style>
