@@ -72,23 +72,77 @@ export function medidas(largura: number, altura: number): Medidas {
   return { largura, altura, meiaBase: menor * 0.15, profundidade: menor * 0.14 };
 }
 
+
+/** Variação de um encaixe: posição ao longo do lado (0–1) e escala da aba. */
+export interface Variacao {
+  /** Posição do centro da aba: da esquerda para a direita (lados horizontais) ou de cima para baixo (verticais). */
+  posicao: number;
+  escala: number;
+}
+
+const CENTRO: Variacao = { posicao: 0.5, escala: 1 };
+
+/** Número "aleatório" fixo para cada lado da grade (o mesmo nas duas peças que o dividem). */
+function ruido(tipo: number, linha: number, coluna: number, canal: number): number {
+  const x = Math.sin(linha * 12.9898 + coluna * 78.233 + tipo * 37.719 + canal * 4.581) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+/**
+ * Variação do lado de baixo (`h`) ou da direita (`v`) da casa (linha, coluna): abas fora do centro e
+ * de tamanhos diferentes, para o quebra-cabeça não parecer simétrico.
+ */
+export function variacaoDoLado(tipo: 'h' | 'v', linha: number, coluna: number): Variacao {
+  const t = tipo === 'h' ? 1 : 2;
+  return { posicao: 0.36 + ruido(t, linha, coluna, 1) * 0.28, escala: 0.82 + ruido(t, linha, coluna, 2) * 0.32 };
+}
+
+export interface Variacoes {
+  topo: Variacao;
+  direita: Variacao;
+  base: Variacao;
+  esquerda: Variacao;
+}
+
+/** Variações dos quatro lados da casa (linha, coluna), coerentes com as vizinhas. */
+export function variacoesDaCasa(linha: number, coluna: number): Variacoes {
+  return {
+    topo: variacaoDoLado('h', linha - 1, coluna),
+    direita: variacaoDoLado('v', linha, coluna),
+    base: variacaoDoLado('h', linha, coluna),
+    esquerda: variacaoDoLado('v', linha, coluna - 1),
+  };
+}
+
 const r = (n: number) => Math.round(n * 10) / 10;
 
 /**
- * Trecho de um lado, de (x0, y0) a (x1, y1), com a aba no meio. (nx, ny) é a normal para fora da
- * peça; `encaixe` diz se a aba sai (1), entra (-1) ou não existe (0).
+ * Trecho de um lado, de (x0, y0) a (x1, y1), com a aba. (nx, ny) é a normal para fora da peça;
+ * `encaixe` diz se a aba sai (1), entra (-1) ou não existe (0). A posição da aba é medida no
+ * sentido "canônico" do lado (esquerda→direita ou cima→baixo), para as duas peças coincidirem.
  */
-function lado(x0: number, y0: number, x1: number, y1: number, nx: number, ny: number, encaixe: Encaixe, m: Medidas): string {
+function lado(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  nx: number,
+  ny: number,
+  encaixe: Encaixe,
+  m: Medidas,
+  v: Variacao,
+): string {
   if (encaixe === 0) return `L${r(x1)} ${r(y1)}`;
   const comp = Math.hypot(x1 - x0, y1 - y0);
   const ex = (x1 - x0) / comp;
   const ey = (y1 - y0) / comp;
-  const cx = (x0 + x1) / 2;
-  const cy = (y0 + y1) / 2;
-  const a = m.meiaBase;
-  const k = m.profundidade * encaixe;
+  const vertical = x0 === x1;
+  const cx = vertical ? x0 : Math.min(x0, x1) + v.posicao * Math.abs(x1 - x0);
+  const cy = vertical ? Math.min(y0, y1) + v.posicao * Math.abs(y1 - y0) : y0;
+  const a = m.meiaBase * v.escala;
+  const k = m.profundidade * v.escala * encaixe;
   // Ponto local (ao longo do lado, para fora) → coordenadas da peça.
-  const p = (u: number, v: number) => `${r(cx + u * ex + v * nx)} ${r(cy + u * ey + v * ny)}`;
+  const p = (u: number, w: number) => `${r(cx + u * ex + w * nx)} ${r(cy + u * ey + w * ny)}`;
   return [
     `L${p(-a, 0)}`,
     `C${p(-0.35 * a, 0)} ${p(-0.25 * a, 0.25 * k)} ${p(-0.45 * a, 0.45 * k)}`,
@@ -101,16 +155,22 @@ function lado(x0: number, y0: number, x1: number, y1: number, nx: number, ny: nu
 
 /**
  * Caminho SVG da peça (sentido horário, a partir do canto superior esquerdo). `x` e `y` deslocam a
- * peça, para desenhar várias num mesmo SVG.
+ * peça, para desenhar várias num mesmo SVG; `variacoes` tira as abas do centro (sem ela, centradas).
  */
-export function caminhoDaPeca(l: Lados, m: Medidas, x = 0, y = 0): string {
+export function caminhoDaPeca(
+  l: Lados,
+  m: Medidas,
+  x = 0,
+  y = 0,
+  variacoes: Variacoes = { topo: CENTRO, direita: CENTRO, base: CENTRO, esquerda: CENTRO },
+): string {
   const { largura: w, altura: h } = m;
   return [
     `M${r(x)} ${r(y)}`,
-    lado(x, y, x + w, y, 0, -1, l.topo, m),
-    lado(x + w, y, x + w, y + h, 1, 0, l.direita, m),
-    lado(x + w, y + h, x, y + h, 0, 1, l.base, m),
-    lado(x, y + h, x, y, -1, 0, l.esquerda, m),
+    lado(x, y, x + w, y, 0, -1, l.topo, m, variacoes.topo),
+    lado(x + w, y, x + w, y + h, 1, 0, l.direita, m, variacoes.direita),
+    lado(x + w, y + h, x, y + h, 0, 1, l.base, m, variacoes.base),
+    lado(x, y + h, x, y, -1, 0, l.esquerda, m, variacoes.esquerda),
     'Z',
   ].join(' ');
 }

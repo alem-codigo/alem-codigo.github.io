@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { caminhoDaPeca, ladosDaPeca, ladosInfinitos, medidas } from './quebraCabeca';
+import { caminhoDaPeca, ladosDaPeca, ladosInfinitos, medidas, variacoesDaCasa } from './quebraCabeca';
 
 describe('ladosDaPeca', () => {
   it('bordas da grade são retas', () => {
@@ -59,5 +59,35 @@ describe('ladosInfinitos', () => {
   it('desloca o caminho', () => {
     const d = caminhoDaPeca({ topo: 0, direita: 0, base: 0, esquerda: 0 }, medidas(10, 10), 20, 30);
     expect(d).toBe('M20 30 L30 30 L30 40 L20 40 L20 30 Z');
+  });
+});
+
+describe('variacoesDaCasa', () => {
+  it('as duas peças de um lado usam a mesma variação', () => {
+    const a = variacoesDaCasa(0, 0);
+    expect(variacoesDaCasa(0, 1).esquerda).toEqual(a.direita);
+    expect(variacoesDaCasa(1, 0).topo).toEqual(a.base);
+  });
+
+  it('abas fora do centro, dentro de limites seguros', () => {
+    for (let l = -1; l < 4; l++) {
+      for (let c = -1; c < 4; c++) {
+        const v = variacoesDaCasa(l, c).direita;
+        expect(v.posicao).toBeGreaterThanOrEqual(0.36);
+        expect(v.posicao).toBeLessThanOrEqual(0.64);
+        expect(v.escala).toBeGreaterThanOrEqual(0.82);
+        expect(v.escala).toBeLessThanOrEqual(1.14);
+      }
+    }
+  });
+
+  it('o traçado do lado comum coincide nas duas peças', () => {
+    const m = medidas(100, 100);
+    const a = caminhoDaPeca(ladosInfinitos(0, 0), m, 0, 0, variacoesDaCasa(0, 0));
+    const b = caminhoDaPeca(ladosInfinitos(0, 1), m, 100, 0, variacoesDaCasa(0, 1));
+    // O topo da aba (ponto mais distante do lado x = 100) aparece nos dois caminhos.
+    const pontos = (d: string) => new Set(d.match(/-?\d+(\.\d+)? -?\d+(\.\d+)?/g));
+    const comuns = [...pontos(a)].filter((p) => pontos(b).has(p));
+    expect(comuns.length).toBeGreaterThanOrEqual(6);
   });
 });

@@ -1,42 +1,82 @@
 ---
 /**
  * Os eixos da aprendizagem (/eixos): os eixos como peças de quebra-cabeça encaixadas numa grade,
- * mais uma peça final, "a peça que falta é você", que leva às mentorias.
+ * mais a peça final, "a peça que falta é você", que leva às mentorias.
  *
- * Cada peça é um SVG (src/lib/quebraCabeca.ts) com a cor dos cards e contorno em ameixa; vizinhas
- * dividem o mesmo traçado, então entre elas fica uma linha só. O quebra-cabeça não tem bordas: em
- * volta da grade há um anel de peças "fantasmas" que somem num degradê de transparência.
- * A peça "você" fica solta, girada e tracejada, fora da vaga dela (com o mouse, ela quase encaixa).
+ * - Cada peça é um SVG (src/lib/quebraCabeca.ts) com a cor dos cards e contorno em ameixa; vizinhas
+ *   dividem o mesmo traçado (uma linha só). As abas ficam fora do centro e variam de tamanho.
+ * - O quebra-cabeça continua em volta da grade, em peças "fantasmas" que somem num degradê; perto da
+ *   peça "você" não há fantasmas e os lados de fora dela são retos: é ela que fecha o quebra-cabeça.
+ * - A peça "você" fica solta, longe da vaga, girada e tracejada; com o mouse (ou o foco), encaixa.
+ * - Com o mouse, as peças acendem com a luz de duas cores dos cards, recortada no formato da peça.
  * As abas dependem de quantas colunas há: cada peça (e o anel) traz as três versões (3, 2 e 1
  * coluna) e o CSS mostra a da largura da tela.
  */
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { caminhoEixo, ICONES_EIXO } from '../../lib/eixos';
-import { caminhoDaPeca, ladosInfinitos, medidas } from '../../lib/quebraCabeca';
+import { caminhoDaPeca, ladosInfinitos, medidas, variacoesDaCasa, type Lados } from '../../lib/quebraCabeca';
 
 const eixos = (await getCollection('eixos')).sort((a, b) => a.data.ordem - b.data.ordem);
 
 /** Célula em unidades do SVG (proporção da peça). A margem acomoda as abas que saem da célula. */
 const M = medidas(360, 330);
-const MARGEM = Math.ceil(M.profundidade + 4);
+const MARGEM = Math.ceil(M.profundidade * 1.15 + 4);
 const COLUNAS = [3, 2, 1] as const;
 const TOTAL = eixos.length + 1; // + a peça "você"
+const VOCE = TOTAL - 1;
+
+/** Encaixes da peça i: a "você" tem os lados de fora da grade retos (ela fecha o quebra-cabeça). */
+function ladosNaGrade(i: number, colunas: number): Lados {
+  const linhas = Math.ceil(TOTAL / colunas);
+  const l = Math.floor(i / colunas);
+  const c = i % colunas;
+  const lados = ladosInfinitos(l, c);
+  if (i !== VOCE) return lados;
+  return {
+    topo: l === 0 ? 0 : lados.topo,
+    direita: c === colunas - 1 ? 0 : lados.direita,
+    base: l === linhas - 1 ? 0 : lados.base,
+    esquerda: c === 0 ? 0 : lados.esquerda,
+  };
+}
+
+const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 * MARGEM}`;
+
+/** Máscara (data URI) com o formato da peça, para recortar a luz. */
+const mascara = (d: string) =>
+  `url("data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" preserveAspectRatio="none"><path d="${d}"/></svg>`,
+  )}")`;
 
 const variantes = (i: number) =>
-  COLUNAS.map((colunas) => ({
-    colunas,
-    d: caminhoDaPeca(ladosInfinitos(Math.floor(i / colunas), i % colunas), M),
-  }));
+  COLUNAS.map((colunas) => {
+    const d = caminhoDaPeca(
+      ladosNaGrade(i, colunas),
+      M,
+      0,
+      0,
+      variacoesDaCasa(Math.floor(i / colunas), i % colunas),
+    );
+    return { colunas, d, mascara: mascara(d) };
+  });
 
-/** Anel de peças fantasmas em volta da grade (uma casa a mais de cada lado), por número de colunas. */
+/**
+ * Anel de peças fantasmas em volta da grade (uma casa a mais de cada lado), por número de colunas,
+ * sem as casas encostadas na peça "você".
+ */
 const aneis = COLUNAS.map((colunas) => {
   const linhas = Math.ceil(TOTAL / colunas);
+  const lv = Math.floor(VOCE / colunas);
+  const cv = VOCE % colunas;
   const pecas: string[] = [];
   for (let l = -1; l <= linhas; l++) {
     for (let c = -1; c <= colunas; c++) {
       const dentro = l >= 0 && l < linhas && c >= 0 && c < colunas;
-      if (!dentro) pecas.push(caminhoDaPeca(ladosInfinitos(l, c), M, c * M.largura, l * M.altura));
+      const juntoDaVoce = Math.abs(l - lv) <= 1 && Math.abs(c - cv) <= 1;
+      if (!dentro && !juntoDaVoce) {
+        pecas.push(caminhoDaPeca(ladosInfinitos(l, c), M, c * M.largura, l * M.altura, variacoesDaCasa(l, c)));
+      }
     }
   }
   return {
@@ -47,10 +87,8 @@ const aneis = COLUNAS.map((colunas) => {
   };
 });
 
-/** Recuo do SVG em relação à célula, em %, para a margem das abas ficar fora da célula. */
 const recuoX = `${(MARGEM / M.largura) * 100}%`;
 const recuoY = `${(MARGEM / M.altura) * 100}%`;
-const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 * MARGEM}`;
 ---
 
 <Base
@@ -69,66 +107,93 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
     </header>
 
     <div class="quebra-cabeca__area">
-    {
-      aneis.map((a) => (
-        <svg
-          class="quebra-cabeca__anel"
-          data-colunas={a.colunas}
-          viewBox={a.viewBox}
-          preserveAspectRatio="none"
-          aria-hidden="true"
-          style={`--anel-x: ${100 / (a.colunas + 2)}%; --anel-y: ${100 / (a.linhas + 2)}%; --colunas: ${a.colunas}; --linhas: ${a.linhas};`}
-        >
-          <path d={a.d} />
-        </svg>
-      ))
-    }
-    <ol
-      class="quebra-cabeca"
-      role="list"
-      style={`--recuo-x: ${recuoX}; --recuo-y: ${recuoY}; --proporcao: ${M.largura} / ${M.altura}; --folga-aba: ${((M.profundidade + 10) / M.largura) * 100}%;`}
-    >
       {
-        [...eixos, null].map((e, i) => (
-          <li class:list={['peca', { 'peca--voce': !e }]}>
-            {variantes(i).map((v) => (
-              <svg
-                class="peca__forma"
-                data-colunas={v.colunas}
-                viewBox={viewBox}
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
-                <path class="peca__fundo" d={v.d} />
-                <path class="peca__contorno" d={v.d} />
-              </svg>
-            ))}
-            {e ? (
-              <a class="peca__link" href={caminhoEixo(e.id)}>
-                <span class="peca__icone">
-                  <svg aria-hidden="true" viewBox="0 0 24 24">
-                    <path d={ICONES_EIXO[e.data.icone].d} />
-                  </svg>
-                </span>
-                <span class="peca__numero">Eixo {e.data.numero}</span>
-                <span class="peca__titulo">{e.data.titulo}</span>
-                <span class="peca__descricao">{e.data.descricao}</span>
-                <span class="peca__seta">Conhecer →</span>
-              </a>
-            ) : (
-              <a class="peca__link" href="/mentorias/">
-                <span class="peca__titulo">A peça que falta é você</span>
-                <span class="peca__descricao">Escolha uma mentoria e complete o seu quebra-cabeça.</span>
-                <span class="peca__seta">Ver as mentorias →</span>
-              </a>
-            )}
-          </li>
+        aneis.map((a) => (
+          <svg
+            class="quebra-cabeca__anel"
+            data-colunas={a.colunas}
+            viewBox={a.viewBox}
+            preserveAspectRatio="none"
+            aria-hidden="true"
+            style={`--anel-x: ${100 / (a.colunas + 2)}%; --anel-y: ${100 / (a.linhas + 2)}%; --colunas: ${a.colunas}; --linhas: ${a.linhas};`}
+          >
+            <path d={a.d} />
+          </svg>
         ))
       }
-    </ol>
+      <ol
+        class="quebra-cabeca"
+        role="list"
+        data-quebra-cabeca
+        style={`--recuo-x: ${recuoX}; --recuo-y: ${recuoY}; --proporcao: ${M.largura} / ${M.altura}; --folga-aba: ${((M.profundidade * 1.15 + 8) / M.largura) * 100}%;`}
+      >
+        {
+          [...eixos, null].map((e, i) => (
+            <li class:list={['peca', { 'peca--voce': !e }]}>
+              <div class="peca__corpo">
+              {variantes(i).map((v) => (
+                <svg
+                  class="peca__forma"
+                  data-colunas={v.colunas}
+                  viewBox={viewBox}
+                  preserveAspectRatio="none"
+                  aria-hidden="true"
+                >
+                  <path class="peca__fundo" d={v.d} />
+                  <path class="peca__contorno" d={v.d} />
+                </svg>
+              ))}
+              {variantes(i).map((v) => (
+                <span class="peca__luz" data-colunas={v.colunas} style={`--mascara: ${v.mascara};`} aria-hidden="true" />
+              ))}
+              {e ? (
+                <a class="peca__link" href={caminhoEixo(e.id)}>
+                  <span class="peca__icone">
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                      <path d={ICONES_EIXO[e.data.icone].d} />
+                    </svg>
+                  </span>
+                  <span class="peca__numero">Eixo {e.data.numero}</span>
+                  <span class="peca__titulo">{e.data.titulo}</span>
+                  <span class="peca__descricao">{e.data.descricao}</span>
+                  <span class="peca__seta">Conhecer →</span>
+                </a>
+              ) : (
+                <a class="peca__link" href="/mentorias/">
+                  <span class="peca__titulo">A peça que falta é você</span>
+                  <span class="peca__descricao">Escolha uma mentoria e complete o seu quebra-cabeça.</span>
+                  <span class="peca__seta">Ver as mentorias →</span>
+                </a>
+              )}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
     </div>
   </div>
 </Base>
+
+<script>
+  // Luz que segue o mouse, recortada no formato da peça: posição relativa à camada de luz visível.
+  const grade = document.querySelector<HTMLElement>('[data-quebra-cabeca]');
+  if (grade && matchMedia('(hover: hover)').matches) {
+    grade.addEventListener(
+      'pointermove',
+      (e) => {
+        const peca = e.target instanceof Element ? e.target.closest<HTMLElement>('.peca') : null;
+        if (!peca) return;
+        for (const luz of peca.querySelectorAll<HTMLElement>('.peca__luz')) {
+          const r = luz.getBoundingClientRect();
+          if (r.width === 0) continue;
+          luz.style.setProperty('--lx', `${e.clientX - r.left}px`);
+          luz.style.setProperty('--ly', `${e.clientY - r.top}px`);
+        }
+      },
+      { passive: true },
+    );
+  }
+</script>
 
 <style>
   .eixos-pagina {
@@ -142,20 +207,26 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
     overflow-x: clip;
   }
 
-
-  /* ---- Área do quebra-cabeça com o anel de peças fantasmas ----
-   * O anel passa uma casa da grade para cada lado; a área corta o que sai da tela na horizontal. */
-  .quebra-cabeca__area {
-    position: relative;
-    margin-block: var(--espaco-2xl);
-  }
-
   /* O título fica por cima do anel de fantasmas. */
   .eixos-pagina > .secao-cabecalho {
     position: relative;
     z-index: 4;
   }
 
+  /* ---- Área do quebra-cabeça (80% da largura a partir do tablet) ---- */
+  .quebra-cabeca__area {
+    position: relative;
+    margin-block: var(--espaco-2xl);
+  }
+
+  @media (width >= 40rem) {
+    .quebra-cabeca__area {
+      width: 80%;
+      margin-inline: auto;
+    }
+  }
+
+  /* Anel de peças fantasmas: uma casa a mais de cada lado, sumindo num degradê para fora. */
   .quebra-cabeca__anel {
     position: absolute;
     top: calc(-100% / var(--linhas));
@@ -164,7 +235,6 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
     max-width: none;
     height: calc(100% * (var(--linhas) + 2) / var(--linhas));
     pointer-events: none;
-    /* Degradê de transparência: some para fora, opaco junto da grade. */
     mask:
       linear-gradient(to right, transparent, #000 var(--anel-x), #000 calc(100% - var(--anel-x)), transparent),
       linear-gradient(
@@ -186,33 +256,10 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
     vector-effect: non-scaling-stroke;
   }
 
-  .quebra-cabeca__anel:not([data-colunas='1']) {
-    display: none;
-  }
-
-  @media (width >= 40rem) {
-    .quebra-cabeca__anel[data-colunas='1'] {
-      display: none;
-    }
-
-    .quebra-cabeca__anel[data-colunas='2'] {
-      display: block;
-    }
-  }
-
-  @media (width >= 64rem) {
-    .quebra-cabeca__anel[data-colunas='2'] {
-      display: none;
-    }
-
-    .quebra-cabeca__anel[data-colunas='3'] {
-      display: block;
-    }
-  }
-
-  /* ---- Grade: 3 colunas no computador, 2 no tablet, 1 no celular ---- */
-  /* minmax(0, 1fr): sem isso, a proporção das peças altas alargaria as colunas além da tela. */
+  /* ---- Grade: 3 colunas no computador, 2 no tablet, 1 no celular ----
+   * minmax(0, 1fr): sem isso, a proporção das peças altas alargaria as colunas além da tela. */
   .quebra-cabeca {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
   }
@@ -230,57 +277,70 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
   }
 
   /* Proporção fixa (min-height: 0): se uma peça crescesse com o texto, as abas dela deixariam de
-   * coincidir com os furos das vizinhas. */
+   * coincidir com os furos das vizinhas. Container para o texto acompanhar o tamanho da peça. */
   .peca {
     position: relative;
     display: grid;
     max-width: none;
     aspect-ratio: var(--proporcao);
     min-height: 0;
+    container-type: inline-size;
   }
 
-  /* O SVG passa da célula pela margem das abas (as abas entram nas vizinhas). */
-  .peca__forma {
+  /* SVG e luz passam da célula pela margem das abas (as abas entram nas vizinhas). */
+  .peca__forma,
+  .peca__luz {
     position: absolute;
     top: calc(-1 * var(--recuo-y));
     left: calc(-1 * var(--recuo-x));
     width: calc(100% + 2 * var(--recuo-x));
     max-width: none;
     height: calc(100% + 2 * var(--recuo-y));
-    overflow: visible;
     pointer-events: none;
   }
 
-  /* Só a versão da largura atual aparece. */
-  .peca__forma:not([data-colunas='1']) {
+  .peca__forma {
+    overflow: visible;
+  }
+
+  /* Só a versão da largura atual aparece (forma, luz e anel). */
+  .peca__forma:not([data-colunas='1']),
+  .peca__luz:not([data-colunas='1']),
+  .quebra-cabeca__anel:not([data-colunas='1']) {
     display: none;
   }
 
   @media (width >= 40rem) {
-    .peca__forma[data-colunas='1'] {
+    .peca__forma[data-colunas='1'],
+    .peca__luz[data-colunas='1'],
+    .quebra-cabeca__anel[data-colunas='1'] {
       display: none;
     }
 
-    .peca__forma[data-colunas='2'] {
+    .peca__forma[data-colunas='2'],
+    .peca__luz[data-colunas='2'],
+    .quebra-cabeca__anel[data-colunas='2'] {
       display: block;
     }
   }
 
   @media (width >= 64rem) {
-    .peca__forma[data-colunas='2'] {
+    .peca__forma[data-colunas='2'],
+    .peca__luz[data-colunas='2'],
+    .quebra-cabeca__anel[data-colunas='2'] {
       display: none;
     }
 
-    .peca__forma[data-colunas='3'] {
+    .peca__forma[data-colunas='3'],
+    .peca__luz[data-colunas='3'],
+    .quebra-cabeca__anel[data-colunas='3'] {
       display: block;
     }
   }
 
-  /* Fundo e contorno ameixa no próprio traçado. Vizinhas compartilham o mesmo traçado no encaixe,
-   * então a linha entre duas peças é uma só. */
+  /* Fundo e contorno ameixa no próprio traçado; vizinhas dividem o traçado (uma linha só). */
   .peca__fundo {
     fill: var(--card-padrao-fundo);
-    transition: fill var(--duracao) var(--curva);
   }
 
   .peca__contorno {
@@ -291,11 +351,26 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
     vector-effect: non-scaling-stroke;
   }
 
-  .peca:hover .peca__fundo {
-    fill: var(--card-violeta-fundo);
+  /* ---- Luz de duas cores (a mesma dos cards), recortada no formato da peça ---- */
+  .peca__luz {
+    --lx: 50%;
+    --ly: 30%;
+
+    background:
+      radial-gradient(220px circle at var(--lx) var(--ly), var(--brilho-1), transparent 70%),
+      radial-gradient(320px circle at calc(var(--lx) + 80px) calc(var(--ly) + 60px), var(--brilho-2), transparent 70%);
+    mask: var(--mascara) 0 0 / 100% 100% no-repeat;
+    opacity: 0;
+    transition: opacity var(--duracao-lenta) var(--curva);
   }
 
-  /* Peça em foco (ou com o mouse) fica por cima, para o contorno dela não ser coberto pelas vizinhas. */
+  @media (hover: hover) {
+    .peca:hover .peca__luz {
+      opacity: 1;
+    }
+  }
+
+  /* Peça com o mouse ou o foco por cima das vizinhas (o contorno dela não fica coberto). */
   .peca:hover,
   .peca:has(.peca__link:focus-visible) {
     z-index: 2;
@@ -306,19 +381,30 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
     stroke-width: 3;
   }
 
-  /* Peça "você": solta, girada e tracejada, fora da vaga (a vaga fica vazia, contornada pelas
-   * vizinhas). Com o mouse ou o foco, ela quase encaixa. */
+  /* Corpo da peça: ocupa a célula; é ele que se move na peça "você". */
+  .peca__corpo {
+    position: relative;
+    display: grid;
+  }
+
+  /* ---- Peça "você": solta, longe da vaga, girada e tracejada; com o mouse, encaixa ----
+   * Quem se move é o corpo; a vaga (o li) fica parada e continua recebendo o mouse, para a peça
+   * não "fugir" do cursor no meio do encaixe. */
   .peca--voce {
     z-index: 3;
-    translate: 9% 12%;
-    rotate: 7deg;
+  }
+
+  .peca--voce .peca__corpo {
+    translate: 22% 26%;
+    rotate: 9deg;
     transition:
-      translate 0.45s cubic-bezier(0.3, 1.4, 0.5, 1),
-      rotate 0.45s cubic-bezier(0.3, 1.4, 0.5, 1);
+      translate 0.5s cubic-bezier(0.3, 1.3, 0.5, 1),
+      rotate 0.5s cubic-bezier(0.3, 1.3, 0.5, 1);
   }
 
   .peca--voce .peca__forma {
     filter: drop-shadow(0 18px 28px rgb(0 0 0 / 0.35));
+    transition: filter 0.5s var(--curva);
   }
 
   .peca--voce .peca__contorno {
@@ -326,34 +412,45 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
     stroke-width: 2.5;
   }
 
-  .peca--voce:hover,
-  .peca--voce:has(.peca__link:focus-visible) {
-    translate: 3% 4%;
-    rotate: 2deg;
+  .peca--voce:hover .peca__corpo,
+  .peca--voce:has(.peca__link:focus-visible) .peca__corpo {
+    translate: 0 0;
+    rotate: 0deg;
   }
 
-  /* Celular: menos deslocada, para não sair da tela. */
+  /* Encaixada: sem sombra e com o contorno contínuo, como as outras. */
+  .peca--voce:hover .peca__forma,
+  .peca--voce:has(.peca__link:focus-visible) .peca__forma {
+    filter: none;
+  }
+
+  .peca--voce:hover .peca__contorno {
+    stroke-dasharray: none;
+    stroke-width: 2;
+  }
+
+  /* Celular: só para baixo (a coluna ocupa a largura toda). */
   @media (width < 40rem) {
-    .peca--voce {
-      translate: 3% 7%;
-      rotate: 4deg;
+    .peca--voce .peca__corpo {
+      translate: 0 20%;
+      rotate: 3deg;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .peca--voce {
+    .peca--voce .peca__corpo {
       transition: none;
     }
   }
 
-  /* ---- Conteúdo: longe das abas e dos furos ---- */
+  /* ---- Conteúdo: longe das abas e dos furos; tamanhos acompanham a peça (cqi) ---- */
   .peca__link {
     position: relative;
     z-index: 1;
     display: grid;
     align-content: center;
-    gap: var(--espaco-3xs);
-    padding: calc(var(--folga-aba) * 0.75) var(--folga-aba);
+    gap: 0.6cqi;
+    padding: calc(var(--folga-aba) * 0.7) var(--folga-aba);
     color: var(--cor-texto);
     text-decoration: none;
   }
@@ -365,9 +462,9 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
   .peca__icone {
     display: inline-grid;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    margin-block-end: var(--espaco-3xs);
+    width: clamp(1.9rem, 10cqi, 2.5rem);
+    height: clamp(1.9rem, 10cqi, 2.5rem);
+    margin-block-end: 1cqi;
     border-radius: var(--raio-m);
     background: var(--icone-fundo);
     box-shadow: inset 0 0 0 1px var(--icone-borda);
@@ -375,8 +472,8 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
   }
 
   .peca__icone svg {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 55%;
+    height: 55%;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.8;
@@ -387,26 +484,26 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
   .peca__numero {
     color: var(--icone-cor);
     font-family: var(--fonte-mono);
-    font-size: var(--passo--1);
+    font-size: clamp(0.72rem, 3.6cqi, 0.875rem);
     font-weight: 700;
   }
 
   .peca__titulo {
-    font-size: var(--passo-1);
+    font-size: clamp(1rem, 5.6cqi, 1.3rem);
     font-weight: var(--peso-titulo);
     line-height: 1.2;
   }
 
   .peca__descricao {
     color: var(--cor-texto-suave);
-    font-size: var(--passo--1);
-    line-height: 1.5;
+    font-size: clamp(0.8rem, 4cqi, 0.95rem);
+    line-height: 1.45;
   }
 
   .peca__seta {
-    margin-block-start: var(--espaco-2xs);
+    margin-block-start: 1.5cqi;
     color: var(--cor-link);
-    font-size: var(--passo--1);
+    font-size: clamp(0.8rem, 4cqi, 0.95rem);
     font-weight: var(--peso-negrito);
   }
 
@@ -416,6 +513,6 @@ const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 
   }
 
   .peca--voce .peca__titulo {
-    font-size: var(--passo-2);
+    font-size: clamp(1.2rem, 7cqi, 1.6rem);
   }
 </style>
