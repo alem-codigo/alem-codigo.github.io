@@ -66,7 +66,7 @@ const SECOES = [
             {secao.lista.map((mentor) => {
               const lista = mentoriasDe(mentor.id);
               return (
-                <li class="card mentor-card" data-expansivel={lista.length > 0 ? '' : undefined}>
+                <li class="card card--brilho card--so-luz mentor-card" data-expansivel={lista.length > 0 ? '' : undefined}>
                   <MentorPerfil mentor={mentor} nivel="h3" foto="grande" />
                   {lista.length > 0 && (
                     <details class="mentor-card__mentorias">
@@ -120,6 +120,12 @@ const SECOES = [
     padding-block: var(--espaco-xl) var(--espaco-2xl);
   }
 
+  /* Título e subtítulo sem a largura máxima do cabeçalho de seção (não quebram no desktop). */
+  .mentores-pagina :global(.secao-cabecalho__texto),
+  .mentores-pagina :global(.secao-cabecalho__texto p) {
+    max-width: none;
+  }
+
   .mentores-pagina__secao {
     display: grid;
     gap: var(--espaco-m);
@@ -149,7 +155,8 @@ const SECOES = [
     cursor: pointer;
   }
 
-  .mentor-card[data-expansivel]:hover {
+  /* No escuro, o hover é a luz (.card--brilho); no claro, só a borda na cor do mentor. */
+  :root[data-tema='claro'] .mentor-card[data-expansivel]:hover {
     border-color: color-mix(in srgb, var(--mentor-destaque) 55%, var(--_borda));
   }
 

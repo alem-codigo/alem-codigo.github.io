@@ -229,6 +229,12 @@
     }
   }
 
+  /* .card--so-luz: só a luz do tema escuro; no claro, o card não salta (ex.: cards de mentor). */
+  :root[data-tema='claro'] .card--brilho.card--so-luz:not([data-variante='grafite']):is(:hover, :has(:focus-visible)) {
+    translate: none;
+    box-shadow: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     :root[data-tema='claro'] .card--brilho:not([data-variante='grafite']):is(:hover, :has(:focus-visible)) {
       translate: none;

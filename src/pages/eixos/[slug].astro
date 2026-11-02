@@ -87,7 +87,7 @@ const temDetalhes = e.aprendizagem || e.publico || e.perfil.length > 0;
             <div class="colunas">
               {e.competencias.map((g) => (
                 <div class="coluna">
-                  <h3 class="coluna__titulo">{g.titulo}</h3>
+                  <h3 class="coluna__titulo coluna__titulo--esquerda">{g.titulo}</h3>
                   <ul class="lista lista--compacta" role="list">
                     {g.itens.map((item) => <li>{item}</li>)}
                   </ul>
@@ -393,6 +393,11 @@ const temDetalhes = e.aprendizagem || e.publico || e.perfil.length > 0;
     font-size: var(--passo-2);
     font-weight: var(--peso-negrito);
     text-align: center;
+  }
+
+  /* Tipos de competência alinhados à esquerda, junto das listas. */
+  .coluna__titulo--esquerda {
+    text-align: start;
   }
 
   .coluna__subtitulo {
