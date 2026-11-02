@@ -228,7 +228,7 @@ const depoimentos = r?.depoimentos ?? [];
                   <Image class="mentor__foto" src={p.data.foto} alt="" width={160} height={160} />
                   <div class="mentor__texto">
                     <h3>{p.data.nome}</h3>
-                    <p class="mentor__cargo">{[p.data.cargo, p.data.empresa].filter(Boolean).join(' · ')}</p>
+                    <p class="mentor__cargo">{[p.data.cargo, p.data.empresa].filter(Boolean).join(' | ')}</p>
                     <p>{p.data.bio}</p>
                     {REDES_MENTOR.some((r) => p.data[r.campo]) && (
                       <ul class="mentor__redes" role="list" aria-label={`Redes de ${p.data.nome}`}>
@@ -550,8 +550,10 @@ const depoimentos = r?.depoimentos ?? [];
     font-size: var(--passo-1);
   }
 
+  /* Cargo e empresa em ameixa, como os ícones (contraste AA: #793670 no claro, #f0b8e6 no escuro). */
   .mentor__cargo {
-    color: var(--cor-texto-suave);
+    color: var(--icone-cor);
+    font-weight: 600;
     font-size: var(--passo--1);
   }
 
@@ -569,13 +571,12 @@ const depoimentos = r?.depoimentos ?? [];
     width: 2.75rem;
     height: 2.75rem;
     border-radius: var(--raio-m);
-    color: var(--cor-texto);
-    transition: background var(--duracao) var(--curva), color var(--duracao) var(--curva);
+    color: var(--icone-cor);
+    transition: background var(--duracao) var(--curva);
   }
 
   .mentor__rede:hover {
     background: var(--icone-fundo);
-    color: var(--icone-cor);
   }
 
   .bento__parceiro img {
@@ -588,8 +589,8 @@ const depoimentos = r?.depoimentos ?? [];
 
 <style>
   /* ---- Blocos (estilo "bento" do Railway) ----
-   * Desktop: capa e inscrição no topo; mentores ao lado de eixos, parceiro e público; objetivo
-   * embaixo, na largura toda. Celular: capa, eixos, mentores, parceiro, objetivo, público e
+   * Desktop: capa e inscrição no topo; mentores ao lado de eixos e parceiro; objetivo e público
+   * lado a lado na última linha. Celular: capa, eixos, mentores, parceiro, objetivo, público e
    * inscrição no fim. Sem parceiro, o público ocupa o espaço dele. */
   .bento {
     display: grid;
@@ -607,8 +608,8 @@ const depoimentos = r?.depoimentos ?? [];
       grid-template-areas:
         'capa capa capa capa capa capa capa capa inscricao inscricao inscricao inscricao'
         'mentores mentores mentores mentores mentores eixos eixos eixos inscricao inscricao inscricao inscricao'
-        'mentores mentores mentores mentores mentores parceiro parceiro parceiro publico publico publico publico'
-        'objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo';
+        'mentores mentores mentores mentores mentores parceiro parceiro parceiro parceiro parceiro parceiro parceiro'
+        'objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo publico publico publico publico';
       align-items: stretch;
     }
 
@@ -616,9 +617,14 @@ const depoimentos = r?.depoimentos ?? [];
       grid-template-areas:
         'capa capa capa capa capa capa capa capa inscricao inscricao inscricao inscricao'
         'mentores mentores mentores mentores mentores eixos eixos eixos inscricao inscricao inscricao inscricao'
-        'mentores mentores mentores mentores mentores publico publico publico publico publico publico publico'
-        'objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo';
+        'objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo publico publico publico publico';
     }
+  }
+
+  /* Texto na largura toda dos blocos (sem a linha de leitura de 65ch do base.css). */
+  .bento :global(:is(p, li)),
+  .turma :global(:is(p, li)) {
+    max-width: none;
   }
 
   .bento__capa { grid-area: capa; padding: 0; overflow: hidden; gap: 0; }

@@ -29,7 +29,19 @@ export const FORM_AVISO: {
   campos: { mentoria: string; email: string; consentimento: string; situacao?: string };
   /** Texto exato da opção da caixa de seleção no Forms (o Google só aceita se for igual). */
   consentimento: string;
-} | null = null;
+} | null = {
+  // Formulário "Além do Código · Aviso de novas turmas" (conta do programa). Ids de "Preencher
+  // formulário automaticamente"; se as perguntas forem recriadas no Forms, os números mudam.
+  acao: 'https://docs.google.com/forms/d/e/1FAIpQLSdQ8kMmhD0T0WYgP9t9lU0Mbr1WMFrmAOLDJ-P0mNHEdsTzkQ/formResponse',
+  campos: {
+    mentoria: 'entry.570155093',
+    situacao: 'entry.1574832453',
+    email: 'entry.1475928196',
+    consentimento: 'entry.1578459936',
+  },
+  consentimento:
+    'Autorizo o programa Além do Código a usar meu e-mail somente para me avisar sobre novas turmas de mentorias. Sei que posso pedir a exclusão do meu e-mail a qualquer momento.',
+};
 
 /** Frase em marca d'água da cena da montanha, no fim da home (provisória: slogan ainda não definido). */
 export const SLOGAN = 'Cada passo conta.';
