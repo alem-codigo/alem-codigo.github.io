@@ -6,6 +6,8 @@ import {
   cronograma,
   dataCalendario,
   idDeReferencia,
+  idDoLinkDaTurma,
+  idTurmaClassroom,
   opcional,
   resultadoTurma,
   slugDoCodigo,
@@ -179,5 +181,23 @@ describe('resultadoTurma', () => {
 
   it('depoimento acima de 280 caracteres', () => {
     expect(ok({ depoimentos: [{ texto: 'a'.repeat(281), autor: 'Ana', autorizado: true }] }).success).toBe(false);
+  });
+});
+
+describe('ID da turma do Classroom', () => {
+  it('extrai o ID do link da turma (com ou sem /u/0/ e parâmetros)', () => {
+    expect(idDoLinkDaTurma('https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz')).toBe('797247136963');
+    expect(idDoLinkDaTurma('https://classroom.google.com/u/0/c/Nzk3MjQ3MTM2OTYz?cjc=abc')).toBe('797247136963');
+    expect(idDoLinkDaTurma('Nzk3MjQ3MTM2OTYz')).toBe('797247136963');
+  });
+
+  it('rejeita o que não vira número (ex.: código de convite)', () => {
+    expect(idDoLinkDaTurma('abc12x')).toBeNull();
+    expect(idTurmaClassroom.safeParse('abc12x').success).toBe(false);
+  });
+
+  it('o schema aceita o número ou o link e sempre guarda o número', () => {
+    expect(idTurmaClassroom.parse(' 797247136963 ')).toBe('797247136963');
+    expect(idTurmaClassroom.parse('https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz')).toBe('797247136963');
   });
 });

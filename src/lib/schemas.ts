@@ -96,7 +96,36 @@ export function idDeReferencia(valor: unknown): unknown {
 export const referenciaDoPainel = <T extends z.ZodType>(schema: T) => z.preprocess(idDeReferencia, schema);
 
 /** `classroomCourseId`: ID numérico da turma no Classroom. */
-export const idTurmaClassroom = z.string().trim().regex(/^\d+$/, 'ID da turma deve ser numérico');
+/**
+ * ID numérico da turma a partir do link do Classroom. O código depois de `/c/` no endereço
+ * (`https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz`) é o próprio ID em Base64 (`797247136963`).
+ * Aceita o link (com ou sem `/u/0/`, com ou sem parâmetros) ou só o código; devolve `null` se não
+ * der um número.
+ */
+export function idDoLinkDaTurma(valor: string): string | null {
+  const codigo = /classroom\.google\.com\/(?:u\/\d+\/)?c\/([A-Za-z0-9_-]+)/.exec(valor)?.[1] ?? valor;
+  if (!/^[A-Za-z0-9_-]+$/.test(codigo)) return null;
+  try {
+    const base64 = codigo.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(codigo.length / 4) * 4, '=');
+    const id = atob(base64);
+    return /^\d+$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * `classroomCourseId`: ID numérico da turma. No painel pode-se colar o link da turma; o build
+ * converte para o número.
+ */
+export const idTurmaClassroom = z.preprocess(
+  (v) => {
+    if (typeof v !== 'string') return v;
+    const t = v.trim();
+    return /^\d+$/.test(t) ? t : (idDoLinkDaTurma(t) ?? t);
+  },
+  z.string().regex(/^\d+$/, 'Cole o link da turma no Classroom (classroom.google.com/c/…) ou o ID numérico'),
+);
 
 export const cronograma = z.object({
   inscricoes: z.object({ abertura: dataCalendario, fechamento: dataCalendario }),

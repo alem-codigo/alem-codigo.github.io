@@ -165,10 +165,10 @@ content:
       - name: classroomCourseId
         label: ID da turma no Classroom
         type: string
-        description: "Opcional. Só números (não é o código de convite nem o trecho do endereço da turma). Liga a página da mentoria ao conteúdo do Classroom; o mantenedor informa o número."
+        description: "Opcional. Abra a turma no Classroom e cole aqui o endereço da barra do navegador (https://classroom.google.com/c/...); o site converte para o ID numérico. Também aceita o número. Não use o código de convite."
         pattern:
-          regex: '^\d*$'
-          message: O ID da turma tem só números.
+          regex: '^(\d+|https://classroom\.google\.com/\S+)?$'
+          message: Cole o link da turma (https://classroom.google.com/c/...) ou o ID numérico.
       - name: destaque
         label: Destaque no menu
         type: boolean
