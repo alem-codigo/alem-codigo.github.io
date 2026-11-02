@@ -44,7 +44,7 @@
     /* ---- Ícones em ameixa (quadradinho com o desenho do ícone) ---- */
     --icone-fundo: light-dark(#f3e4f0, #3d1a3a);
     --icone-borda: light-dark(#e8cfe3, #5a2753);
-    --icone-cor: light-dark(#793670, #f0b8e6);
+    --icone-cor: light-dark(#793670, #e07fcf);
 
     /* ---- Luz que acompanha o mouse nos cards (.card--brilho) ----
      * Claro: branco (reflexo sob o cursor) + azul #0c91ed. Escuro: violeta + ameixa.

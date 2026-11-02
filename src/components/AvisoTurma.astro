@@ -77,9 +77,12 @@ const f = FORM_AVISO;
 </script>
 
 <style>
+  /* Cores normais de texto, mesmo dentro do card grafite (encerrada), que apaga o resto do card:
+   * o pedido de aviso é a ação principal ali e precisa chamar atenção. */
   .aviso {
     display: grid;
     gap: var(--espaco-2xs);
+    color: var(--cor-texto);
   }
 
   .aviso__titulo {
@@ -88,7 +91,7 @@ const f = FORM_AVISO;
 
   .aviso__texto,
   .aviso__consentimento {
-    color: var(--_texto-suave, var(--cor-texto-suave));
+    color: var(--cor-texto-suave);
     font-size: var(--passo--1);
   }
 
@@ -121,7 +124,10 @@ const f = FORM_AVISO;
     accent-color: var(--cor-link);
   }
 
+  /* Botão principal do tema (violeta no claro, azul no escuro), também no card grafite. */
   .aviso .botao {
+    --_fundo: var(--botao-fundo);
+
     justify-self: start;
   }
 
