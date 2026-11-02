@@ -359,9 +359,10 @@ const depoimentos = r?.depoimentos ?? [];
     gap: var(--espaco-xs) var(--espaco-m);
   }
 
+  /* Ícone alinhado ao topo do texto (número do eixo + título, que pode quebrar em duas linhas). */
   .mentoria-pagina__eixo {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--espaco-2xs);
     font-weight: var(--peso-negrito);
   }
@@ -550,9 +551,9 @@ const depoimentos = r?.depoimentos ?? [];
     font-size: var(--passo-1);
   }
 
-  /* Cargo e empresa em ameixa, como os ícones (contraste AA: #793670 no claro, #e07fcf no escuro). */
+  /* Cargo e empresa no destaque do mentor: ameixa no claro, azul no escuro (tokens.css). */
   .mentor__cargo {
-    color: var(--icone-cor);
+    color: var(--mentor-destaque);
     font-weight: 600;
     font-size: var(--passo--1);
   }
@@ -571,12 +572,12 @@ const depoimentos = r?.depoimentos ?? [];
     width: 2.75rem;
     height: 2.75rem;
     border-radius: var(--raio-m);
-    color: var(--icone-cor);
+    color: var(--mentor-destaque);
     transition: background var(--duracao) var(--curva);
   }
 
   .mentor__rede:hover {
-    background: var(--icone-fundo);
+    background: var(--mentor-destaque-fundo);
   }
 
   .bento__parceiro img {

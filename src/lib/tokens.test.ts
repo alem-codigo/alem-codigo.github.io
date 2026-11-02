@@ -57,6 +57,10 @@ const pares: Par[] = [
   ['--icone-cor', '--icone-fundo', AA.componente],
   ['--icone-cor', '--card-padrao-fundo', AA.texto],
 
+  // Destaque do mentor: cargo/empresa (texto) e ícones das redes, também sobre o fundo do hover
+  ['--mentor-destaque', '--card-padrao-fundo', AA.texto],
+  ['--mentor-destaque', '--mentor-destaque-fundo', AA.componente],
+
   // Cards
   ...(['padrao', 'violeta', 'grafite'] as const).flatMap((v): Par[] => [
     [`--card-${v}-texto`, `--card-${v}-fundo`, AA.texto],

@@ -46,6 +46,10 @@
     --icone-borda: light-dark(#e8cfe3, #5a2753);
     --icone-cor: light-dark(#793670, #e07fcf);
 
+    /* ---- Destaque do mentor (cargo, empresa e ícones das redes): ameixa no claro, azul no escuro ---- */
+    --mentor-destaque: light-dark(#793670, #4aa9f2);
+    --mentor-destaque-fundo: light-dark(#f3e4f0, #10283d); /* hover dos ícones das redes */
+
     /* ---- Luz que acompanha o mouse nos cards (.card--brilho) ----
      * Claro: branco (reflexo sob o cursor) + azul #0c91ed. Escuro: violeta + ameixa.
      * Com 24% de azul, o texto suave dos cards padrão e violeta segue acima de 4.5:1 no pico
