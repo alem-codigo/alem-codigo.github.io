@@ -11,7 +11,7 @@ export const NAVEGACAO_PRINCIPAL: readonly ItemNavegacao[] = [
   { rotulo: 'Mentorias', href: '/mentorias/' },
   { rotulo: 'Eixos', href: '/eixos/' },
   { rotulo: 'Mentores', href: '/mentores/' },
-  { rotulo: 'Como participar', href: '/como-participar' },
+  { rotulo: 'Como participar', href: '/como-participar/' },
   { rotulo: 'Sobre', href: '/sobre/' },
 ];
 

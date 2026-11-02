@@ -1,0 +1,657 @@
+---
+/**
+ * Como participar (/como-participar/, D-32): passo a passo do aluno até a turma no Classroom.
+ *
+ * Layout "A": trilha numerada com índice ao lado (fixo ao rolar no desktop; no celular, uma
+ * linha de links no topo), o passo 3 (aceitar o convite) em destaque com um modelo do e-mail,
+ * "Durante e depois da turma", perguntas frequentes em <details> (sem JavaScript) e a chamada
+ * final. O botão de inscrições abertas só aparece quando há turma aberta (mesma regra do
+ * cabeçalho).
+ *
+ * Os quatro passos da home (ComoFunciona.astro) resumem a jornada inteira (escolher, inscrever,
+ * aceitar, participar); esta página detalha a parte operacional (conta, inscrição, convite,
+ * notificações). Ao mudar um passo aqui, confira o resumo da home.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { hojeEmSaoPaulo } from '../lib/datas';
+import { destinoInscricoes } from '../lib/navegacao';
+import { CONTATO, SITE } from '../lib/site';
+
+const mentorias = (await getCollection('mentorias')).map((m) => ({ id: m.id, ...m.data }));
+const linkInscricoes = destinoInscricoes(mentorias, hojeEmSaoPaulo());
+const mailto = `mailto:${CONTATO.email}`;
+
+/** Índice da página (âncoras). Os ids são os mesmos das seções abaixo. */
+const INDICE = [
+  { id: 'conta-google', numero: '01', rotulo: 'Conta Google' },
+  { id: 'inscricao', numero: '02', rotulo: 'Inscrição' },
+  { id: 'convite', numero: '03', rotulo: 'Convite da turma' },
+  { id: 'notificacoes', numero: '04', rotulo: 'Notificações' },
+  { id: 'durante-e-depois', numero: null, rotulo: 'Durante e depois' },
+  { id: 'perguntas', numero: null, rotulo: 'Perguntas frequentes' },
+] as const;
+
+const PERGUNTAS = [
+  {
+    pergunta: 'Preciso ter Gmail?',
+    resposta: [
+      'Não. Você precisa de uma conta Google, e ela pode usar o e-mail que você já tem (Outlook, Hotmail, Yahoo ou outro). Veja o passo 1.',
+    ],
+  },
+  {
+    pergunta: 'Quem pode participar?',
+    resposta: [
+      'Estudantes e egressos dos cursos do Cluster de TI da UniCesumar EaD. Cada mentoria informa, na própria página, quais cursos podem se inscrever e se há pré-requisitos.',
+    ],
+  },
+  {
+    pergunta: 'Não recebi o convite da turma. O que faço?',
+    resposta: [
+      'Os convites são enviados depois que as inscrições terminam, antes do início da turma. Procure nas pastas de spam e de promoções e confira se está olhando o e-mail que você informou no formulário.',
+      'Se a turma estiver para começar e o convite não chegou, escreva para o contato do programa com seu nome, a mentoria e o e-mail informado na inscrição.',
+    ],
+    contato: true,
+  },
+  {
+    pergunta: 'Informei um e-mail errado (ou sem conta Google) na inscrição.',
+    resposta: [
+      'Escreva para o contato do programa com seu nome, a mentoria, o e-mail que você informou e o e-mail correto da sua conta Google. O convite é reenviado para o e-mail certo.',
+    ],
+    contato: true,
+  },
+  {
+    pergunta: 'Aceitei o convite, mas a turma ou os arquivos não abrem.',
+    resposta: [
+      'Quase sempre o navegador está com outra conta Google conectada. Troque para a conta que recebeu o convite (no canto superior direito da página do Google) ou abra o link numa janela anônima e entre com ela.',
+    ],
+  },
+  {
+    pergunta: 'Perdi o prazo de inscrição.',
+    resposta: [
+      'Na página da mentoria, deixe seu e-mail no campo "me avise" para saber quando houver uma nova turma. As próximas mentorias também aparecem na listagem de mentorias.',
+    ],
+  },
+  {
+    pergunta: 'Recebo certificado? Conta como horas complementares?',
+    resposta: [
+      'Sim. Quem conclui a mentoria, com a entrega final, recebe um certificado digital. Para usar como horas complementares, envie o certificado pelo pedido de atividades complementares da sua graduação; o aproveitamento segue as regras do seu curso.',
+    ],
+  },
+] as const;
+---
+
+<Base
+  title="Como participar"
+  description="Passo a passo para participar das mentorias do Além do Código: conta Google, inscrição, convite da turma no Classroom e notificações."
+>
+  <div class="container participar">
+    <nav class="trilha" aria-label="Trilha">
+      <a href="/">Início</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Como participar</span>
+    </nav>
+
+    <header class="participar__cabecalho">
+      <div class="participar__titulo">
+        <p class="rotulo">Como participar</p>
+        <h1>Da inscrição ao primeiro encontro</h1>
+        <p class="participar__chamada">
+          As mentorias acontecem no Google Classroom, e o acesso depende de quatro passos. O terceiro, aceitar o
+          convite da turma, é o que mais gente esquece.
+        </p>
+      </div>
+      {
+        linkInscricoes && (
+          <a class="botao" href={linkInscricoes}>
+            Ver inscrições abertas
+          </a>
+        )
+      }
+    </header>
+
+    <div class="participar__corpo">
+      <nav class="indice" aria-labelledby="indice-titulo">
+        <p class="indice__titulo rotulo" id="indice-titulo">Nesta página</p>
+        <ol class="indice__lista" role="list">
+          {
+            INDICE.map((item) => (
+              <li>
+                <a href={`#${item.id}`}>
+                  {item.numero && <span class="indice__numero mono" aria-hidden="true">{item.numero}</span>}
+                  {item.rotulo}
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+
+      <div class="participar__conteudo">
+        <ol class="passos" role="list">
+          <li class="passo" id="conta-google" aria-labelledby="passo-1">
+            <span class="passo__marcador mono" aria-hidden="true">01</span>
+            <div class="passo__corpo">
+              <h2 id="passo-1"><span class="visualmente-oculto">Passo 1: </span>Tenha uma conta Google</h2>
+              <p>
+                O Classroom e os arquivos das turmas no Drive só abrem com uma conta Google. Ela <strong
+                  >não precisa ser Gmail</strong
+                >: dá para criar a conta com o e-mail que você já usa.
+              </p>
+              <ol class="lista" role="list">
+                <li>Abra a página de criação de conta do Google e preencha seu nome e data de nascimento.</li>
+                <li>Na etapa do e-mail, escolha a opção de usar o seu endereço de e-mail atual, em vez de criar um Gmail.</li>
+                <li>Confirme o código que o Google envia para esse e-mail e crie a senha.</li>
+              </ol>
+              <div class="grupo">
+                <a class="botao botao--contorno" href="https://accounts.google.com/signup" target="_blank" rel="noopener">
+                  Criar conta Google <span aria-hidden="true">↗</span><span class="visualmente-oculto"> (abre em nova aba)</span>
+                </a>
+                <a class="link-seta" href="#inscricao">Já tenho conta: ir para o passo 2</a>
+              </div>
+            </div>
+          </li>
+
+          <li class="passo" id="inscricao" aria-labelledby="passo-2">
+            <span class="passo__marcador mono" aria-hidden="true">02</span>
+            <div class="passo__corpo">
+              <h2 id="passo-2"><span class="visualmente-oculto">Passo 2: </span>Inscreva-se no formulário da mentoria</h2>
+              <p>
+                Cada mentoria tem o próprio formulário, que fica na página dela enquanto as inscrições estão abertas. Lá
+                você também confere se o seu curso pode participar, os pré-requisitos e o último dia de inscrição.
+              </p>
+              <p class="aviso">
+                <strong>Use o e-mail da conta Google do passo 1</strong> no campo "E-mail que você usará no Google
+                Classroom". É para ele que vai o convite da turma.
+              </p>
+              <p class="texto-suave">
+                Dica: o botão "Adicionar ao calendário", na página da mentoria, lembra você do último dia de inscrição.
+              </p>
+              <p><a class="link-seta" href="/mentorias/">Conhecer as mentorias</a></p>
+            </div>
+          </li>
+
+          <li class="passo passo--destaque" id="convite" aria-labelledby="passo-3">
+            <span class="passo__marcador mono" aria-hidden="true">03</span>
+            <div class="passo__corpo card">
+              <p class="passo__selo rotulo">Passo mais esquecido</p>
+              <h2 id="passo-3"><span class="visualmente-oculto">Passo 3: </span>Aceite o convite da turma</h2>
+              <p>
+                Depois do fim das inscrições, o {SITE.nome} convida os inscritos para a turma no Google Classroom,
+                pelo e-mail informado no formulário. <strong>Sem aceitar o convite, você não entra na turma</strong> nem
+                consegue abrir os materiais.
+              </p>
+
+              <figure class="convite">
+                <div class="convite__email">
+                  <dl class="convite__cabecalho">
+                    <div><dt>De</dt><dd>Além do Código (Google Classroom)</dd></div>
+                    <div><dt>Assunto</dt><dd>Convite para a turma: Nome da mentoria</dd></div>
+                  </dl>
+                  <div class="convite__mensagem">
+                    <p>Além do Código convidou você para participar da turma <strong>Nome da mentoria</strong>.</p>
+                    <span class="convite__botao" aria-hidden="true">Participar</span>
+                  </div>
+                </div>
+                <figcaption class="texto-suave">
+                  Modelo do e-mail de convite. O texto exato pode variar, mas o botão para aceitar é o "Participar".
+                </figcaption>
+              </figure>
+
+              <ol class="lista" role="list">
+                <li>Abra o e-mail de convite e clique em <strong>Participar</strong>.</li>
+                <li>
+                  Se o navegador estiver com outra conta Google, troque para a conta do passo 1 antes de aceitar (ou abra
+                  o link numa janela anônima).
+                </li>
+                <li>
+                  Não achou o e-mail? O convite também aparece em{' '}
+                  <a href="https://classroom.google.com/" target="_blank" rel="noopener"
+                    >classroom.google.com<span class="visualmente-oculto"> (abre em nova aba)</span></a
+                  >, no card da turma, com o mesmo botão Participar.
+                </li>
+              </ol>
+            </div>
+          </li>
+
+          <li class="passo" id="notificacoes" aria-labelledby="passo-4">
+            <span class="passo__marcador mono" aria-hidden="true">04</span>
+            <div class="passo__corpo">
+              <h2 id="passo-4"><span class="visualmente-oculto">Passo 4: </span>Ative as notificações da turma</h2>
+              <p>
+                Encontros ao vivo e prazos ficam na agenda da turma, que aparece no Google Agenda da sua conta depois que
+                você entra na turma. Com as notificações ativas, você não perde lives nem entregas.
+              </p>
+              <ol class="lista" role="list">
+                <li>Instale no celular os apps Google Classroom e Google Agenda e entre com a conta do passo 1.</li>
+                <li>Permita as notificações dos dois apps.</li>
+                <li>No Google Agenda, confira se a agenda da turma está marcada na lista de agendas.</li>
+              </ol>
+            </div>
+          </li>
+
+          <li class="passo passo--final" id="durante-e-depois" aria-labelledby="passo-5">
+            <span class="passo__marcador" aria-hidden="true"></span>
+            <div class="passo__corpo">
+              <h2 id="passo-5">Durante e depois da turma</h2>
+              <div class="colunas">
+                <div>
+                  <h3>Durante</h3>
+                  <ul class="lista" role="list">
+                    <li>Os encontros são ao vivo, com o link no Classroom.</li>
+                    <li>Materiais, atividades e prazos ficam no Classroom.</li>
+                    <li>Dúvidas sobre o conteúdo vão para os mentores, pelo Classroom.</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3>Depois</h3>
+                  <ul class="lista" role="list">
+                    <li>Quem conclui a entrega final recebe um certificado digital.</li>
+                    <li>O certificado pode ser usado como horas complementares na sua graduação.</li>
+                    <li>Responda à avaliação da turma: ela ajuda a melhorar as próximas.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <section class="perguntas" id="perguntas" aria-labelledby="perguntas-titulo">
+          <h2 id="perguntas-titulo">Perguntas frequentes</h2>
+          <div class="perguntas__lista">
+            {
+              PERGUNTAS.map((p) => (
+                <details class="pergunta">
+                  <summary>{p.pergunta}</summary>
+                  <div class="pergunta__resposta">
+                    {p.resposta.map((texto) => (
+                      <p>{texto}</p>
+                    ))}
+                    {'contato' in p && (
+                      <p>
+                        Contato: <a href={mailto}>{CONTATO.email}</a>
+                      </p>
+                    )}
+                  </div>
+                </details>
+              ))
+            }
+          </div>
+          <p class="texto-suave">
+            Não encontrou sua dúvida? Escreva para <a href={mailto}>{CONTATO.email}</a>.
+          </p>
+        </section>
+
+        <section class="card card--brilho chamada" data-variante="violeta" aria-labelledby="chamada-titulo">
+          <h2 id="chamada-titulo">Pronto para participar?</h2>
+          <p class="texto-suave">Escolha uma mentoria, confira se o seu curso pode participar e garanta sua vaga.</p>
+          <div class="grupo">
+            {
+              linkInscricoes ? (
+                <a class="botao" href={linkInscricoes}>
+                  Ver inscrições abertas
+                </a>
+              ) : (
+                <a class="botao" href="/mentorias/">
+                  Conhecer as mentorias
+                </a>
+              )
+            }
+            <a class="botao botao--contorno" href="/eixos/">Ver os eixos</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .participar {
+    display: grid;
+    gap: var(--espaco-l);
+    padding-block: var(--espaco-m) var(--espaco-2xl);
+  }
+
+  .trilha {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-2xs);
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  /* ---- Cabeçalho ---- */
+  .participar__cabecalho {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--espaco-s) var(--espaco-l);
+  }
+
+  .participar__titulo {
+    display: grid;
+    gap: var(--espaco-xs);
+  }
+
+  .participar__chamada {
+    max-width: 48rem;
+    color: var(--cor-texto-suave);
+    font-size: var(--passo-1);
+  }
+
+  /* ---- Corpo: índice + conteúdo. No celular, o índice vira uma linha de links no topo. ---- */
+  .participar__corpo {
+    display: grid;
+    gap: var(--espaco-l);
+  }
+
+  .participar__conteudo {
+    display: grid;
+    gap: var(--espaco-2xl);
+    min-width: 0;
+  }
+
+  .indice {
+    display: grid;
+    gap: var(--espaco-2xs);
+  }
+
+  .indice__lista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-2xs);
+    padding: 0;
+    list-style: none;
+  }
+
+  .indice a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    min-height: 2.75rem; /* alvo de toque de 44px */
+    padding: 0.25rem 0.85rem;
+    border: var(--borda);
+    border-radius: var(--raio-pilula);
+    color: var(--cor-texto);
+    font-size: var(--passo--1);
+    text-decoration: none;
+  }
+
+  .indice a:hover {
+    border-color: var(--cor-link);
+  }
+
+  .indice__numero {
+    color: var(--icone-cor);
+    font-weight: var(--peso-negrito);
+  }
+
+  @media (min-width: 64rem) {
+    .participar__corpo {
+      grid-template-columns: 13rem minmax(0, 1fr);
+      gap: var(--espaco-xl);
+    }
+
+    /* Fixo ao rolar, abaixo do cabeçalho fixo (4.5rem). */
+    .indice {
+      position: sticky;
+      top: calc(4.5rem + var(--espaco-m));
+      align-self: start;
+    }
+
+    .indice__lista {
+      flex-direction: column;
+      gap: 0;
+      border-inline-start: var(--borda);
+    }
+
+    .indice a {
+      min-height: 2.5rem;
+      margin-inline-start: -1px;
+      padding: 0.25rem 0 0.25rem var(--espaco-s);
+      border: 0;
+      border-inline-start: 2px solid transparent;
+      border-radius: 0;
+    }
+
+    .indice a:hover {
+      border-inline-start-color: var(--cor-link);
+      color: var(--cor-link);
+    }
+  }
+
+  /* ---- Trilha de passos: marcador numerado e linha vertical ligando os passos ---- */
+  .passos {
+    --marcador: 2.75rem;
+
+    display: grid;
+    padding: 0;
+    list-style: none;
+  }
+
+  .passo {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--marcador) minmax(0, 1fr);
+    gap: var(--espaco-s);
+    padding-block-end: var(--espaco-xl);
+  }
+
+  /* Linha do centro do marcador até o próximo passo. */
+  .passo:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    inset-block: var(--marcador) 0;
+    inset-inline-start: calc(var(--marcador) / 2 - 1px);
+    width: 2px;
+    background: var(--cor-borda);
+  }
+
+  .passo:last-child {
+    padding-block-end: 0;
+  }
+
+  .passo__marcador {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--marcador);
+    height: var(--marcador);
+    border-radius: 50%;
+    background: var(--icone-fundo);
+    box-shadow: inset 0 0 0 1px var(--icone-borda);
+    color: var(--icone-cor);
+    font-weight: var(--peso-negrito);
+  }
+
+  .passo--final .passo__marcador {
+    background: var(--cor-fundo);
+    box-shadow: inset 0 0 0 2px var(--cor-borda);
+  }
+
+  .passo__corpo {
+    display: grid;
+    align-content: start;
+    gap: var(--espaco-xs);
+    min-width: 0;
+    padding-block-start: 0.35rem;
+  }
+
+  .passo__corpo h2 {
+    font-size: var(--passo-2);
+  }
+
+  .passo__corpo h3 {
+    font-size: var(--passo-0);
+  }
+
+  .passo__corpo :is(p, li) {
+    max-width: 62ch;
+  }
+
+  /* Passo 3 em destaque: card com borda ameixa. */
+  .passo--destaque .passo__corpo {
+    gap: var(--espaco-xs);
+    padding: var(--espaco-m);
+    border: 1.5px solid var(--icone-cor);
+  }
+
+  .passo--destaque .passo__marcador {
+    background: var(--icone-cor);
+    box-shadow: none;
+    color: var(--cor-fundo);
+  }
+
+  .passo__selo {
+    color: var(--icone-cor);
+  }
+
+  .aviso {
+    padding: var(--espaco-xs) var(--espaco-s);
+    border-inline-start: 3px solid var(--icone-cor);
+    border-radius: 0;
+    background: var(--cor-faixa);
+  }
+
+  .colunas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--espaco-s) var(--espaco-l);
+  }
+
+  .colunas > div {
+    display: grid;
+    align-content: start;
+    gap: var(--espaco-2xs);
+  }
+
+  /* ---- Modelo do e-mail de convite (ilustração, não é um botão de verdade) ---- */
+  .convite {
+    display: grid;
+    gap: var(--espaco-2xs);
+    margin: var(--espaco-2xs) 0;
+  }
+
+  .convite__email {
+    max-width: 34rem;
+    overflow: hidden;
+    border: var(--borda);
+    border-radius: var(--raio-m);
+    background: var(--cor-fundo);
+  }
+
+  .convite__cabecalho {
+    display: grid;
+    gap: var(--espaco-3xs);
+    padding: var(--espaco-xs) var(--espaco-s);
+    border-block-end: var(--borda);
+    background: var(--cor-faixa);
+    font-size: var(--passo--1);
+  }
+
+  .convite__cabecalho div {
+    display: flex;
+    gap: 0.5em;
+  }
+
+  .convite__cabecalho dt {
+    min-width: 4.5rem;
+    color: var(--cor-texto-suave);
+  }
+
+  .convite__mensagem {
+    display: grid;
+    justify-items: start;
+    gap: var(--espaco-xs);
+    padding: var(--espaco-s);
+  }
+
+  .convite__botao {
+    padding: 0.4rem 1.1rem;
+    border-radius: var(--raio-s);
+    background: var(--botao-fundo);
+    color: var(--botao-texto);
+    font-weight: var(--peso-negrito);
+  }
+
+  .convite figcaption {
+    font-size: var(--passo--1);
+  }
+
+  /* ---- Perguntas frequentes ---- */
+  .perguntas {
+    display: grid;
+    gap: var(--espaco-m);
+  }
+
+  .perguntas__lista {
+    display: grid;
+    border-block-start: var(--borda);
+  }
+
+  .pergunta {
+    border-block-end: var(--borda);
+  }
+
+  .pergunta summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espaco-s);
+    min-height: 2.75rem;
+    padding-block: var(--espaco-xs);
+    font-weight: var(--peso-negrito);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .pergunta summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .pergunta summary::after {
+    content: '+';
+    flex: none;
+    color: var(--icone-cor);
+    font-family: var(--fonte-mono);
+    font-size: var(--passo-1);
+    line-height: 1;
+    transition: rotate var(--duracao) var(--curva);
+  }
+
+  .pergunta[open] summary::after {
+    rotate: 45deg;
+  }
+
+  .pergunta__resposta {
+    display: grid;
+    gap: var(--espaco-2xs);
+    padding-block-end: var(--espaco-s);
+  }
+
+  /* ---- Chamada final ---- */
+  .chamada {
+    align-items: flex-start;
+    gap: var(--espaco-s);
+    padding: var(--espaco-xl) var(--espaco-l);
+  }
+
+  .chamada .botao {
+    align-self: auto;
+  }
+
+  @media (max-width: 47.99rem) {
+    .passos {
+      --marcador: 2.25rem;
+    }
+
+    .passo {
+      gap: var(--espaco-xs);
+    }
+
+    .passo--destaque .passo__corpo {
+      padding: var(--espaco-s);
+    }
+  }
+</style>

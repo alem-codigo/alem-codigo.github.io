@@ -345,35 +345,6 @@ const temDetalhes = e.aprendizagem || e.publico || e.perfil.length > 0;
     font-size: var(--passo-0);
   }
 
-  /* ---- Listas com marcador quadrado ---- */
-  .lista {
-    display: grid;
-    gap: var(--espaco-2xs);
-    padding: 0;
-    list-style: none;
-  }
-
-  .lista--compacta {
-    gap: var(--espaco-3xs);
-    font-size: var(--passo--1);
-  }
-
-  .lista li {
-    position: relative;
-    padding-inline-start: 1.1em;
-  }
-
-  .lista li::before {
-    content: '';
-    position: absolute;
-    inset-block-start: 0.62em;
-    inset-inline-start: 0.1em;
-    width: 0.38em;
-    height: 0.38em;
-    border-radius: 1px;
-    background: currentColor;
-  }
-
   /* ---- Três colunas (competências e faixa violeta) ---- */
   .colunas {
     display: grid;

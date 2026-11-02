@@ -43,6 +43,12 @@ export const FORM_AVISO: {
     'Autorizo o programa Além do Código a usar meu e-mail somente para me avisar sobre novas turmas de mentorias. Sei que posso pedir a exclusão do meu e-mail a qualquer momento.',
 };
 
+/**
+ * Contato do programa (conta Google do programa, não institucional: D-03). Usado em
+ * /como-participar para quem não recebeu o convite da turma ou informou o e-mail errado.
+ */
+export const CONTATO = { email: 'alemdocodigo.clusterti@gmail.com' } as const;
+
 /** Frase em marca d'água da cena da montanha, no fim da home (provisória: slogan ainda não definido). */
 export const SLOGAN = 'Cada passo conta.';
 
@@ -52,7 +58,7 @@ export const RODAPE: readonly { titulo: string; itens: readonly ItemNavegacao[] 
     titulo: 'Programa',
     itens: [
       { rotulo: 'Sobre', href: '/sobre/' },
-      { rotulo: 'Como participar', href: '/como-participar' },
+      { rotulo: 'Como participar', href: '/como-participar/' },
       { rotulo: 'Eixos', href: '/eixos/' },
     ],
   },
