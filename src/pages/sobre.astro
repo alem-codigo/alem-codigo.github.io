@@ -27,7 +27,7 @@ const parcerias = new Set(mentorias.flatMap((m) => (m.data.parceiro ? [m.data.pa
 const numeros = [
   { valor: realizadas, rotulo: realizadas === 1 ? 'mentoria realizada' : 'mentorias realizadas' },
   { valor: inscritos, rotulo: 'inscrições' },
-  { valor: eixos.length, rotulo: 'eixos de formação' },
+  { valor: eixos.length, rotulo: 'eixos de aprendizagem' },
   { valor: mentores.length, rotulo: mentores.length === 1 ? 'mentor' : 'mentores' },
   { valor: parcerias, rotulo: parcerias === 1 ? 'empresa parceira' : 'empresas parceiras' },
 ].filter((n) => n.valor > 0);

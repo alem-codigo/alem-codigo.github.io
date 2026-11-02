@@ -1,5 +1,5 @@
 ---
-/** Chamada para os eixos de formação: um card por eixo, na ordem do campo `ordem`. */
+/** Chamada para os eixos de aprendizagem: um card por eixo, na ordem do campo `ordem`. */
 import { getCollection } from 'astro:content';
 import { caminhoEixo } from '../lib/eixos';
 
@@ -10,7 +10,7 @@ const eixos = (await getCollection('eixos')).sort((a, b) => a.data.ordem - b.dat
   <div class="container pilha eixos__conteudo">
     <header class="secao-cabecalho">
       <div class="secao-cabecalho__texto">
-        <p class="rotulo">Eixos de formação</p>
+        <p class="rotulo">Eixos de aprendizagem</p>
         <h2 id="eixos-titulo">{eixos.length} eixos para ir além do código</h2>
         <p class="texto-suave">As mentorias se organizam em eixos; uma turma pode trabalhar um eixo ou combinar vários.</p>
       </div>
