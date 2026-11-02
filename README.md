@@ -35,6 +35,6 @@ CSS puro com design tokens em custom properties, sem framework (D-16).
 
 ## Conteúdo
 
-Coleções em `src/content/` (`mentorias`, `mentores`, `eixos`), com schemas em `src/content.config.ts`. Datas são `YYYY-MM-DD` e precisam estar em ordem (abertura ≤ fechamento ≤ início ≤ fim); campo inválido ou referência a eixo/mentor inexistente quebra o build. A URL da mentoria vem do `codigo` (`M26-01` → `/mentorias/m26-01`; ano do início da realização + sequência do ano).
+Coleções em `src/content/` (`mentorias`, `mentores`, `eixos`, `selos`, `cursos`), cadastradas pelo Pages CMS (`.pages.yml`) e com schemas em `src/content.config.ts`. Datas são `YYYY-MM-DD` e precisam estar em ordem (abertura ≤ fechamento ≤ início ≤ fim); campo inválido, referência inexistente (eixo, mentor, selo ou curso) ou código de mentoria repetido quebra o build. A URL da mentoria vem do `codigo` (`M26-01` → `/mentorias/m26-01/`; ano do início da realização + sequência do ano), não do nome do arquivo; ainda assim, mantenha o arquivo com o nome do código (`m26-01.md`), como o painel grava.
 
-Os arquivos `exemplo*` e `m0-26z.md` são apenas para validar os schemas e devem ser removidos na migração do conteúdo real.
+A coleção `selos` tem um `README.md` explicativo; os demais arquivos de `src/content/` são conteúdo real.
