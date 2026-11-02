@@ -22,6 +22,13 @@ const [mentorias, eixos, mentores] = await Promise.all([
 ]);
 const realizadas = mentorias.filter((m) => calcularStatus(m.data, hoje) === 'encerrada').length;
 const inscritos = mentorias.reduce((soma, m) => soma + (m.data.resultado?.inscritos ?? 0), 0);
+// Os idealizadores são os mentores fixos (D-29).
+const idealizadores = new Intl.ListFormat('pt-BR', { type: 'conjunction' }).format(
+  mentores
+    .filter((m) => m.data.tipo === 'fixo')
+    .map((m) => m.data.nome)
+    .sort((a, b) => a.localeCompare(b, 'pt-BR')),
+);
 const parcerias = new Set(mentorias.flatMap((m) => (m.data.parceiro ? [m.data.parceiro.nome] : []))).size;
 
 const numeros = [
@@ -41,7 +48,7 @@ const COMO_FUNCIONA = [
   {
     titulo: 'Prática que vira portfólio',
     texto:
-      'As mentorias terminam com uma entrega: um projeto, uma análise ou um repositório que o aluno pode mostrar em processos seletivos.',
+      'Toda mentoria termina com uma entrega: um projeto, uma análise ou um repositório que o aluno pode mostrar em processos seletivos. A entrega não vale nota: o objetivo é aprender fazendo.',
   },
   {
     titulo: 'Organizadas em eixos',
@@ -51,6 +58,15 @@ const COMO_FUNCIONA = [
   {
     titulo: 'Em parceria com empresas',
     texto: 'Parte das mentorias é feita com empresas, que trazem ferramentas, problemas e a visão de quem contrata.',
+  },
+  {
+    titulo: 'Certificado e horas complementares',
+    texto:
+      'Quem conclui a mentoria recebe um certificado, que pode ser enviado no pedido de atividades complementares da graduação.',
+  },
+  {
+    titulo: 'Gratuitas',
+    texto: 'As mentorias são gratuitas para estudantes e egressos do Cluster de TI da UniCesumar EaD.',
   },
 ] as const;
 ---
@@ -93,12 +109,12 @@ const COMO_FUNCIONA = [
       </ul>
     </section>
 
-    <section class="sobre__secao sobre__duas" aria-labelledby="quem-faz">
+    <section class="sobre__secao sobre__duas" aria-labelledby="idealizadores">
       <div class="sobre__bloco">
-        <h2 id="quem-faz">Quem faz</h2>
+        <h2 id="idealizadores">Os idealizadores</h2>
         <p>
-          O programa é mantido por professores do Cluster de TI, que planejam as mentorias, conduzem as turmas e convidam
-          profissionais e empresas parceiras para mentorias específicas.
+          O {SITE.nome} surgiu em 2026, idealizado pelos professores {idealizadores}, do Cluster de TI. Eles planejam as
+          mentorias, conduzem as turmas e convidam profissionais e empresas parceiras para mentorias específicas.
         </p>
         <p><a class="link-seta" href="/mentores/">Conheça os mentores</a></p>
       </div>

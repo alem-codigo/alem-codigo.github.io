@@ -7,13 +7,22 @@
  * RASCUNHO de texto: revisar com os professores antes do lançamento. Ao mudar o que o site
  * coleta (formulários, análise de acesso, escopos do Google), atualize esta página e a data.
  */
+import { getCollection } from 'astro:content';
 import CabecalhoPagina from '../components/CabecalhoPagina.astro';
 import Base from '../layouts/Base.astro';
 import { CONTATO, SITE } from '../lib/site';
 
+// Controladores (LGPD): os mentores fixos, idealizadores do programa (decidido em 2026-11-02).
+const idealizadores = new Intl.ListFormat('pt-BR', { type: 'conjunction' }).format(
+  (await getCollection('mentores', (m) => m.data.tipo === 'fixo'))
+    .map((m) => m.data.nome)
+    .sort((a, b) => a.localeCompare(b, 'pt-BR')),
+);
+
 const ATUALIZADA_EM = '2 de novembro de 2026';
 const SECOES = [
   ['resumo', 'Em resumo'],
+  ['responsaveis', 'Quem é responsável'],
   ['acesso-turma', 'Acesso à turma com a conta Google'],
   ['formularios', 'Formulários'],
   ['navegador', 'O que fica no seu navegador'],
@@ -57,7 +66,7 @@ const SECOES = [
         <section id="resumo" aria-labelledby="resumo-titulo">
           <h2 id="resumo-titulo">Em resumo</h2>
           <ul class="lista">
-            <li>O site não tem cadastro, não usa cookies de rastreamento, não tem anúncios nem ferramentas de análise de acesso.</li>
+            <li>O site não tem cadastro e não usa cookies de rastreamento, anúncios nem ferramentas de análise de acesso.</li>
             <li>
               Ao acessar a turma pelo site, você entra com a sua conta Google e autoriza apenas a <strong>leitura</strong> da
               turma. O conteúdo vai direto do Google para o seu navegador: o programa não recebe, não vê e não guarda nada.
@@ -70,6 +79,15 @@ const SECOES = [
           <p>
             O {SITE.nome} é um programa de mentorias do Cluster de TI da UniCesumar EaD, mantido de forma independente pelos
             professores do programa, sem contas ou sistemas da instituição.
+          </p>
+        </section>
+
+        <section id="responsaveis" aria-labelledby="responsaveis-titulo">
+          <h2 id="responsaveis-titulo">Quem é responsável</h2>
+          <p>
+            Os responsáveis pelos dados pessoais tratados pelo programa (controladores, nos termos da LGPD) são os
+            idealizadores do {SITE.nome}: {idealizadores}. Pedidos e dúvidas sobre seus dados podem ser
+            enviados para <a href={`mailto:${CONTATO.email}`}>{CONTATO.email}</a>.
           </p>
         </section>
 
@@ -108,10 +126,16 @@ const SECOES = [
         <section id="formularios" aria-labelledby="formularios-titulo">
           <h2 id="formularios-titulo">Formulários</h2>
           <p>
-            <strong>Inscrição:</strong> cada mentoria tem um formulário do Google Forms, na conta do programa. Os dados
-            (como nome, curso e o e-mail da conta Google) são usados para a inscrição, o convite para a turma, o contato
-            durante a mentoria e, quando houver, a emissão do certificado por plataforma parceira, como informado no próprio
-            formulário.
+            <strong>Inscrição:</strong> cada mentoria tem um formulário do Google Forms, na conta do programa. Ele pede
+            nome completo, faixa etária, RA, e-mail e curso, além de perguntas sobre a sua motivação, as suas expectativas e
+            a sua experiência. Esses dados são usados para a inscrição, o convite para a turma, o contato durante a
+            mentoria, o acompanhamento da evolução da turma e, quando houver, a emissão do certificado por plataforma
+            parceira, como informado no próprio formulário.
+          </p>
+          <p>
+            <strong>Newsletter:</strong> se você marcar no formulário que deseja assinar a newsletter, o seu e-mail é
+            cadastrado na publicação do programa no Substack. Você pode cancelar a assinatura a qualquer momento pelo link
+            que vem em cada e-mail.
           </p>
           <p>
             <strong>Aviso de novas turmas:</strong> o campo "me avise" das páginas das mentorias envia o seu e-mail, a
@@ -121,6 +145,12 @@ const SECOES = [
           <p>
             As respostas ficam no Google Forms e na planilha vinculada, na conta do programa, acessíveis apenas aos
             professores, e nunca são publicadas no site.
+          </p>
+          <p>
+            <strong>Por quanto tempo:</strong> as respostas da inscrição são mantidas até o fim da turma e a emissão dos
+            certificados e depois excluídas; do resultado da turma (inscritos, concluintes e avaliação), só os números
+            agregados são guardados. Os pedidos de aviso de novas turmas são mantidos por até 2 anos ou até você pedir a
+            exclusão.
           </p>
         </section>
 
