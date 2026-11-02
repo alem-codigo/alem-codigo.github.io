@@ -5,6 +5,7 @@ ordem: 3
 icone: codigo
 capa: ../../assets/images/eixos/eixo-3-capa.jpg
 capaPosicao: 85
+ilustracao: ../../assets/images/eixos/eixo-3-cenario.jpg
 objetivo: Desenvolvimento de atividades práticas, aplicação de conceitos teóricos e construção de soluções computacionais.
 apresentacao:
   introducao: |-

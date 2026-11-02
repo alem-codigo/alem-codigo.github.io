@@ -5,6 +5,7 @@ ordem: 2
 icone: livro
 capa: ../../assets/images/eixos/eixo-2-capa.jpg
 capaPosicao: 90
+ilustracao: ../../assets/images/eixos/eixo-2-cenario.jpg
 objetivo: Instalação de softwares, configuração de ferramentas e desenvolvimento de autonomia técnica.
 apresentacao:
   introducao: 'O Eixo 2 foi desenvolvido para resolver uma das muitas dificuldades do estudante de TI: transformar teoria em ambiente funcional de desenvolvimento. Muitos estudantes entendem os conceitos em aula, mas enfrentam dificuldades na hora de:'

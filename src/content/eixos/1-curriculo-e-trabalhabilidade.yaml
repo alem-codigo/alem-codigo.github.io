@@ -5,6 +5,7 @@ ordem: 1
 icone: maleta
 capa: ../../assets/images/eixos/eixo-1-capa.jpg
 capaPosicao: 45
+ilustracao: ../../assets/images/eixos/eixo-1-cenario.jpg
 objetivo: Ensino e avaliação de currículo e portfólio de estudantes de TI.
 apresentacao:
   introducao: |-

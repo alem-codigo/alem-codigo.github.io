@@ -5,6 +5,7 @@ ordem: 5
 icone: grafico
 capa: ../../assets/images/eixos/eixo-5-capa.jpg
 capaPosicao: 40
+ilustracao: ../../assets/images/eixos/eixo-5-cenario.jpg
 objetivo: Nortear os caminhos profissionais em TI (roadmap), apoiando a tomada de decisão, o planejamento de carreira e o protagonismo no mercado de trabalho.
 apresentacao:
   introducao: |-
