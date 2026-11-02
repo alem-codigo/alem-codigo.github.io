@@ -1,7 +1,10 @@
 ---
 /**
- * Mentores (/mentores): um card por mentor, em ordem alfabética, com o perfil (MentorPerfil) e a
- * lista das mentorias que conduz (as ativas primeiro, depois as anteriores), cada uma com link.
+ * Mentores (/mentores): duas seções, mentores fixos (equipe do programa) e convidados, cada uma em
+ * ordem alfabética. Cada card mostra o perfil (MentorPerfil); as mentorias do mentor ficam
+ * recolhidas e abrem ao clicar no card (ou no botão "Mentorias", pelo teclado).
+ *
+ * Sem JavaScript, o botão "Mentorias" (<details>) continua abrindo e fechando a lista.
  */
 import { getCollection } from 'astro:content';
 import MentorPerfil from '../../components/MentorPerfil.astro';
@@ -22,11 +25,26 @@ const mentoriasDe = (id: string) => {
   );
   return [...ativas, ...encerradas];
 };
+
+const SECOES = [
+  {
+    id: 'fixos',
+    titulo: 'Mentores fixos',
+    texto: 'A equipe que mantém o programa, planeja as mentorias e acompanha as turmas.',
+    lista: ordenados.filter((m) => m.data.tipo === 'fixo'),
+  },
+  {
+    id: 'convidados',
+    titulo: 'Mentores convidados',
+    texto: 'Profissionais e professores convidados para conduzir mentorias específicas.',
+    lista: ordenados.filter((m) => m.data.tipo === 'convidado'),
+  },
+].filter((s) => s.lista.length > 0);
 ---
 
 <Base
   title="Mentores"
-  description="Conheça os mentores do Além do Código: professores e profissionais que conduzem as mentorias."
+  description="Conheça os mentores do Além do Código: a equipe fixa do programa e os mentores convidados."
 >
   <div class="container mentores-pagina">
     <header class="secao-cabecalho">
@@ -37,37 +55,63 @@ const mentoriasDe = (id: string) => {
       </div>
     </header>
 
-    <ul class="mentores-pagina__lista" role="list">
-      {
-        ordenados.map((mentor) => {
-          const lista = mentoriasDe(mentor.id);
-          return (
-            <li class="card mentores-pagina__card">
-              <MentorPerfil mentor={mentor} nivel="h2" foto="grande">
-                {lista.length > 0 && (
-                  <div class="mentores-pagina__mentorias">
-                    <h3 class="mentores-pagina__rotulo">{lista.length > 1 ? 'Mentorias' : 'Mentoria'}</h3>
-                    <ul role="list">
-                      {lista.map(({ mentoria, status }) => (
-                        <li>
-                          <a href={caminhoMentoria(mentoria.entrada.id)}>{mentoria.titulo}</a>
-                          <span class="mentores-pagina__meta">
-                            {periodoCurto(mentoria.realizacao.inicio, mentoria.realizacao.fim)}
-                          </span>
-                          <StatusPilula status={status} />
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </MentorPerfil>
-            </li>
-          );
-        })
-      }
-    </ul>
+    {
+      SECOES.map((secao) => (
+        <section class="mentores-pagina__secao" aria-labelledby={`secao-${secao.id}`}>
+          <div class="mentores-pagina__cabecalho">
+            <h2 id={`secao-${secao.id}`}>{secao.titulo}</h2>
+            <p class="texto-suave">{secao.texto}</p>
+          </div>
+          <ul class="mentores-pagina__lista" role="list">
+            {secao.lista.map((mentor) => {
+              const lista = mentoriasDe(mentor.id);
+              return (
+                <li class="card mentor-card" data-expansivel={lista.length > 0 ? '' : undefined}>
+                  <MentorPerfil mentor={mentor} nivel="h3" foto="grande" />
+                  {lista.length > 0 && (
+                    <details class="mentor-card__mentorias">
+                      <summary>
+                        <span>
+                          {lista.length > 1 ? 'Mentorias' : 'Mentoria'} ({lista.length})
+                        </span>
+                        <svg aria-hidden="true" viewBox="0 0 24 24">
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </summary>
+                      <ul role="list">
+                        {lista.map(({ mentoria, status }) => (
+                          <li>
+                            <a href={caminhoMentoria(mentoria.entrada.id)}>{mentoria.titulo}</a>
+                            <span class="mentor-card__meta">
+                              {periodoCurto(mentoria.realizacao.inicio, mentoria.realizacao.fim)}
+                            </span>
+                            <StatusPilula status={status} />
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))
+    }
   </div>
 </Base>
+
+<script>
+  // O card inteiro abre e fecha a lista de mentorias; cliques em links e no próprio botão seguem normais.
+  for (const card of document.querySelectorAll<HTMLElement>('[data-expansivel]')) {
+    const detalhes = card.querySelector<HTMLDetailsElement>('details')!;
+    card.addEventListener('click', (e) => {
+      const alvo = e.target as Element;
+      if (alvo.closest('a, button, summary, details[open] ul')) return;
+      detalhes.open = !detalhes.open;
+    });
+  }
+</script>
 
 <style>
   .mentores-pagina {
@@ -76,39 +120,95 @@ const mentoriasDe = (id: string) => {
     padding-block: var(--espaco-xl) var(--espaco-2xl);
   }
 
-  .mentores-pagina__lista {
+  .mentores-pagina__secao {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
     gap: var(--espaco-m);
   }
 
-  .mentores-pagina__card {
+  .mentores-pagina__cabecalho {
+    display: grid;
+    gap: var(--espaco-3xs);
+  }
+
+  .mentores-pagina__cabecalho h2 {
+    font-size: var(--passo-2);
+  }
+
+  .mentores-pagina__lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+    align-items: start;
+    gap: var(--espaco-m);
+  }
+
+  .mentor-card {
     padding: var(--espaco-m);
   }
 
-  .mentores-pagina__mentorias {
-    display: grid;
-    gap: var(--espaco-2xs);
+  .mentor-card[data-expansivel] {
+    cursor: pointer;
+  }
+
+  .mentor-card[data-expansivel]:hover {
+    border-color: color-mix(in srgb, var(--mentor-destaque) 55%, var(--_borda));
+  }
+
+  /* ---- Mentorias do mentor (recolhidas) ---- */
+  .mentor-card__mentorias {
     margin-block-start: var(--espaco-xs);
-    padding-block-start: var(--espaco-s);
     border-block-start: 1px solid var(--_borda);
   }
 
-  .mentores-pagina__rotulo {
+  .mentor-card__mentorias summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espaco-xs);
+    min-height: 2.75rem;
+    padding-block-start: var(--espaco-xs);
     color: var(--_texto-suave);
     font-family: var(--fonte-mono);
     font-size: var(--passo--1);
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+    list-style: none;
+    cursor: pointer;
   }
 
-  .mentores-pagina__mentorias ul {
+  .mentor-card__mentorias summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mentor-card__mentorias summary svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: var(--mentor-destaque);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: rotate var(--duracao) var(--curva);
+  }
+
+  .mentor-card__mentorias[open] summary svg {
+    rotate: 180deg;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mentor-card__mentorias summary svg {
+      transition: none;
+    }
+  }
+
+  .mentor-card__mentorias ul {
     display: grid;
     gap: var(--espaco-2xs);
+    padding-block: var(--espaco-2xs) var(--espaco-3xs);
+    cursor: auto;
   }
 
-  .mentores-pagina__mentorias li {
+  .mentor-card__mentorias li {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -116,11 +216,11 @@ const mentoriasDe = (id: string) => {
     max-width: none;
   }
 
-  .mentores-pagina__mentorias a {
+  .mentor-card__mentorias a {
     font-weight: var(--peso-negrito);
   }
 
-  .mentores-pagina__meta {
+  .mentor-card__meta {
     color: var(--_texto-suave);
     font-size: var(--passo--1);
   }

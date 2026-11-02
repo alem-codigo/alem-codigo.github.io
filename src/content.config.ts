@@ -46,6 +46,8 @@ const mentores = defineCollection({
   schema: ({ image }) =>
     z.object({
       nome: texto,
+      /** Fixo (equipe do programa) ou convidado: separa as seções da página /mentores. */
+      tipo: z.enum(['fixo', 'convidado'], 'Escolha o tipo de mentor: fixo ou convidado'),
       foto: image(),
       bio: texto,
       cargo: texto,

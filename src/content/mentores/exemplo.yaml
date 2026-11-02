@@ -1,5 +1,6 @@
 # EXEMPLO: remover ao migrar o conteúdo real do site atual.
 nome: Pessoa Mentora
+tipo: convidado
 foto: ../../assets/images/mentores/exemplo.svg
 bio: Bio curta de exemplo.
 cargo: Engenharia de Software

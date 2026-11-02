@@ -279,6 +279,18 @@ content:
         type: string
         required: true
         description: 'Nome como deve aparecer no site, sem título (Prof., Profa.). Define o nome do arquivo na criação; corrigir o nome depois não muda o arquivo.'
+      - name: tipo
+        label: Tipo de mentor
+        type: select
+        required: true
+        default: convidado
+        description: 'Fixo: professor que mantém o programa. Convidado: profissional ou professor que conduz mentorias específicas. Separa os mentores em duas seções na página Mentores.'
+        options:
+          values:
+            - value: fixo
+              label: Fixo (equipe do programa)
+            - value: convidado
+              label: Convidado
       - name: foto
         label: Foto
         type: image

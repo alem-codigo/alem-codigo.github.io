@@ -1,74 +1,132 @@
 ---
 /**
- * Eixos de formação (/eixos): um bloco por eixo, na ordem do campo `ordem`, com ícone, descrição e
- * quantas mentorias o eixo tem (e quantas com inscrições abertas). O bloco inteiro leva à página do eixo.
+ * Os eixos da aprendizagem (/eixos): os eixos como peças de quebra-cabeça encaixadas numa grade,
+ * mais uma peça final, "a peça que falta é você", que leva às mentorias.
+ *
+ * Cada peça é um SVG (src/lib/quebraCabeca.ts) com a cor dos cards e contorno em ameixa; vizinhas
+ * dividem o mesmo traçado, então entre elas fica uma linha só. O quebra-cabeça não tem bordas: em
+ * volta da grade há um anel de peças "fantasmas" que somem num degradê de transparência.
+ * A peça "você" fica solta, girada e tracejada, fora da vaga dela (com o mouse, ela quase encaixa).
+ * As abas dependem de quantas colunas há: cada peça (e o anel) traz as três versões (3, 2 e 1
+ * coluna) e o CSS mostra a da largura da tela.
  */
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { hojeEmSaoPaulo } from '../../lib/datas';
 import { caminhoEixo, ICONES_EIXO } from '../../lib/eixos';
-import { calcularStatus } from '../../lib/status';
+import { caminhoDaPeca, ladosInfinitos, medidas } from '../../lib/quebraCabeca';
 
-const hoje = hojeEmSaoPaulo();
-const [eixos, mentorias] = await Promise.all([getCollection('eixos'), getCollection('mentorias')]);
-const ordenados = eixos.sort((a, b) => a.data.ordem - b.data.ordem);
+const eixos = (await getCollection('eixos')).sort((a, b) => a.data.ordem - b.data.ordem);
 
-const contagem = (id: string) => {
-  const doEixo = mentorias.filter((m) => m.data.eixos.some((e) => e.id === id));
-  const abertas = doEixo.filter((m) => calcularStatus(m.data, hoje) === 'inscricoes-abertas').length;
-  return { total: doEixo.length, abertas };
-};
+/** Célula em unidades do SVG (proporção da peça). A margem acomoda as abas que saem da célula. */
+const M = medidas(360, 330);
+const MARGEM = Math.ceil(M.profundidade + 4);
+const COLUNAS = [3, 2, 1] as const;
+const TOTAL = eixos.length + 1; // + a peça "você"
 
-const textoContagem = ({ total, abertas }: { total: number; abertas: number }): string => {
-  if (total === 0) return 'Mentorias em breve';
-  const base = `${total} ${total === 1 ? 'mentoria' : 'mentorias'}`;
-  return abertas > 0 ? `${base} · ${abertas} com inscrições abertas` : base;
-};
+const variantes = (i: number) =>
+  COLUNAS.map((colunas) => ({
+    colunas,
+    d: caminhoDaPeca(ladosInfinitos(Math.floor(i / colunas), i % colunas), M),
+  }));
+
+/** Anel de peças fantasmas em volta da grade (uma casa a mais de cada lado), por número de colunas. */
+const aneis = COLUNAS.map((colunas) => {
+  const linhas = Math.ceil(TOTAL / colunas);
+  const pecas: string[] = [];
+  for (let l = -1; l <= linhas; l++) {
+    for (let c = -1; c <= colunas; c++) {
+      const dentro = l >= 0 && l < linhas && c >= 0 && c < colunas;
+      if (!dentro) pecas.push(caminhoDaPeca(ladosInfinitos(l, c), M, c * M.largura, l * M.altura));
+    }
+  }
+  return {
+    colunas,
+    linhas,
+    d: pecas.join(' '),
+    viewBox: `${-M.largura} ${-M.altura} ${(colunas + 2) * M.largura} ${(linhas + 2) * M.altura}`,
+  };
+});
+
+/** Recuo do SVG em relação à célula, em %, para a margem das abas ficar fora da célula. */
+const recuoX = `${(MARGEM / M.largura) * 100}%`;
+const recuoY = `${(MARGEM / M.altura) * 100}%`;
+const viewBox = `${-MARGEM} ${-MARGEM} ${M.largura + 2 * MARGEM} ${M.altura + 2 * MARGEM}`;
 ---
 
 <Base
-  title="Eixos de formação"
-  description="Os eixos de formação do Além do Código: currículo e trabalhabilidade, conteúdo técnico, conteúdo prático, vida acadêmica e carreira em TI."
+  title="Os eixos da aprendizagem"
+  description="Os eixos da aprendizagem do Além do Código: currículo e trabalhabilidade, conteúdo técnico, conteúdo prático, vida acadêmica e carreira em TI."
 >
   <div class="container eixos-pagina">
     <header class="secao-cabecalho">
       <div class="secao-cabecalho__texto">
-        <p class="rotulo">Eixos de formação</p>
-        <h1>{ordenados.length} eixos para ir além do código</h1>
+        <p class="rotulo">Eixos</p>
+        <h1>Os eixos da aprendizagem</h1>
         <p class="texto-suave">
-          As mentorias se organizam em eixos de formação. Uma turma pode trabalhar um eixo ou combinar vários.
+          As mentorias se organizam em eixos que se completam. Uma turma pode trabalhar um eixo ou combinar vários.
         </p>
       </div>
     </header>
 
-    <ul class="eixos-pagina__lista" role="list">
+    <div class="quebra-cabeca__area">
+    {
+      aneis.map((a) => (
+        <svg
+          class="quebra-cabeca__anel"
+          data-colunas={a.colunas}
+          viewBox={a.viewBox}
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          style={`--anel-x: ${100 / (a.colunas + 2)}%; --anel-y: ${100 / (a.linhas + 2)}%; --colunas: ${a.colunas}; --linhas: ${a.linhas};`}
+        >
+          <path d={a.d} />
+        </svg>
+      ))
+    }
+    <ol
+      class="quebra-cabeca"
+      role="list"
+      style={`--recuo-x: ${recuoX}; --recuo-y: ${recuoY}; --proporcao: ${M.largura} / ${M.altura}; --folga-aba: ${((M.profundidade + 10) / M.largura) * 100}%;`}
+    >
       {
-        ordenados.map((e) => {
-          const c = contagem(e.id);
-          return (
-            <li class="card card--brilho eixo-bloco">
-              <span class="icone eixo-bloco__icone">
-                <svg aria-hidden="true" viewBox="0 0 24 24">
-                  <path d={ICONES_EIXO[e.data.icone].d} />
-                </svg>
-              </span>
-              <div class="eixo-bloco__texto">
-                <span class="eixo-bloco__numero mono">Eixo {e.data.numero}</span>
-                <h2 class="eixo-bloco__titulo">
-                  <a class="eixo-bloco__link" href={caminhoEixo(e.id)}>
-                    {e.data.titulo}
-                  </a>
-                </h2>
-                <p class="texto-suave">{e.data.descricao}</p>
-                <p class="eixo-bloco__contagem" data-abertas={c.abertas > 0 ? '' : undefined}>
-                  {textoContagem(c)}
-                </p>
-              </div>
-            </li>
-          );
-        })
+        [...eixos, null].map((e, i) => (
+          <li class:list={['peca', { 'peca--voce': !e }]}>
+            {variantes(i).map((v) => (
+              <svg
+                class="peca__forma"
+                data-colunas={v.colunas}
+                viewBox={viewBox}
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <path class="peca__fundo" d={v.d} />
+                <path class="peca__contorno" d={v.d} />
+              </svg>
+            ))}
+            {e ? (
+              <a class="peca__link" href={caminhoEixo(e.id)}>
+                <span class="peca__icone">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d={ICONES_EIXO[e.data.icone].d} />
+                  </svg>
+                </span>
+                <span class="peca__numero">Eixo {e.data.numero}</span>
+                <span class="peca__titulo">{e.data.titulo}</span>
+                <span class="peca__descricao">{e.data.descricao}</span>
+                <span class="peca__seta">Conhecer →</span>
+              </a>
+            ) : (
+              <a class="peca__link" href="/mentorias/">
+                <span class="peca__titulo">A peça que falta é você</span>
+                <span class="peca__descricao">Escolha uma mentoria e complete o seu quebra-cabeça.</span>
+                <span class="peca__seta">Ver as mentorias →</span>
+              </a>
+            )}
+          </li>
+        ))
       }
-    </ul>
+    </ol>
+    </div>
   </div>
 </Base>
 
@@ -79,32 +137,246 @@ const textoContagem = ({ total, abertas }: { total: number; abertas: number }): 
     padding-block: var(--espaco-xl) var(--espaco-2xl);
   }
 
-  .eixos-pagina__lista {
+  /* O anel de fantasmas passa da largura da tela: corta só na horizontal. */
+  :global(main:has(.quebra-cabeca)) {
+    overflow-x: clip;
+  }
+
+
+  /* ---- Área do quebra-cabeça com o anel de peças fantasmas ----
+   * O anel passa uma casa da grade para cada lado; a área corta o que sai da tela na horizontal. */
+  .quebra-cabeca__area {
+    position: relative;
+    margin-block: var(--espaco-2xl);
+  }
+
+  /* O título fica por cima do anel de fantasmas. */
+  .eixos-pagina > .secao-cabecalho {
+    position: relative;
+    z-index: 4;
+  }
+
+  .quebra-cabeca__anel {
+    position: absolute;
+    top: calc(-100% / var(--linhas));
+    left: calc(-100% / var(--colunas));
+    width: calc(100% * (var(--colunas) + 2) / var(--colunas));
+    max-width: none;
+    height: calc(100% * (var(--linhas) + 2) / var(--linhas));
+    pointer-events: none;
+    /* Degradê de transparência: some para fora, opaco junto da grade. */
+    mask:
+      linear-gradient(to right, transparent, #000 var(--anel-x), #000 calc(100% - var(--anel-x)), transparent),
+      linear-gradient(
+        to bottom,
+        transparent calc(var(--anel-y) * 0.35),
+        #000 var(--anel-y),
+        #000 calc(100% - var(--anel-y)),
+        transparent calc(100% - var(--anel-y) * 0.35)
+      );
+    mask-composite: intersect;
+  }
+
+  .quebra-cabeca__anel path {
+    fill: var(--card-padrao-fundo);
+    fill-opacity: 0.45;
+    stroke: var(--icone-cor);
+    stroke-width: 2;
+    stroke-opacity: 0.55;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .quebra-cabeca__anel:not([data-colunas='1']) {
+    display: none;
+  }
+
+  @media (width >= 40rem) {
+    .quebra-cabeca__anel[data-colunas='1'] {
+      display: none;
+    }
+
+    .quebra-cabeca__anel[data-colunas='2'] {
+      display: block;
+    }
+  }
+
+  @media (width >= 64rem) {
+    .quebra-cabeca__anel[data-colunas='2'] {
+      display: none;
+    }
+
+    .quebra-cabeca__anel[data-colunas='3'] {
+      display: block;
+    }
+  }
+
+  /* ---- Grade: 3 colunas no computador, 2 no tablet, 1 no celular ---- */
+  /* minmax(0, 1fr): sem isso, a proporção das peças altas alargaria as colunas além da tela. */
+  .quebra-cabeca {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
-    gap: var(--espaco-m);
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .eixo-bloco {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: var(--espaco-s);
-    padding: var(--espaco-m);
+  @media (width >= 40rem) {
+    .quebra-cabeca {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
-  .eixo-bloco:has(.eixo-bloco__link:focus-visible) {
-    outline: 3px solid var(--cor-foco);
-    outline-offset: 2px;
+  @media (width >= 64rem) {
+    .quebra-cabeca {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
-  .eixo-bloco__icone {
-    width: 3rem;
-    height: 3rem;
+  /* Proporção fixa (min-height: 0): se uma peça crescesse com o texto, as abas dela deixariam de
+   * coincidir com os furos das vizinhas. */
+  .peca {
+    position: relative;
+    display: grid;
+    max-width: none;
+    aspect-ratio: var(--proporcao);
+    min-height: 0;
   }
 
-  .eixo-bloco__icone svg {
-    width: 1.5rem;
-    height: 1.5rem;
+  /* O SVG passa da célula pela margem das abas (as abas entram nas vizinhas). */
+  .peca__forma {
+    position: absolute;
+    top: calc(-1 * var(--recuo-y));
+    left: calc(-1 * var(--recuo-x));
+    width: calc(100% + 2 * var(--recuo-x));
+    max-width: none;
+    height: calc(100% + 2 * var(--recuo-y));
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  /* Só a versão da largura atual aparece. */
+  .peca__forma:not([data-colunas='1']) {
+    display: none;
+  }
+
+  @media (width >= 40rem) {
+    .peca__forma[data-colunas='1'] {
+      display: none;
+    }
+
+    .peca__forma[data-colunas='2'] {
+      display: block;
+    }
+  }
+
+  @media (width >= 64rem) {
+    .peca__forma[data-colunas='2'] {
+      display: none;
+    }
+
+    .peca__forma[data-colunas='3'] {
+      display: block;
+    }
+  }
+
+  /* Fundo e contorno ameixa no próprio traçado. Vizinhas compartilham o mesmo traçado no encaixe,
+   * então a linha entre duas peças é uma só. */
+  .peca__fundo {
+    fill: var(--card-padrao-fundo);
+    transition: fill var(--duracao) var(--curva);
+  }
+
+  .peca__contorno {
+    fill: none;
+    stroke: var(--icone-cor);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .peca:hover .peca__fundo {
+    fill: var(--card-violeta-fundo);
+  }
+
+  /* Peça em foco (ou com o mouse) fica por cima, para o contorno dela não ser coberto pelas vizinhas. */
+  .peca:hover,
+  .peca:has(.peca__link:focus-visible) {
+    z-index: 2;
+  }
+
+  .peca:has(.peca__link:focus-visible) .peca__contorno {
+    stroke: var(--cor-foco);
+    stroke-width: 3;
+  }
+
+  /* Peça "você": solta, girada e tracejada, fora da vaga (a vaga fica vazia, contornada pelas
+   * vizinhas). Com o mouse ou o foco, ela quase encaixa. */
+  .peca--voce {
+    z-index: 3;
+    translate: 9% 12%;
+    rotate: 7deg;
+    transition:
+      translate 0.45s cubic-bezier(0.3, 1.4, 0.5, 1),
+      rotate 0.45s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  .peca--voce .peca__forma {
+    filter: drop-shadow(0 18px 28px rgb(0 0 0 / 0.35));
+  }
+
+  .peca--voce .peca__contorno {
+    stroke-dasharray: 8 6;
+    stroke-width: 2.5;
+  }
+
+  .peca--voce:hover,
+  .peca--voce:has(.peca__link:focus-visible) {
+    translate: 3% 4%;
+    rotate: 2deg;
+  }
+
+  /* Celular: menos deslocada, para não sair da tela. */
+  @media (width < 40rem) {
+    .peca--voce {
+      translate: 3% 7%;
+      rotate: 4deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .peca--voce {
+      transition: none;
+    }
+  }
+
+  /* ---- Conteúdo: longe das abas e dos furos ---- */
+  .peca__link {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    align-content: center;
+    gap: var(--espaco-3xs);
+    padding: calc(var(--folga-aba) * 0.75) var(--folga-aba);
+    color: var(--cor-texto);
+    text-decoration: none;
+  }
+
+  .peca__link:focus-visible {
+    outline: none;
+  }
+
+  .peca__icone {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-block-end: var(--espaco-3xs);
+    border-radius: var(--raio-m);
+    background: var(--icone-fundo);
+    box-shadow: inset 0 0 0 1px var(--icone-borda);
+    color: var(--icone-cor);
+  }
+
+  .peca__icone svg {
+    width: 1.25rem;
+    height: 1.25rem;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.8;
@@ -112,63 +384,38 @@ const textoContagem = ({ total, abertas }: { total: number; abertas: number }): 
     stroke-linejoin: round;
   }
 
-  .eixo-bloco__texto {
-    display: grid;
-    gap: var(--espaco-3xs);
-    min-width: 0;
-  }
-
-  .eixo-bloco__texto p {
-    max-width: none;
-  }
-
-  .eixo-bloco__numero {
+  .peca__numero {
     color: var(--icone-cor);
+    font-family: var(--fonte-mono);
     font-size: var(--passo--1);
     font-weight: 700;
   }
 
-  .eixo-bloco__titulo {
-    font-size: var(--passo-2);
+  .peca__titulo {
+    font-size: var(--passo-1);
+    font-weight: var(--peso-titulo);
     line-height: 1.2;
   }
 
-  .eixo-bloco__link {
-    color: inherit;
-    text-decoration: none;
+  .peca__descricao {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+    line-height: 1.5;
   }
 
-  .card .eixo-bloco__link {
-    color: inherit;
-  }
-
-  .eixo-bloco__link:focus-visible {
-    outline: none;
-  }
-
-  /* Bloco inteiro clicável (link esticado). */
-  .eixo-bloco__link::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-  }
-
-  .eixo-bloco:hover .eixo-bloco__link {
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.18em;
-  }
-
-  .eixo-bloco__contagem {
+  .peca__seta {
     margin-block-start: var(--espaco-2xs);
-    color: var(--_texto-suave);
+    color: var(--cor-link);
     font-size: var(--passo--1);
     font-weight: var(--peso-negrito);
   }
 
-  .eixo-bloco__contagem[data-abertas] {
-    color: var(--pilula-inscricoes-abertas-texto);
+  .peca__link:hover .peca__seta {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+
+  .peca--voce .peca__titulo {
+    font-size: var(--passo-2);
   }
 </style>
