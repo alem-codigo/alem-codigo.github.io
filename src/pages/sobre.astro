@@ -22,13 +22,6 @@ const [mentorias, eixos, mentores] = await Promise.all([
 ]);
 const realizadas = mentorias.filter((m) => calcularStatus(m.data, hoje) === 'encerrada').length;
 const inscritos = mentorias.reduce((soma, m) => soma + (m.data.resultado?.inscritos ?? 0), 0);
-// Os idealizadores são os mentores fixos (D-29).
-const idealizadores = new Intl.ListFormat('pt-BR', { type: 'conjunction' }).format(
-  mentores
-    .filter((m) => m.data.tipo === 'fixo')
-    .map((m) => m.data.nome)
-    .sort((a, b) => a.localeCompare(b, 'pt-BR')),
-);
 const parcerias = new Set(mentorias.flatMap((m) => (m.data.parceiro ? [m.data.parceiro.nome] : []))).size;
 
 const numeros = [
@@ -66,7 +59,7 @@ const COMO_FUNCIONA = [
   },
   {
     titulo: 'Gratuitas',
-    texto: 'As mentorias são gratuitas para estudantes e egressos do Cluster de TI da UniCesumar EaD.',
+    texto: 'As mentorias são gratuitas para estudantes do Cluster de TI da UniCesumar EaD.',
   },
 ] as const;
 ---
@@ -113,17 +106,17 @@ const COMO_FUNCIONA = [
       <div class="sobre__bloco">
         <h2 id="idealizadores">Os idealizadores</h2>
         <p>
-          O {SITE.nome} surgiu em 2026, idealizado pelos professores {idealizadores}, do Cluster de TI. Eles planejam as
-          mentorias, conduzem as turmas e convidam profissionais e empresas parceiras para mentorias específicas.
+          O {SITE.nome} surgiu em 2026, idealizado pelos professores Elaine Moreira, Fábio Silva e Elina Puñales, do
+          Cluster de TI. Eles são responsáveis pela organização das mentorias e pelo relacionamento com os mentores
+          convidados e com os profissionais das empresas parceiras.
         </p>
         <p><a class="link-seta" href="/mentores/">Conheça os mentores</a></p>
       </div>
       <div class="sobre__bloco">
         <h2 id="vinculo">Vínculo com a instituição</h2>
         <p>
-          O {SITE.nome} é oferecido exclusivamente a estudantes e egressos do Cluster de TI da UniCesumar EaD e acontece
-          como projeto do cluster, mas é mantido de forma independente: não é gerido pela instituição e não usa contas
-          institucionais.
+          O {SITE.nome} é oferecido exclusivamente a estudantes do Cluster de TI da UniCesumar EaD. É mantido de forma
+          independente, portanto não é gerido pela instituição e não usa contas institucionais.
         </p>
       </div>
     </section>
