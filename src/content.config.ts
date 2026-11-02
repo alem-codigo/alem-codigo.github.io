@@ -8,7 +8,7 @@ import {
   idTurmaClassroom,
   listaDeTextos,
   opcional,
-  referenciaDeEixo,
+  referenciaNumerada,
   referenciaDoPainel,
   resultadoTurma,
   slugDoCodigo,
@@ -47,9 +47,16 @@ const selos = defineCollection({
   }),
 });
 
-/** Cursos do Cluster de TI (selecionados nas mentorias). ID = nome do arquivo. */
+/**
+ * Cursos do Cluster de TI (selecionados nas mentorias). ID = nome do arquivo sem o número da frente.
+ * `0-todos.yaml` (id `todos`) é a opção "Todos os cursos": o número a põe no topo da lista do painel.
+ */
 const cursos = defineCollection({
-  loader: glob({ pattern: '**/*.{yaml,yml}', base: './src/content/cursos' }),
+  loader: glob({
+    pattern: '**/*.{yaml,yml}',
+    base: './src/content/cursos',
+    generateId: ({ entry }) => entry.replace(/\.ya?ml$/, '').replace(/^\d+-/, ''),
+  }),
   schema: z.object({
     nome: texto,
     sigla: texto,
@@ -96,15 +103,14 @@ const mentorias = defineCollection({
         resumo: texto.pipe(z.string().max(400, 'resumo: até 400 caracteres')),
         /** "Necessidade de mercado atendida": contexto e demanda do mercado (opcional). */
         necessidade: opcional(texto),
-        /** Aberta a todos os cursos do Cluster de TI (dispensa a lista de cursos). */
-        todosOsCursos: z.preprocess((v) => v ?? false, z.boolean()),
+        /** Cursos elegíveis; o curso `todos` vale por todos os cursos do Cluster de TI. */
         cursos: z.preprocess(
           (v) => (v === null || v === undefined ? [] : v),
-          z.array(referenciaDoPainel(reference('cursos'))),
+          z.array(referenciaNumerada(reference('cursos'))).min(1, 'Selecione ao menos um curso elegível (ou "Todos")'),
         ),
         prerequisitos: listaDeTextos,
         // O painel grava `arquivo.yaml`; `referenciaDoPainel` reduz ao id da entrada (ver .pages.yml).
-        eixos: z.array(referenciaDeEixo(reference('eixos'))).min(1, 'Selecione ao menos um eixo'),
+        eixos: z.array(referenciaNumerada(reference('eixos'))).min(1, 'Selecione ao menos um eixo'),
         mentores: z.array(referenciaDoPainel(reference('mentores'))).min(1, 'Selecione ao menos um mentor'),
         selos: z.preprocess(
           (v) => (v === null || v === undefined ? [] : v),
@@ -118,15 +124,6 @@ const mentorias = defineCollection({
         destaque: z.preprocess((v) => v ?? false, z.boolean()),
         /** Inscritos, concluintes, avaliação e depoimentos, preenchidos depois da turma. */
         resultado: resultadoTurma,
-      })
-      .superRefine((m, ctx) => {
-        if (!m.todosOsCursos && m.cursos.length === 0) {
-          ctx.addIssue({
-            code: 'custom',
-            path: ['cursos'],
-            message: 'Selecione ao menos um curso elegível ou marque "Aberta a todos os cursos"',
-          });
-        }
       })
       .superRefine(validarCronograma)
       .superRefine(validarCodigo),

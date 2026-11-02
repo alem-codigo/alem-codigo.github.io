@@ -96,16 +96,16 @@ export function idDeReferencia(valor: unknown): unknown {
 export const referenciaDoPainel = <T extends z.ZodType>(schema: T) => z.preprocess(idDeReferencia, schema);
 
 /**
- * Id de um eixo. Os arquivos de eixo começam pelo número (`3-conteudo-pratico.yaml`), para o painel
- * listá-los em ordem numérica; o id (e a URL) fica sem ele: `conteudo-pratico`.
+ * Id de uma entrada cujo arquivo pode começar por um número para ordenar a lista do painel
+ * (`3-conteudo-pratico.yaml` → `conteudo-pratico`; `0-todos.yaml` → `todos`). Usado em eixos e cursos.
  */
-export function idDeEixo(valor: unknown): unknown {
+export function idSemNumero(valor: unknown): unknown {
   const id = idDeReferencia(valor);
   return typeof id === 'string' ? id.replace(/^\d+-/, '') : id;
 }
 
-/** Referência a eixo vinda do painel (com ou sem o número na frente do arquivo). */
-export const referenciaDeEixo = <T extends z.ZodType>(schema: T) => z.preprocess(idDeEixo, schema);
+/** Referência vinda do painel, com ou sem o número na frente do arquivo (eixos e cursos). */
+export const referenciaNumerada = <T extends z.ZodType>(schema: T) => z.preprocess(idSemNumero, schema);
 
 /** `classroomCourseId`: ID numérico da turma no Classroom. */
 /**

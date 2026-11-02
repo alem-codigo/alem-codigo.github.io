@@ -112,14 +112,10 @@ content:
             required: true
             default: ""
             description: 'Último dia da mentoria. Depois dele, ela vai para a seção de encerradas.'
-      - name: todosOsCursos
-        label: Aberta a todos os cursos do Cluster de TI
-        type: boolean
-        description: 'Marque quando qualquer curso do cluster puder participar; aí não precisa selecionar cursos abaixo.'
       - name: cursos
         label: Cursos elegíveis
         type: reference
-        description: 'Selecione os cursos (se não marcou a opção acima). Se o curso não aparece, cadastre-o antes em Cursos.'
+        description: 'Selecione os cursos que podem participar. Se todos podem, escolha só "TODOS · Todos os cursos do Cluster de TI" (o primeiro da lista). Se o curso não aparece, cadastre-o antes em Cursos.'
         options:
           collection: cursos
           multiple: true
@@ -435,7 +431,7 @@ content:
 
   - name: cursos
     label: Cursos
-    description: 'Cursos do Cluster de TI, selecionados nas mentorias. Antes de excluir ou renomear um curso já usado, retire-o das mentorias que o usam.'
+    description: 'Cursos do Cluster de TI, selecionados nas mentorias. "Todos os cursos do Cluster de TI" é a opção que vale por todos: não exclua nem renomeie. Antes de excluir ou renomear um curso já usado, retire-o das mentorias que o usam.'
     type: collection
     path: src/content/cursos
     format: yaml

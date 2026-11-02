@@ -1,12 +1,14 @@
 ---
 /**
- * Listagem de mentorias (/mentorias). Ativas primeiro, na ordem da home (abertas, em breve, em
- * andamento e inscrições encerradas), em cards; encerradas numa seção própria, da mais recente para
- * a mais antiga, num mosaico que rola para o lado (GaleriaEncerradas), sem pílula (D-17).
+ * Listagem de mentorias (/mentorias) em três seções:
+ * - Mentorias ativas: inscrições abertas e em breve (sem nenhuma, uma caixa oferece o aviso de novas turmas);
+ * - Mentorias em andamento: inscrições encerradas e turmas acontecendo;
+ * - Mentorias já realizadas: encerradas, da mais recente para a mais antiga, no mosaico que rola para
+ *   o lado (GaleriaEncerradas), sem pílula (D-17).
+ * Nos cards das duas primeiras, a pílula mostra a situação exata.
  *
  * Filtros por situação, eixo e parceria com JavaScript, refletidos na URL (`?status=…&eixo=…&parceria=…`),
- * para o botão
- * "Inscrições abertas" do cabeçalho chegar já filtrado e o link poder ser compartilhado.
+ * para o botão "Inscrições abertas" do cabeçalho chegar já filtrado e o link poder ser compartilhado.
  * Sem JavaScript, os filtros não aparecem e a página mostra todas as mentorias.
  */
 import { getCollection } from 'astro:content';
@@ -34,8 +36,15 @@ const eixosPresentes = eixos.filter((e) => [...ativas, ...encerradas].some((a) =
 const parceria = (m: (typeof ativas)[number]['mentoria']) => (m.parceiro ? slugParceiro(m.parceiro.nome) : '');
 const opcoesDeParceria = opcoesParceria([...ativas, ...encerradas].map((a) => a.mentoria.parceiro?.nome));
 const temFiltros = ativas.length + encerradas.length > 1;
-// Sem inscrições abertas nem turmas previstas, a página avisa e oferece o aviso de novas mentorias.
-const semInscricoes = !ativas.some((a) => a.status === 'inscricoes-abertas' || a.status === 'em-breve');
+
+/** Ativas (abertas e em breve) e em andamento (inscrições encerradas ou turma acontecendo). */
+const comInscricao = ativas.filter((a) => a.status === 'inscricoes-abertas' || a.status === 'em-breve');
+const emAndamento = ativas.filter((a) => a.status === 'em-andamento' || a.status === 'inscricoes-encerradas');
+const semInscricoes = comInscricao.length === 0;
+const grupos = [
+  { id: 'ativas', titulo: 'Mentorias ativas', itens: comInscricao },
+  { id: 'andamento', titulo: 'Mentorias em andamento', itens: emAndamento },
+].filter((g) => g.itens.length > 0 || g.id === 'ativas');
 ---
 
 <Base
@@ -47,9 +56,6 @@ const semInscricoes = !ativas.some((a) => a.status === 'inscricoes-abertas' || a
       <div class="secao-cabecalho__texto">
         <p class="rotulo">Mentorias</p>
         <h1>Conheça as mentorias</h1>
-        <p class="texto-suave">
-          Turmas com inscrições abertas, as próximas, as que estão em andamento e as que já foram realizadas.
-        </p>
       </div>
     </header>
 
@@ -111,57 +117,59 @@ const semInscricoes = !ativas.some((a) => a.status === 'inscricoes-abertas' || a
       )
     }
 
-    <section class="pilha listagem__secao" aria-labelledby="ativas-titulo" data-secao="ativas">
-      <h2 class="visualmente-oculto" id="ativas-titulo">Abertas, próximas e em andamento</h2>
-      {
-        semInscricoes && (
-          <div class="informativo" role="note">
-            <svg class="informativo__icone" aria-hidden="true" viewBox="0 0 24 24">
-              <path d="M12 16v-4M12 8h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" />
-            </svg>
-            <div class="informativo__texto">
-              <p class="informativo__titulo">No momento, não há mentorias com inscrições abertas ou previstas.</p>
-              {FORM_AVISO ? (
-                <details class="informativo__aviso">
-                  <summary>Clique aqui para ser avisado de novas mentorias.</summary>
-                  <AvisoTurma
-                    mentoria="Novas mentorias (qualquer)"
-                    situacao="Sem inscrições abertas"
-                    titulo=""
-                    texto="Deixe seu e-mail e avisamos quando abrir uma nova mentoria."
-                  />
-                </details>
-              ) : (
-                <p>
-                  Novas turmas abrem ao longo do semestre.{' '}
-                  <a href={NEWSLETTER}>Clique aqui para ser avisado de novas mentorias</a> pela nossa newsletter.
-                </p>
-              )}
+    {
+      grupos.map(({ id, titulo, itens }) => (
+        <section class="listagem__grupo" aria-labelledby={`grupo-${id}`} data-grupo>
+          <h2 class="listagem__titulo" id={`grupo-${id}`}>
+            {titulo}
+          </h2>
+          {id === 'ativas' && semInscricoes && (
+            <div class="informativo" role="note">
+              <svg class="informativo__icone" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M12 16v-4M12 8h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" />
+              </svg>
+              <div class="informativo__texto">
+                <p class="informativo__titulo">No momento, não há mentorias com inscrições abertas ou previstas.</p>
+                {FORM_AVISO ? (
+                  <details class="informativo__aviso">
+                    <summary>Clique aqui para ser avisado de novas mentorias.</summary>
+                    <AvisoTurma
+                      mentoria="Novas mentorias (qualquer)"
+                      situacao="Sem inscrições abertas"
+                      titulo=""
+                      texto="Deixe seu e-mail e avisamos quando abrir uma nova mentoria."
+                    />
+                  </details>
+                ) : (
+                  <p>
+                    Novas turmas abrem ao longo do semestre.{' '}
+                    <a href={NEWSLETTER}>Clique aqui para ser avisado de novas mentorias</a> pela nossa newsletter.
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        )
-      }
-      {
-        ativas.length > 0 && (
-          <ul class="grade listagem__grade" role="list">
-            {ativas.map(({ mentoria, status }) => (
-              <li
-                data-item
-                data-status={status}
-                data-eixos={idsEixos(mentoria).join(' ')}
-                data-parceria={parceria(mentoria)}
-              >
-                <MentoriaCard mentoria={mentoria.entrada} status={status} hoje={hoje} />
-              </li>
-            ))}
-          </ul>
-        )
-      }
-      <div class="listagem__vazio" data-vazio-filtro hidden>
-        <p class="listagem__vazio-titulo">Nenhuma turma ativa com esses filtros</p>
-        <p class="texto-suave">Tente outra combinação de filtros.</p>
-      </div>
-    </section>
+          )}
+          {itens.length > 0 && (
+            <ul class="grade listagem__grade" role="list">
+              {itens.map(({ mentoria, status }) => (
+                <li
+                  data-item
+                  data-status={status}
+                  data-eixos={idsEixos(mentoria).join(' ')}
+                  data-parceria={parceria(mentoria)}
+                >
+                  <MentoriaCard mentoria={mentoria.entrada} status={status} hoje={hoje} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ))
+    }
+    <div class="listagem__vazio" data-vazio-filtro hidden>
+      <p class="listagem__vazio-titulo">Nenhuma turma ativa ou em andamento com esses filtros</p>
+      <p class="texto-suave">Tente outra combinação de filtros.</p>
+    </div>
 
   </div>
 
@@ -177,14 +185,9 @@ const semInscricoes = !ativas.some((a) => a.status === 'inscricoes-abertas' || a
           }))}
         >
           <Fragment slot="cabecalho">
-            <p class="rotulo">Já realizadas</p>
             <h2 class="listagem__titulo" id="encerradas-titulo">
-              Mentorias anteriores
+              Mentorias já realizadas
             </h2>
-            <p class="texto-suave">
-              Turmas que já aconteceram. Em destaque, as feitas em parceria, as mais procuradas e as mais bem avaliadas.
-              {FORM_AVISO && ' Quer participar de uma nova turma? Deixe seu e-mail na página da mentoria.'}
-            </p>
           </Fragment>
         </GaleriaEncerradas>
       </section>
@@ -197,7 +200,8 @@ const semInscricoes = !ativas.some((a) => a.status === 'inscricoes-abertas' || a
 
   if (form) {
     const itens = [...document.querySelectorAll<HTMLElement>('[data-item]')];
-    const secoes = [...document.querySelectorAll<HTMLElement>('[data-secao]')];
+    const grupos = [...document.querySelectorAll<HTMLElement>('[data-grupo]')];
+    const encerradas = document.querySelector<HTMLElement>('[data-secao="encerradas"]');
     const contagem = form.querySelector<HTMLElement>('[data-contagem]')!;
     const limpar = form.querySelector<HTMLButtonElement>('[data-limpar]')!;
     const vazioFiltro = document.querySelector<HTMLElement>('[data-vazio-filtro]');
@@ -242,13 +246,18 @@ const semInscricoes = !ativas.some((a) => a.status === 'inscricoes-abertas' || a
         if (!item.hidden) visiveis++;
       }
 
-      // Seção sem nenhum card visível some; nas ativas, aparece o aviso de "nenhuma com esses filtros".
-      for (const secao of secoes) {
-        const itensDaSecao = secao.querySelectorAll('[data-item]');
-        const algum = [...itensDaSecao].some((i) => !(i as HTMLElement).hidden);
-        if (secao.dataset.secao === 'encerradas') secao.hidden = !algum;
-        else if (vazioFiltro) vazioFiltro.hidden = algum || itensDaSecao.length === 0;
+      // Seção com cards e nenhum visível some (a de ativas sem turmas fica, com a caixa de aviso).
+      let ativosVisiveis = 0;
+      let ativosTotal = 0;
+      for (const grupo of grupos) {
+        const doGrupo = [...grupo.querySelectorAll<HTMLElement>('[data-item]')];
+        const vis = doGrupo.filter((i) => !i.hidden).length;
+        grupo.hidden = doGrupo.length > 0 && vis === 0;
+        ativosVisiveis += vis;
+        ativosTotal += doGrupo.length;
       }
+      if (vazioFiltro) vazioFiltro.hidden = ativosVisiveis > 0 || ativosTotal === 0;
+      if (encerradas) encerradas.hidden = ![...encerradas.querySelectorAll<HTMLElement>('[data-item]')].some((i) => !i.hidden);
 
       const filtrando = Boolean(status || eixo || parceria);
       limpar.hidden = !filtrando;
@@ -285,8 +294,14 @@ const semInscricoes = !ativas.some((a) => a.status === 'inscricoes-abertas' || a
   }
 
 
-  .listagem__secao {
-    --pilha-espaco: var(--espaco-m);
+  /* ---- Seções: ativas e em andamento ---- */
+  .listagem__grupo {
+    display: grid;
+    gap: var(--espaco-m);
+  }
+
+  .listagem__grupo[hidden] {
+    display: none;
   }
 
   .listagem__titulo {
@@ -303,7 +318,6 @@ const semInscricoes = !ativas.some((a) => a.status === 'inscricoes-abertas' || a
   }
 
   .listagem__grade > li[hidden],
-  .listagem__secao[hidden],
   .encerradas[hidden] {
     display: none;
   }
@@ -402,10 +416,6 @@ const semInscricoes = !ativas.some((a) => a.status === 'inscricoes-abertas' || a
     flex-wrap: wrap;
     align-items: flex-end;
     gap: var(--espaco-s) var(--espaco-l);
-    padding: var(--espaco-s) var(--espaco-m);
-    border: var(--borda);
-    border-radius: var(--raio-l);
-    background: var(--cor-faixa);
   }
 
   /* Sem gap: a <legend> não participa do grid; a margem alinha os dois rótulos. */

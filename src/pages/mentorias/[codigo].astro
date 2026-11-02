@@ -53,7 +53,7 @@ const [eixos, mentores, selos, cursos] = await Promise.all([
   getEntries(m.selos),
   getEntries(m.cursos),
 ]);
-const textoCursos = m.todosOsCursos
+const textoCursos = cursos.some((c) => c.id === 'todos')
   ? 'Todos os cursos do Cluster de TI'
   : juntarLista(cursos.map((c) => `${c.data.nome} (${c.data.sigla})`));
 const eixosOrdenados = eixos.sort((a, b) => a.data.ordem - b.data.ordem);
