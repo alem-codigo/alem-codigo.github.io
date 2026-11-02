@@ -3,3 +3,69 @@ titulo: Conteúdo técnico
 descricao: Ambientes, ferramentas e Git configurados, com autonomia para diagnosticar erros sem depender de tutoriais soltos.
 ordem: 2
 icone: livro
+capa: ../../assets/images/eixos/eixo-2-capa.jpg
+capaPosicao: 90
+objetivo: Instalação de softwares, configuração de ferramentas e desenvolvimento de autonomia técnica.
+apresentacao:
+  introducao: 'O Eixo 2 foi desenvolvido para resolver uma das muitas dificuldades do estudante de TI: transformar teoria em ambiente funcional de desenvolvimento. Muitos estudantes entendem os conceitos em aula, mas enfrentam dificuldades na hora de:'
+  itens:
+  - Instalar e configurar ferramentas
+  - Preparar o ambiente de desenvolvimento
+  - Resolver erros técnicos
+  - Integrar bibliotecas e frameworks
+  fechamento: Este eixo fortalece a base operacional do estudante, desenvolvendo autonomia técnica e segurança no uso de ferramentas reais do mercado. O objetivo é fazer com que o aluno deixe de depender de tutoriais fragmentados e passe a compreender o funcionamento do seu próprio ambiente de trabalho.
+competencias:
+- titulo: Técnicas
+  itens:
+  - Instalação e configuração de ambientes de desenvolvimento
+  - Uso adequado de IDEs, frameworks e bibliotecas
+  - Configuração de ferramentas de apoio (Git, extensões, dependências)
+  - Diagnóstico e resolução de erros técnicos
+- titulo: Profissionais
+  itens:
+  - Organização do ambiente de trabalho
+  - Documentação básica de configurações
+  - Estruturação de projetos técnicos
+  - Autonomia na resolução de problemas
+- titulo: Comportamentais
+  itens:
+  - Persistência diante de erros
+  - Raciocínio lógico e analítico
+  - Capacidade de investigação técnica
+  - Segurança no uso de ferramentas
+cenario:
+  introducao: 'Imagine um estudante que inicia uma disciplina de desenvolvimento web. Ele compreende os conceitos teóricos, mas, ao tentar executar o projeto prático, enfrenta dificuldades:'
+  itens:
+  - Erros de dependência
+  - Conflitos de versão
+  - Problemas de configuração do ambiente
+  - Dificuldade em utilizar o Git corretamente
+  fechamento: Isso gera frustração e insegurança, mesmo quando ele entende o conteúdo. É nesse ponto que o Eixo 2 atua.
+aprendizagem:
+  itens:
+  - Instalar corretamente os ambientes de desenvolvimento
+  - Configurar e estruturar projetos técnicos de forma organizada
+  - Compreender como funcionam dependências, versões e integrações
+  - Interpretar mensagens de erro
+  - Documentar o processo de configuração
+  fechamento: Ao final, ele passa a dominar o ambiente técnico, ganhando autonomia e confiança para executar projetos de forma independente.
+publico:
+  grupos:
+  - titulo: 'Ingressantes que:'
+    itens:
+    - Nunca configuraram um ambiente de desenvolvimento
+    - Sentem dificuldade técnica básica
+    - Dependem muito de tutoriais
+  - titulo: 'Estudantes que estão iniciando disciplinas práticas e terão contato com:'
+    itens:
+    - IDEs
+    - Frameworks
+    - Banco de dados
+    - Versionamento
+perfil:
+- Tem dificuldade em configurar ambientes de desenvolvimento
+- Depende excessivamente de tutoriais prontos
+- Sente frustração ao lidar com erros técnicos
+- Compreende os conceitos teóricos, mas apresenta dificuldade na execução prática
+- Não sabe como organizar ferramentas e projetos técnicos
+- Quer ganhar autonomia e segurança no uso de tecnologias

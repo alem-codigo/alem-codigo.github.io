@@ -1,5 +1,68 @@
 numero: 1
 titulo: Currículo, portfólio e trabalhabilidade
-descricao: "Transforme sua trajetória acadêmica em evidências: currículo, GitHub, LinkedIn e postura em processos seletivos."
+descricao: 'Transforme sua trajetória acadêmica em evidências: currículo, GitHub, LinkedIn e postura em processos seletivos.'
 ordem: 1
 icone: maleta
+capa: ../../assets/images/eixos/eixo-1-capa.jpg
+capaPosicao: 45
+objetivo: Ensino e avaliação de currículo e portfólio de estudantes de TI.
+apresentacao:
+  introducao: |-
+    O Eixo 1 foi desenvolvido para ajudar o estudante a transformar sua trajetória acadêmica em evidência concreta de competência profissional. Aqui, o foco não é apenas aprender conteúdos, mas aprender a se posicionar no mercado de TI desde o início.
+
+    Muitos estudantes dominam conceitos técnicos, mas não sabem demonstrar isso em um currículo, no LinkedIn ou no GitHub. Este eixo tem por objetivo resolver exatamente esse problema, ensinando como organizar, documentar e apresentar sua evolução profissional de forma estratégica. O estudante deixa de ser apenas alguém que “está cursando TI” e passa a construir sua identidade como profissional em formação.
+competencias:
+- titulo: Técnicas
+  itens:
+  - Elaboração de currículo técnico (modelo ATS-friendly)
+  - Organização de portfólio no GitHub
+  - Estruturação de projetos e cases
+  - Escrita profissional para LinkedIn e descrições técnicas
+- titulo: Profissionais / Estratégicas
+  itens:
+  - Planejamento de carreira em TI
+  - Leitura e interpretação de vagas técnicas
+  - Posicionamento profissional (personal branding)
+  - Adequação do perfil às demandas do mercado
+- titulo: Comportamentais
+  itens:
+  - Comunicação profissional
+  - Autoconhecimento e reflexão de trajetória
+  - Postura em processos seletivos
+  - Protagonismo na construção da carreira
+cenario:
+  introducao: |-
+    Imagine um estudante do segundo módulo de TI. Ele já aprendeu lógica de programação, desenvolveu pequenos projetos acadêmicos e realizou algumas atividades avaliativas.
+
+    Apesar disso, quando decide procurar estágio, percebe que:
+  itens:
+  - Não sabe como descrever suas habilidades técnicas
+  - Seu currículo está genérico e pouco direcionado
+  - Seu GitHub não comunica claramente o que ele sabe fazer
+  - Ele não consegue relacionar o que aprende na faculdade com as exigências das vagas
+  fechamento: Esse é um cenário comum — e é exatamente onde o Eixo 1 atua.
+aprendizagem:
+  itens:
+  - Analisar uma vaga real da área desejada
+  - Identificar as competências técnicas exigidas
+  - Reorganizar seu currículo com foco estratégico
+  - Estruturar um projeto no GitHub com README profissional
+  - Ajustar sua descrição no LinkedIn com base em posicionamento de mercado
+  fechamento: Ao final, ele não apenas “tem um currículo”, mas possui um perfil alinhado ao mercado, um portfólio estruturado e maior clareza sobre sua trajetória profissional.
+publico:
+  grupos:
+  - titulo: 'Estudantes ingressantes, principalmente:'
+    itens:
+    - Estudantes em fase de construção de identidade profissional
+    - Estudantes sem experiência profissional em TI
+    - Alunos em transição de área
+  - titulo: 'Estudantes do último ano que:'
+    itens:
+    - Precisam estruturar o currículo para estágio ou vaga júnior
+    - Estão inseguros sobre o posicionamento profissional
+    - Têm projetos, mas não sabem apresentá-los
+perfil:
+- Ainda não possui clareza sobre sua área de atuação em TI
+- Possui projetos acadêmicos, mas não sabe como apresentá-los
+- Não entende como o mercado avalia currículos e portfólios
+- Quer se preparar desde cedo para estágio e primeiras oportunidades

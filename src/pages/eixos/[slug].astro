@@ -1,18 +1,19 @@
 ---
 /**
- * Página do eixo (/eixos/curriculo-e-trabalhabilidade): ícone, número, título e descrição; as
- * mentorias ativas do eixo em cards (mesma ordem da home) e as anteriores no mosaico que rola
- * (GaleriaEncerradas). Embaixo, links para o eixo anterior e o próximo.
+ * Página do eixo (/eixos/curriculo-e-trabalhabilidade/): só apresenta o conceito do eixo, com o
+ * conteúdo e a estrutura das páginas do site antigo (Q-13). Não lista mentorias.
+ *
+ * Faixas empilhadas numa folha só: banner (capa ou capa padrão, com o selo "Eixo N" e o ícone em marca
+ * d'água); título com ícone e objetivo; apresentação; competências em três colunas; cenário prático
+ * (ilustração e texto); aprendizagem, público-alvo e perfil em três colunas numa faixa violeta; e
+ * a navegação (todos os eixos, anterior e próximo). Cada faixa só aparece se o campo estiver
+ * preenchido no painel.
  */
 import type { GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
-import GaleriaEncerradas from '../../components/GaleriaEncerradas.astro';
-import MentoriaCard from '../../components/MentoriaCard.astro';
+import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import { hojeEmSaoPaulo } from '../../lib/datas';
-import { caminhoEixo, ICONES_EIXO } from '../../lib/eixos';
-import { listagemMentorias, slugParceiro } from '../../lib/mentorias';
-import { NEWSLETTER } from '../../lib/site';
+import { caminhoEixo, ICONES_EIXO, paragrafos } from '../../lib/eixos';
 
 export const getStaticPaths = (async () => {
   const eixos = (await getCollection('eixos')).sort((a, b) => a.data.ordem - b.data.ordem);
@@ -24,12 +25,8 @@ export const getStaticPaths = (async () => {
 
 const { eixo, anterior, proximo } = Astro.props;
 const e = eixo.data;
-const hoje = hojeEmSaoPaulo();
-const mentorias = (await getCollection('mentorias')).filter((m) => m.data.eixos.some((r) => r.id === eixo.id));
-const { ativas, encerradas } = listagemMentorias(
-  mentorias.map((entrada) => ({ ...entrada.data, entrada })),
-  hoje,
-);
+const icone = ICONES_EIXO[e.icone].d;
+const temDetalhes = e.aprendizagem || e.publico || e.perfil.length > 0;
 ---
 
 <Base title={`Eixo ${e.numero}: ${e.titulo}`} description={e.descricao}>
@@ -42,94 +39,162 @@ const { ativas, encerradas } = listagemMentorias(
       <span aria-current="page">{e.titulo}</span>
     </nav>
 
-    <header class="eixo-pagina__cabecalho">
-      <span class="icone eixo-pagina__icone">
-        <svg aria-hidden="true" viewBox="0 0 24 24"><path d={ICONES_EIXO[e.icone].d} /></svg>
-      </span>
-      <div class="eixo-pagina__texto">
-        <p class="eixo-pagina__numero mono">Eixo {e.numero}</p>
-        <h1>{e.titulo}</h1>
-        <p class="texto-suave eixo-pagina__descricao">{e.descricao}</p>
+    <article class="folha">
+      <div class:list={['folha__banner', { 'capa-padrao': !e.capa }]}>
+        {
+          e.capa ? (
+            <Image class="folha__foto" style={`object-position: center ${e.capaPosicao}%`} src={e.capa} alt="" widths={[720, 1200, 1600]} sizes="(min-width: 72rem) 72rem, 100vw" loading="eager" />
+          ) : (
+            <svg class="folha__banner-icone" aria-hidden="true" viewBox="0 0 24 24"><path d={icone} /></svg>
+          )
+        }
+        <div class="folha__selo" aria-hidden="true">
+          <span class="folha__selo-circulo"></span>
+          <span class="folha__selo-texto">
+            <span class="folha__selo-rotulo">Eixo</span><span class="folha__selo-numero">{e.numero}</span>
+          </span>
+        </div>
       </div>
-    </header>
 
-    <section class="pilha eixo-pagina__secao" aria-labelledby="ativas-titulo">
-      <h2 class="eixo-pagina__titulo-secao" id="ativas-titulo">Mentorias deste eixo</h2>
-      {
-        ativas.length > 0 ? (
-          <ul class="grade eixo-pagina__grade" role="list">
-            {ativas.map(({ mentoria, status }) => (
-              <li>
-                <MentoriaCard mentoria={mentoria.entrada} status={status} hoje={hoje} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div class="eixo-pagina__vazio">
-            <p class="eixo-pagina__vazio-titulo">Nenhuma turma deste eixo com inscrições abertas ou em andamento.</p>
-            <p class="texto-suave">
-              Veja <a href="/mentorias/">todas as mentorias</a> ou <a href={NEWSLETTER}>assine a newsletter</a> para saber
-              quando abrir uma nova turma.
-            </p>
+      <header class="faixa faixa--titulo">
+        <div class="titulo">
+          <svg class="titulo__icone" aria-hidden="true" viewBox="0 0 24 24"><path d={icone} /></svg>
+          <div class="titulo__texto">
+            <h1><span class="visualmente-oculto">Eixo {e.numero}: </span>{e.titulo}</h1>
+            <p class="titulo__objetivo"><strong>Objetivo:</strong> {e.objetivo ?? e.descricao}</p>
           </div>
+        </div>
+      </header>
+
+      {
+        e.apresentacao && (
+          <section class="faixa faixa--suave" aria-label="Apresentação">
+            <div class="apresentacao">
+              {paragrafos(e.apresentacao.introducao).map((p) => <p>{p}</p>)}
+              {e.apresentacao.itens.length > 0 && (
+                <ul class="lista" role="list">
+                  {e.apresentacao.itens.map((item) => <li>{item}</li>)}
+                </ul>
+              )}
+              {paragrafos(e.apresentacao.fechamento).map((p) => <p>{p}</p>)}
+            </div>
+          </section>
         )
       }
-    </section>
+
+      {
+        e.competencias.length > 0 && (
+          <section class="faixa" aria-labelledby="competencias-titulo">
+            <h2 class="faixa__titulo" id="competencias-titulo">Competências que serão desenvolvidas</h2>
+            <div class="colunas">
+              {e.competencias.map((g) => (
+                <div class="coluna">
+                  <h3 class="coluna__titulo">{g.titulo}</h3>
+                  <ul class="lista lista--compacta" role="list">
+                    {g.itens.map((item) => <li>{item}</li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      {
+        e.cenario && (
+          <section class="faixa faixa--suave" aria-labelledby="cenario-titulo">
+            <h2 class="faixa__titulo" id="cenario-titulo">Cenário prático trabalhado na mentoria</h2>
+            <div class="cenario">
+              {e.ilustracao ? (
+                <Image class="cenario__ilustracao" src={e.ilustracao} alt="" widths={[480, 800]} sizes="(min-width: 48rem) 28rem, 100vw" />
+              ) : (
+                <div class="cenario__ilustracao capa-padrao" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d={icone} /></svg>
+                </div>
+              )}
+              <div class="cenario__texto">
+                {paragrafos(e.cenario.introducao).map((p) => <p>{p}</p>)}
+                {e.cenario.itens.length > 0 && (
+                  <ul class="lista lista--compacta" role="list">
+                    {e.cenario.itens.map((item) => <li>{item}</li>)}
+                  </ul>
+                )}
+                {e.cenario.fechamento && <p class="cenario__fechamento">{e.cenario.fechamento}</p>}
+              </div>
+            </div>
+          </section>
+        )
+      }
+
+      {
+        temDetalhes && (
+          <section class="faixa faixa--violeta" aria-label="Aprendizagem, público-alvo e perfil do estudante">
+            <div class="colunas">
+              {e.aprendizagem && (
+                <div class="coluna">
+                  <h2 class="coluna__titulo">Aprendizagem</h2>
+                  <p class="coluna__subtitulo">Durante a mentoria, o estudante aprende a:</p>
+                  <ul class="lista lista--compacta" role="list">
+                    {e.aprendizagem.itens.map((item) => <li>{item}</li>)}
+                  </ul>
+                  {e.aprendizagem.fechamento && <p>{e.aprendizagem.fechamento}</p>}
+                </div>
+              )}
+              {e.publico && (
+                <div class="coluna">
+                  <h2 class="coluna__titulo">Público-alvo</h2>
+                  {e.publico.grupos.map((g) => (
+                    <>
+                      <p class="coluna__subtitulo">{g.titulo}</p>
+                      <ul class="lista lista--compacta" role="list">
+                        {g.itens.map((item) => <li>{item}</li>)}
+                      </ul>
+                    </>
+                  ))}
+                  {e.publico.observacao && <p>{e.publico.observacao}</p>}
+                </div>
+              )}
+              {e.perfil.length > 0 && (
+                <div class="coluna">
+                  <h2 class="coluna__titulo">Perfil do estudante</h2>
+                  <ul class="lista lista--compacta" role="list">
+                    {e.perfil.map((item) => <li>{item}</li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </section>
+        )
+      }
+
+      <nav class="faixa faixa--navegacao" aria-label="Outros eixos">
+        <a class="botao botao--contorno" href="/eixos/">↖ Todos os eixos</a>
+        <div class="navegacao__vizinhos">
+          {
+            anterior && (
+              <a class="botao botao--contorno" href={caminhoEixo(anterior.id)} title={anterior.data.titulo}>
+                ◀ Eixo {anterior.data.numero}
+                <span class="visualmente-oculto">: {anterior.data.titulo}</span>
+              </a>
+            )
+          }
+          {
+            proximo && (
+              <a class="botao botao--contorno" href={caminhoEixo(proximo.id)} title={proximo.data.titulo}>
+                Eixo {proximo.data.numero} ▶<span class="visualmente-oculto">: {proximo.data.titulo}</span>
+              </a>
+            )
+          }
+        </div>
+      </nav>
+    </article>
   </div>
-
-  {
-    encerradas.length > 0 && (
-      <section class="encerradas" aria-labelledby="encerradas-titulo">
-        <GaleriaEncerradas
-          rotuloId="encerradas-titulo"
-          itens={encerradas.map(({ mentoria }) => ({
-            entrada: mentoria.entrada,
-            eixos: mentoria.eixos.map((r) => r.id).join(' '),
-            parceria: mentoria.parceiro ? slugParceiro(mentoria.parceiro.nome) : '',
-          }))}
-        >
-          <Fragment slot="cabecalho">
-            <p class="rotulo">Já realizadas</p>
-            <h2 class="eixo-pagina__titulo-secao" id="encerradas-titulo">
-              Mentorias anteriores
-            </h2>
-          </Fragment>
-        </GaleriaEncerradas>
-      </section>
-    )
-  }
-
-  <nav class="container eixo-pagina__vizinhos" aria-label="Outros eixos">
-    {
-      anterior ? (
-        <a class="eixo-pagina__vizinho" href={caminhoEixo(anterior.id)}>
-          <span class="eixo-pagina__vizinho-rotulo">← Eixo {anterior.data.numero}</span>
-          <span>{anterior.data.titulo}</span>
-        </a>
-      ) : (
-        <span />
-      )
-    }
-    <a class="eixo-pagina__todos link-seta" href="/eixos/">
-      Todos os eixos
-    </a>
-    {
-      proximo ? (
-        <a class="eixo-pagina__vizinho eixo-pagina__vizinho--proximo" href={caminhoEixo(proximo.id)}>
-          <span class="eixo-pagina__vizinho-rotulo">Eixo {proximo.data.numero} →</span>
-          <span>{proximo.data.titulo}</span>
-        </a>
-      ) : (
-        <span />
-      )
-    }
-  </nav>
 </Base>
 
 <style>
   .eixo-pagina {
     display: grid;
-    gap: var(--espaco-xl);
+    gap: var(--espaco-m);
     padding-block: var(--espaco-l) var(--espaco-2xl);
   }
 
@@ -141,21 +206,16 @@ const { ativas, encerradas } = listagemMentorias(
     font-size: var(--passo--1);
   }
 
-  .eixo-pagina__cabecalho {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--espaco-m);
-  }
-
-  .eixo-pagina__icone {
-    width: 4rem;
-    height: 4rem;
+  /* ---- Folha: faixas empilhadas, sem espaço entre elas (como no site antigo) ---- */
+  .folha {
+    overflow: hidden;
+    border: var(--borda);
     border-radius: var(--raio-l);
+    background: var(--card-padrao-fundo);
+    color: var(--card-padrao-texto);
   }
 
-  .eixo-pagina__icone svg {
-    width: 2rem;
-    height: 2rem;
+  .folha svg path {
     fill: none;
     stroke: currentColor;
     stroke-width: 1.8;
@@ -163,103 +223,303 @@ const { ativas, encerradas } = listagemMentorias(
     stroke-linejoin: round;
   }
 
-  .eixo-pagina__texto {
+  .folha :global(:is(p, li)) {
+    max-width: none;
+  }
+
+  .faixa {
     display: grid;
-    gap: var(--espaco-2xs);
+    gap: var(--espaco-l);
+    padding: var(--espaco-xl) clamp(var(--espaco-m), 5%, var(--espaco-2xl));
   }
 
-  .eixo-pagina__numero {
-    color: var(--icone-cor);
-    font-weight: 700;
-  }
-
-  .eixo-pagina__descricao {
-    font-size: var(--passo-1);
-  }
-
-  .eixo-pagina__secao {
-    --pilha-espaco: var(--espaco-m);
-  }
-
-  .eixo-pagina__titulo-secao {
-    font-size: var(--passo-2);
-  }
-
-  .eixo-pagina__grade {
-    --grade-min: max(18rem, calc((100% - 2 * var(--espaco-m)) / 3));
-  }
-
-  .eixo-pagina__grade > li {
-    display: grid;
-  }
-
-  .eixo-pagina__vazio {
-    display: grid;
-    gap: var(--espaco-2xs);
-    padding: var(--espaco-l);
-    border: 1px dashed var(--cor-borda);
-    border-radius: var(--raio-l);
-  }
-
-  .eixo-pagina__vazio-titulo {
-    font-size: var(--passo-1);
-    font-weight: var(--peso-negrito);
-  }
-
-  /* Anteriores: faixa de ponta a ponta, como na listagem de mentorias. */
-  .encerradas {
-    padding-block: var(--espaco-xl) var(--espaco-2xl);
-    border-block-start: var(--borda);
+  .faixa--suave {
     background: var(--cor-faixa);
   }
 
-  /* ---- Eixo anterior / todos / próximo ---- */
-  .eixo-pagina__vizinhos {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+  .faixa__titulo {
+    font-size: var(--passo-3);
+    text-align: center;
+  }
+
+  /* ---- Banner: capa padrão com o ícone do eixo em marca d'água e o selo "Eixo N" ---- */
+  .folha__banner {
+    position: relative;
+    aspect-ratio: 4 / 1;
+    min-height: 9rem;
+  }
+
+  .folha__foto {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+      }
+
+  .folha__banner-icone {
+    position: absolute;
+    right: 6%;
+    bottom: -18%;
+    width: auto;
+    height: 115%;
+    color: #ffffff;
+    opacity: 0.12;
+  }
+
+  /* Selo "Eixo N": círculo ameixa a 50% só no canto superior esquerdo (o centro fica fora do
+   * banner e a borda de baixo chega a cerca de 2/3 da altura), com o texto branco a 80% dentro
+   * ("EIXO" pequeno e o número grande). */
+  .folha__selo-circulo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: clamp(12rem, 34%, 26rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgb(121 54 112 / 0.5);
+    translate: -22% -45%;
+  }
+
+  .folha__selo-texto {
+    position: absolute;
+    top: clamp(var(--espaco-s), 2.5vw, var(--espaco-xl));
+    left: clamp(var(--espaco-m), 4%, var(--espaco-xl));
+    color: rgb(255 255 255 / 0.8);
+  }
+
+  /* "EIXO" e o número centralizados na vertical; `text-box` corta o espaço acima e abaixo das
+   * letras (sem suporte, a diferença é de poucos pixels). */
+  .folha__selo-texto {
+    display: flex;
     align-items: center;
-    gap: var(--espaco-s);
-    padding-block: var(--espaco-xl);
+    gap: 0.3em;
+    font-weight: var(--peso-titulo);
+    line-height: 1;
+    white-space: nowrap;
   }
 
-  .eixo-pagina__vizinho {
-    display: grid;
-    gap: 0.15rem;
-    padding: var(--espaco-xs) var(--espaco-s);
-    border: var(--borda);
-    border-radius: var(--raio-m);
-    color: var(--cor-texto);
-    font-weight: var(--peso-negrito);
-    text-decoration: none;
+  .folha__selo-texto > * {
+    text-box: trim-both cap alphabetic;
   }
 
-  .eixo-pagina__vizinho:hover {
-    border-color: var(--cor-link);
+  .folha__selo-rotulo {
+    font-size: var(--passo-2);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
-  .eixo-pagina__vizinho--proximo {
-    text-align: end;
+  .folha__selo-numero {
+    font-size: clamp(3rem, 6vw, 5rem);
   }
 
-  .eixo-pagina__vizinho-rotulo {
+  /* ---- Título com ícone e objetivo ---- */
+  .faixa--titulo {
+    padding-block: var(--espaco-l);
+  }
+
+  .titulo {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--espaco-m);
+  }
+
+  .titulo__icone {
+    flex: none;
+    width: clamp(3rem, 6vw, 4.5rem);
+    height: auto;
     color: var(--icone-cor);
-    font-family: var(--fonte-mono);
+  }
+
+  .titulo__texto {
+    display: grid;
+    gap: var(--espaco-xs);
+  }
+
+  .titulo h1 {
+    font-size: var(--passo-4);
+  }
+
+  .titulo__objetivo {
+    color: var(--card-padrao-texto-suave);
+  }
+
+  .titulo__objetivo strong {
+    color: var(--card-padrao-texto);
+  }
+
+  /* ---- Apresentação ---- */
+  .apresentacao {
+    display: grid;
+    gap: var(--espaco-s);
+    font-size: var(--passo-1);
+  }
+
+  .apresentacao .lista {
+    font-size: var(--passo-0);
+  }
+
+  /* ---- Listas com marcador quadrado ---- */
+  .lista {
+    display: grid;
+    gap: var(--espaco-2xs);
+    padding: 0;
+    list-style: none;
+  }
+
+  .lista--compacta {
+    gap: var(--espaco-3xs);
     font-size: var(--passo--1);
   }
 
+  .lista li {
+    position: relative;
+    padding-inline-start: 1.1em;
+  }
+
+  .lista li::before {
+    content: '';
+    position: absolute;
+    inset-block-start: 0.62em;
+    inset-inline-start: 0.1em;
+    width: 0.38em;
+    height: 0.38em;
+    border-radius: 1px;
+    background: currentColor;
+  }
+
+  /* ---- Três colunas (competências e faixa violeta) ---- */
+  .colunas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: var(--espaco-l) var(--espaco-xl);
+  }
+
+  .coluna {
+    display: grid;
+    align-content: start;
+    gap: var(--espaco-xs);
+  }
+
+  .coluna__titulo {
+    margin-block-end: var(--espaco-2xs);
+    color: var(--icone-cor);
+    font-size: var(--passo-2);
+    font-weight: var(--peso-negrito);
+    text-align: center;
+  }
+
+  .coluna__subtitulo {
+    font-size: var(--passo--1);
+    font-weight: var(--peso-titulo);
+  }
+
+  .coluna > p:not(.coluna__subtitulo) {
+    font-size: var(--passo--1);
+  }
+
+  /* ---- Cenário prático: ilustração (capa padrão com o ícone) e texto ---- */
+  .cenario {
+    display: grid;
+    gap: var(--espaco-l);
+    align-items: center;
+  }
+
+  @media (width >= 48rem) {
+    .cenario {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    }
+  }
+
+  .cenario__ilustracao {
+    width: 100%;
+    object-fit: cover;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--raio-m);
+  }
+
+  .cenario__ilustracao svg {
+    width: 38%;
+    height: auto;
+    color: #ffffff;
+    opacity: 0.85;
+  }
+
+  .cenario__texto {
+    display: grid;
+    gap: var(--espaco-s);
+    font-size: var(--passo--1);
+  }
+
+  .cenario__texto .lista {
+    font-size: inherit;
+  }
+
+  .cenario__fechamento {
+    padding-inline-start: var(--espaco-s);
+    border-inline-start: 3px solid var(--icone-cor);
+    font-weight: var(--peso-negrito);
+  }
+
+  /* ---- Faixa violeta: aprendizagem, público-alvo e perfil ---- */
+  .faixa--violeta {
+    background: var(--card-violeta-fundo);
+    color: var(--card-violeta-texto);
+  }
+
+  /* ---- Navegação ---- */
+  .faixa--navegacao {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espaco-s);
+    padding-block: var(--espaco-m);
+    border-block-start: var(--borda);
+  }
+
+  .navegacao__vizinhos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-s);
+  }
+
   @media (width < 48rem) {
-    .eixo-pagina__cabecalho {
+    .folha__banner {
+      aspect-ratio: auto;
+      height: 8rem;
+    }
+
+    .folha__selo-circulo {
+      width: 12rem;
+    }
+
+    .folha__selo-rotulo {
+      font-size: var(--passo-0);
+    }
+
+    .folha__selo-numero {
+      font-size: 2.75rem;
+    }
+
+    .titulo h1 {
+      font-size: var(--passo-3);
+      text-wrap: pretty;
+    }
+
+    .titulo {
       flex-direction: column;
+      gap: var(--espaco-s);
     }
 
-    .eixo-pagina__vizinhos {
-      grid-template-columns: 1fr 1fr;
+    .apresentacao {
+      font-size: var(--passo-0);
     }
 
-    .eixo-pagina__todos {
-      grid-column: 1 / -1;
-      grid-row: 2;
-      justify-self: center;
+    .faixa__titulo {
+      font-size: var(--passo-2);
     }
   }
 </style>

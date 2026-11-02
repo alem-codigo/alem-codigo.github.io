@@ -39,3 +39,15 @@ export const NOMES_ICONES_EIXO = Object.keys(ICONES_EIXO) as [IconeEixo, ...Icon
 
 /** Caminho da página do eixo, com barra no fim (igual à canônica e ao sitemap). */
 export const caminhoEixo = (id: string): string => `/eixos/${id}/`;
+
+/**
+ * Parágrafos de um texto do painel (campo de várias linhas): separados por linha em branco.
+ * Quebras simples dentro de um parágrafo viram espaço.
+ */
+export function paragrafos(texto: string | undefined): string[] {
+  if (!texto) return [];
+  return texto
+    .split(/\r?\n\s*\r?\n/)
+    .map((p) => p.replace(/\s*\r?\n\s*/g, ' ').trim())
+    .filter(Boolean);
+}

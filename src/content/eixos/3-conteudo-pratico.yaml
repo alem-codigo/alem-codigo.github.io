@@ -3,3 +3,64 @@ titulo: Conteúdo prático
 descricao: Da teoria à entrega, implementando a partir de requisitos e transformando atividades em projetos demonstráveis.
 ordem: 3
 icone: codigo
+capa: ../../assets/images/eixos/eixo-3-capa.jpg
+capaPosicao: 85
+objetivo: Desenvolvimento de atividades práticas, aplicação de conceitos teóricos e construção de soluções computacionais.
+apresentacao:
+  introducao: |-
+    O Eixo 3 foi desenvolvido para apoiar o estudante no momento em que ele já compreende os conceitos técnicos, mas encontra dificuldade em aplicá-los de forma consistente e estruturada. É comum que o estudante saiba “o que precisa ser feito”, mas tenha insegurança na hora de transformar a teoria em código funcional, resolver problemas reais e entregar atividades práticas dentro dos critérios propostos.
+
+    Este eixo fortalece a capacidade de execução do estudante, promovendo a prática orientada, o desenvolvimento de soluções e a consolidação do aprendizado por meio da experiência. O objetivo é fazer com que o estudante ganhe fluidez técnica, aprenda fazendo e desenvolva confiança para executar atividades práticas de forma autônoma.
+competencias:
+- titulo: Técnicas
+  itens:
+  - Aplicação prática de conceitos teóricos
+  - Desenvolvimento de soluções computacionais
+  - Escrita e estruturação de código
+  - Versionamento de código (Git/GitHub)
+  - Implementação de funcionalidades com base em requisitos
+- titulo: Profissionais
+  itens:
+  - Execução de tarefas técnicas orientadas a problemas reais
+  - Transformação de atividades acadêmicas em projetos demonstráveis
+  - Leitura e interpretação de requisitos
+  - Organização de projetos para apresentação profissional
+- titulo: Comportamentais
+  itens:
+  - Aprender fazendo (learning by doing)
+  - Gestão do tempo em atividades práticas
+  - Foco em solução e melhoria contínua
+  - Persistência diante de desafios técnicos
+cenario:
+  introducao: 'Imagine um estudante que já configurou seu ambiente de desenvolvimento e compreende os conceitos apresentados em aula. Ao iniciar uma atividade prática ou projeto, ele enfrenta dificuldades como:'
+  itens:
+  - Transformar o enunciado em uma solução funcional
+  - Organizar o código de forma adequada
+  - Implementar corretamente as funcionalidades solicitadas
+  - Evoluir o projeto de forma progressiva
+  - Atender aos critérios de avaliação da atividade
+  fechamento: Mesmo entendendo a teoria, ele sente insegurança na execução prática. O Eixo 3 atua exatamente neste contexto, transformando um exercício acadêmico em um projeto real, com valor acadêmico e profissional.
+aprendizagem:
+  itens:
+  - Interpretar corretamente enunciados e requisitos técnicos
+  - Planejar a solução antes de iniciar a implementação
+  - Aplicar conceitos teóricos em atividades práticas
+  - Desenvolver código de forma organizada e progressiva
+  - Utilizar versionamento para acompanhar a evolução do projeto
+  - Refatorar e melhorar soluções existentes
+  fechamento: Ao final, o estudante passa a executar atividades práticas com mais segurança, clareza e autonomia, conseguindo transformar teoria em soluções reais.
+publico:
+  grupos:
+  - titulo: 'Estudantes ingressantes ou veteranos que:'
+    itens:
+    - Já cursaram disciplinas com conteúdo técnico básico
+    - Conseguem configurar o ambiente de desenvolvimento
+    - Estão iniciando ou cursando disciplinas práticas
+    - Precisam ganhar fluidez na execução de atividades práticas
+perfil:
+- Compreende os conceitos técnicos, mas sente dificuldade na aplicação prática
+- Tem insegurança ao iniciar atividades ou projetos
+- Sabe programar, mas encontra dificuldades na organização do código
+- Tem dificuldade em interpretar requisitos e enunciados
+- Quer ganhar experiência prática e confiança técnica
+- Busca gerar entregáveis com valor real para sua carreira

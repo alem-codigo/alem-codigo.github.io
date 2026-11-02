@@ -3,6 +3,7 @@ import { z } from 'astro/zod';
 import {
   codigoMentoria,
   codigosDuplicados,
+  conteudoEixo,
   cronograma,
   dataCalendario,
   idSemNumero,
@@ -212,5 +213,43 @@ describe('idSemNumero', () => {
   it('aceita o id puro ou o arquivo antigo, sem número', () => {
     expect(idSemNumero('conteudo-pratico')).toBe('conteudo-pratico');
     expect(idSemNumero('carreira-em-ti.yaml')).toBe('carreira-em-ti');
+  });
+});
+
+describe('conteúdo do eixo (página /eixos/[slug]/)', () => {
+  const eixo = z.object(conteudoEixo);
+
+  it('tudo vazio, como o painel grava num eixo novo, vira seções ausentes', () => {
+    const r = eixo.parse({
+      objetivo: '',
+      apresentacao: { introducao: '', itens: [], fechamento: '' },
+      competencias: [{ titulo: '', itens: [''] }],
+      cenario: null,
+      aprendizagem: { itens: [''], fechamento: '' },
+      publico: { grupos: [], observacao: '' },
+      perfil: [''],
+    });
+    expect(r).toEqual({ competencias: [], perfil: [] });
+  });
+
+  it('descarta itens vazios das listas', () => {
+    const r = eixo.parse({
+      cenario: { introducao: 'Imagine…', itens: ['A', '', 'B'] },
+      perfil: ['X', ''],
+    });
+    expect(r.cenario).toEqual({ introducao: 'Imagine…', itens: ['A', 'B'] });
+    expect(r.perfil).toEqual(['X']);
+  });
+
+  it('grupo de competências com título e sem itens é erro', () => {
+    expect(() => eixo.parse({ competencias: [{ titulo: 'Técnicas', itens: [] }] })).toThrow(/ao menos um item/);
+  });
+
+  it('texto com lista precisa de introdução ou itens', () => {
+    expect(() => eixo.parse({ apresentacao: { fechamento: 'Só o fechamento' } })).toThrow(/introdução ou ao menos um item/);
+  });
+
+  it('público-alvo com observação precisa de ao menos um grupo', () => {
+    expect(() => eixo.parse({ publico: { grupos: [], observacao: 'Transversal' } })).toThrow(/ao menos um grupo/);
   });
 });

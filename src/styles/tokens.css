@@ -21,7 +21,7 @@
     --cor-texto: light-dark(#2b2b3d, #f5f5f5);
     --cor-texto-suave: light-dark(#535367, #c4c5ca);
     --cor-borda: light-dark(#e2e4ea, #2d2939);
-    --cor-link: light-dark(#693d84, #c9a7ff);
+    --cor-link: light-dark(#693d84, #4aa9f2);
     --cor-foco: light-dark(#0478c7, #0c91ed);
     --cor-destaque: light-dark(#0478c7, #0c91ed); /* sublinhado do item ativo da navegação */
 
@@ -64,7 +64,7 @@
     --card-padrao-borda: light-dark(#e2e4ea, #2d2939);
     --card-padrao-texto: light-dark(#2b2b3d, #f5f5f5);
     --card-padrao-texto-suave: light-dark(#535367, #c4c5ca);
-    --card-padrao-link: light-dark(#693d84, #c9a7ff);
+    --card-padrao-link: light-dark(#693d84, #4aa9f2);
     --card-padrao-botao: light-dark(#693d84, #0478c7);
     /* Rodapé do card de mentoria (parceiro e eixos): faixa em tom mais escuro que o card. */
     --card-padrao-rodape: light-dark(#f1f1f4, #0f0d15);
@@ -73,7 +73,7 @@
     --card-violeta-borda: light-dark(#e4d8ee, #3f2d55);
     --card-violeta-texto: light-dark(#2b2b3d, #f5f5f5);
     --card-violeta-texto-suave: light-dark(#535367, #c4c5ca);
-    --card-violeta-link: light-dark(#693d84, #c9a7ff);
+    --card-violeta-link: light-dark(#693d84, #4aa9f2);
     --card-violeta-botao: light-dark(#693d84, #0478c7);
     --card-violeta-rodape: light-dark(#e7e0ee, #171020);
 

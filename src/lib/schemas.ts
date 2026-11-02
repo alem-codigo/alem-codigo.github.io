@@ -223,3 +223,68 @@ export const resultadoTurma = grupoOpcional(
       }
     }),
 );
+
+/**
+ * Lista vinda do painel sem os itens vazios: o Pages CMS grava `""` (ou um objeto sem valores)
+ * quando se adiciona um item e não se preenche.
+ */
+/** Como `semValores`, mas uma lista só com itens vazios (`['']`) também conta como vazia. */
+const vazioProfundo = (v: unknown): boolean =>
+  Array.isArray(v) ? v.every(vazioProfundo) : typeof v === 'object' && v !== null ? Object.values(v).every(vazioProfundo) : semValores(v);
+
+/** Grupo opcional da página do eixo: vazio (inclusive com listas de itens vazios) = ausente. */
+const grupoDoEixo = <T extends z.ZodType>(schema: T) =>
+  z.preprocess((v) => (vazioProfundo(v) ? undefined : v), schema.optional());
+
+const semItensVazios = (v: unknown) =>
+  Array.isArray(v) ? v.filter((i) => !vazioProfundo(i)) : v === null || v === undefined ? [] : v;
+
+export const listaSemVazios = <T extends z.ZodType>(item: T, minimo = 0, mensagem = '') =>
+  z.preprocess(semItensVazios, z.array(item).min(minimo, mensagem));
+
+/** Itens de uma lista com título (ex.: competências técnicas): ao menos um item. */
+const itensObrigatorios = (campo: string) => listaSemVazios(texto, 1, `${campo}: inclua ao menos um item`);
+
+/**
+ * Texto com lista (página do eixo): introdução, itens e fechamento, todos opcionais, mas com
+ * introdução ou itens. Grupo vazio = ausente (a seção não aparece).
+ */
+export const textoComLista = (campo: string) =>
+  grupoDoEixo(
+    z
+      .object({
+        introducao: opcional(texto),
+        itens: listaSemVazios(texto),
+        fechamento: opcional(texto),
+      })
+      .refine((b) => b.introducao !== undefined || b.itens.length > 0, `${campo}: preencha a introdução ou ao menos um item`),
+  );
+
+/** Grupos com título e itens (competências por tipo; público-alvo por perfil). */
+export const gruposDeItens = (campo: string, minimo = 0) =>
+  listaSemVazios(
+    z.object({ titulo: texto, itens: itensObrigatorios(`${campo} (cada grupo)`) }),
+    minimo,
+    `${campo}: inclua ao menos um grupo`,
+  );
+
+/**
+ * Conteúdo da página do eixo (Q-13), migrado do site antigo. Tudo opcional: um eixo novo pode ser
+ * cadastrado só com o básico, e cada seção da página só aparece se estiver preenchida.
+ */
+export const conteudoEixo = {
+  objetivo: opcional(texto),
+  apresentacao: textoComLista('apresentação'),
+  competencias: gruposDeItens('competências'),
+  cenario: textoComLista('cenário prático'),
+  aprendizagem: grupoDoEixo(
+    z.object({ itens: itensObrigatorios('aprendizagem'), fechamento: opcional(texto) }),
+  ),
+  publico: grupoDoEixo(
+    z.object({
+      grupos: gruposDeItens('público-alvo', 1),
+      observacao: opcional(texto),
+    }),
+  ),
+  perfil: listaSemVazios(texto),
+};

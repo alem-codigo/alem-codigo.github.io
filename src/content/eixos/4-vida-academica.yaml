@@ -3,3 +3,66 @@ titulo: Vida acadêmica
 descricao: Rotina de estudos, prazos e uso ético e estratégico de IA para aprender com autonomia.
 ordem: 4
 icone: capelo
+capa: ../../assets/images/eixos/eixo-4-capa.jpg
+capaPosicao: 50
+objetivo: Orientar o estudante na navegação pela jornada acadêmica, na organização dos estudos e no uso ético e estratégico da inteligência artificial para potencializar a aprendizagem.
+apresentacao:
+  introducao: |-
+    O Eixo 4 foi desenvolvido para apoiar o estudante na adaptação à vida acadêmica e no desenvolvimento de autonomia nos estudos, especialmente no contexto atual de transformação digital e uso crescente de inteligência artificial.
+
+    Muitos estudantes ingressam no curso sem clareza. Por isso, este eixo fortalece a maturidade acadêmica do estudante: ele aprende a organizar sua rotina de estudos, a estudar melhor e a utilizar a IA como ferramenta de apoio ao desenvolvimento intelectual, e não como atalho.
+competencias:
+- titulo: Acadêmicas
+  itens:
+  - Organização e planejamento da rotina de estudos
+  - Interpretação de cronogramas, prazos e critérios acadêmicos
+  - Planejamento de atividades acadêmicas de médio e longo prazo
+  - Gestão do tempo para estudantes que trabalham
+- titulo: Digitais
+  itens:
+  - Compreensão da jornada acadêmica e dos processos internos
+  - Uso ético e estratégico de ferramentas de inteligência artificial
+  - Organização de documentação acadêmica
+  - Entendimento sobre projetos de extensão e atividades complementares
+  - Produção textual com apoio responsável de ferramentas digitais
+  - Avaliação crítica de conteúdos gerados por IA
+- titulo: Comportamentais
+  itens:
+  - Autonomia e responsabilidade acadêmica
+  - Disciplina e constância
+  - Pensamento crítico
+  - Organização pessoal e foco
+cenario:
+  introducao: 'Imagine um estudante que trabalha durante o dia e estuda à noite. Ele conhece o conteúdo das disciplinas, mas enfrenta dificuldades como:'
+  itens:
+  - Perder prazos importantes
+  - Não entender corretamente os processos acadêmicos
+  - Ter dificuldade em organizar o tempo para estudar
+  - Utilizar IA de forma pouco estratégica
+  - Sentir sobrecarga e desmotivação
+  fechamento: Esses fatores afetam diretamente seu desempenho e sua permanência no curso. O Eixo 4 foi pensado justamente para auxiliar os estudantes em toda a jornada acadêmica.
+aprendizagem:
+  itens:
+  - Navegar com segurança pelos processos acadêmicos institucionais
+  - Planejar sua rotina de estudos de acordo com sua realidade
+  - Utilizar técnicas de organização e produtividade
+  - Aplicar estratégias para acelerar a aprendizagem
+  - Utilizar ferramentas de IA como apoio ao estudo e à organização
+  - Desenvolver autonomia na gestão da própria jornada acadêmica
+  fechamento: Ao final, o estudante passa a lidar melhor com sua rotina acadêmica, reduzindo o estresse, aumentando o desempenho e mantendo a constância ao longo do curso.
+publico:
+  grupos:
+  - titulo: 'Estudantes ingressantes ou veteranos que:'
+    itens:
+    - Estão se adaptando à vida acadêmica
+    - Trabalham e têm pouco tempo disponível para estudar
+    - Têm dificuldades com processos institucionais
+    - Sentem sobrecarga ou desorganização acadêmica
+    - Desejam melhorar o desempenho e a autonomia
+  observacao: Este eixo é transversal e pode ser aplicado em diferentes momentos da jornada, conforme a necessidade do estudante.
+perfil:
+- Tem dificuldade em conciliar trabalho, estudos e vida pessoal
+- Não compreende totalmente os processos acadêmicos
+- Perde prazos por falta de organização
+- Utiliza tecnologia e IA sem estratégia clara
+- Busca mais controle, clareza e eficiência na sua jornada acadêmica

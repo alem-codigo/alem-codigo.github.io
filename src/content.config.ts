@@ -4,6 +4,7 @@ import { z } from 'astro/zod';
 import { NOMES_ICONES_EIXO } from './lib/eixos';
 import {
   codigoMentoria,
+  conteudoEixo,
   cronograma,
   idTurmaClassroom,
   listaDeTextos,
@@ -26,13 +27,20 @@ const eixos = defineCollection({
     base: './src/content/eixos',
     generateId: ({ entry }) => entry.replace(/\.ya?ml$/, '').replace(/^\d+-/, ''),
   }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     numero: z.number().int().positive(),
     titulo: texto,
     descricao: texto,
     ordem: z.number().int(),
     /** Ícone exibido nos cards de mentoria (lista em src/lib/eixos.ts). */
     icone: z.enum(NOMES_ICONES_EIXO, 'Escolha um dos ícones disponíveis'),
+    /** Conteúdo da página do eixo: objetivo, apresentação, competências, cenário, aprendizagem, público e perfil. */
+    ...conteudoEixo,
+    /** Foto do banner e do cenário prático (opcionais; sem elas, a capa padrão com o ícone). */
+    capa: opcional(image()),
+    /** Ponto da foto que fica visível na faixa do banner, de 0 (topo) a 100 (base). */
+    capaPosicao: z.preprocess((v) => (v === '' || v === null ? undefined : v), z.number().min(0).max(100).default(50)),
+    ilustracao: opcional(image()),
   }),
 });
 

@@ -3,3 +3,63 @@ titulo: Carreira em TI
 descricao: Áreas e trilhas da TI, competências do mercado e planejamento de carreira ou de um negócio próprio.
 ordem: 5
 icone: grafico
+capa: ../../assets/images/eixos/eixo-5-capa.jpg
+capaPosicao: 40
+objetivo: Nortear os caminhos profissionais em TI (roadmap), apoiando a tomada de decisão, o planejamento de carreira e o protagonismo no mercado de trabalho.
+apresentacao:
+  introducao: |-
+    O Eixo 5 foi desenvolvido para ajudar o estudante a compreender as diferentes possibilidades de atuação na área de Tecnologia da Informação e a construir uma trajetória profissional consciente e estratégica. Muitos estudantes ingressam na graduação sem clareza sobre as áreas de TI, os perfis profissionais existentes e o que o mercado realmente espera de cada função. Outros avançam no curso sem conseguir conectar as disciplinas cursadas com uma carreira concreta.
+
+    Este eixo atua para dar direção, ajudando o estudante a entender o mercado, escolher trilhas profissionais possíveis e planejar sua evolução ao longo do tempo, inclusive para se tornar um profissional capaz de gerenciar a própria carreira ou ter o próprio negócio.
+competencias:
+- titulo: Estratégicas
+  itens:
+  - Visão sistêmica das áreas de TI (desenvolvimento, dados, infraestrutura, segurança, gestão, entre outras)
+  - Compreensão das trilhas profissionais possíveis
+  - Planejamento de carreira de médio e longo prazo
+  - Tomada de decisão baseada em perfil, interesses e mercado
+- titulo: Profissionais
+  itens:
+  - Mapeamento de competências exigidas pelo mercado
+  - Entendimento dos perfis júnior, pleno e sênior
+  - Definição de objetivos profissionais realistas
+  - Conexão entre formação acadêmica e atuação profissional
+- titulo: Comportamentais
+  itens:
+  - Mentalidade de crescimento
+  - Adaptabilidade às mudanças do mercado
+  - Protagonismo na construção da carreira
+  - Responsabilidade sobre escolhas profissionais
+cenario:
+  introducao: 'Imagine um estudante que já cursou diversas disciplinas, realizou atividades práticas e até construiu alguns projetos, mas ainda não sabe responder com clareza a perguntas como:'
+  itens:
+  - Em qual área da TI quero atuar?
+  - Quais competências preciso desenvolver para essa área?
+  - O que o mercado espera de um profissional iniciante?
+  - Como evoluir profissionalmente ao longo do tempo?
+  fechamento: Sem essa clareza, o estudante se sente inseguro e perdido, mesmo tendo conhecimento técnico. É nesse ponto que o Eixo 5 atua.
+aprendizagem:
+  itens:
+  - Conhecer as principais áreas de atuação em TI
+  - Identificar afinidades, interesses e pontos fortes
+  - Analisar demandas reais do mercado
+  - Definir trilhas e possíveis caminhos profissionais
+  - Planejar o desenvolvimento de competências ao longo do tempo
+  - Conectar disciplinas, projetos e experiências à carreira escolhida
+  fechamento: Ao final, o estudante passa a ter uma visão mais clara sobre seu futuro profissional e assume o protagonismo da própria trajetória.
+publico:
+  grupos:
+  - titulo: 'Estudantes veteranos que:'
+    itens:
+    - Não têm clareza sobre a área de atuação em TI
+    - Estão em fase de tomada de decisão profissional
+    - Desejam planejar a carreira de forma estruturada
+    - Querem alinhar graduação, prática e mercado
+    - Buscam direcionamento para os próximos passos
+  observacao: Este eixo pode ser acessado em diferentes momentos da jornada, conforme a necessidade de orientação do estudante.
+perfil:
+- Tem dúvidas sobre qual caminho seguir na área de TI
+- Não consegue relacionar disciplinas com atuação profissional
+- Sente insegurança sobre o mercado de trabalho
+- Quer planejar sua evolução profissional
+- Busca clareza, direção e propósito na carreira

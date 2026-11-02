@@ -31,6 +31,12 @@ media:
     output: ../../assets/images/parceiros
     extensions: [svg, png, jpg, jpeg, webp, avif]
     rename: safe
+  - name: eixos
+    label: Imagens dos eixos
+    input: src/assets/images/eixos
+    output: ../../assets/images/eixos
+    extensions: [jpg, jpeg, png, webp, avif]
+    rename: safe
 
 content:
   - name: mentorias
@@ -428,6 +434,111 @@ content:
               label: Capelo de formatura (vida acadêmica)
             - value: grafico
               label: Gráfico subindo (carreira)
+      # Conteúdo da página do eixo (/eixos/<eixo>/). Tudo opcional: cada seção só aparece se preenchida.
+      - name: capa
+        label: Capa (banner)
+        type: image
+        description: 'Opcional. Foto larga no topo da página do eixo (recortada em faixa 4:1). Sem capa, o site usa o degradê da marca com o ícone do eixo.'
+        options:
+          media: eixos
+      - name: capaPosicao
+        label: Posição vertical da capa
+        type: number
+        description: 'Qual parte da foto aparece na faixa: 0 = topo, 50 = meio, 100 = base. Padrão: 50.'
+        options:
+          min: 0
+          max: 100
+          step: 5
+      - name: ilustracao
+        label: Imagem do cenário prático
+        type: image
+        description: 'Opcional. Aparece ao lado do cenário prático (recortada em 4:3). Sem imagem, o degradê da marca com o ícone.'
+        options:
+          media: eixos
+      - name: objetivo
+        label: Objetivo
+        type: text
+        description: 'Uma frase, no topo da página do eixo.'
+      - name: apresentacao
+        label: Apresentação
+        type: object
+        description: 'Texto de abertura da página. Introdução obrigatória se houver itens ou fechamento. Para separar parágrafos, deixe uma linha em branco.'
+        fields:
+          - name: introducao
+            label: Introdução
+            type: text
+          - name: itens
+            label: Lista (opcional)
+            type: string
+            list: true
+          - name: fechamento
+            label: Texto depois da lista (opcional)
+            type: text
+      - name: competencias
+        label: Competências que serão desenvolvidas
+        type: object
+        list: true
+        description: 'Um grupo por tipo (ex.: Técnicas, Profissionais, Comportamentais), lado a lado na página. Cada grupo precisa de ao menos um item.'
+        fields:
+          - name: titulo
+            label: Tipo
+            type: string
+          - name: itens
+            label: Competências
+            type: string
+            list: true
+      - name: cenario
+        label: Cenário prático
+        type: object
+        description: 'O caso que a mentoria trabalha ("Imagine um estudante que..."): introdução, dificuldades em lista e o fechamento, que aparece em destaque.'
+        fields:
+          - name: introducao
+            label: Introdução
+            type: text
+          - name: itens
+            label: Dificuldades
+            type: string
+            list: true
+          - name: fechamento
+            label: Fechamento
+            type: text
+      - name: aprendizagem
+        label: Aprendizagem
+        type: object
+        description: 'A página escreve "Durante a mentoria, o estudante aprende a:" antes da lista; comece cada item com um verbo (Analisar, Planejar...).'
+        fields:
+          - name: itens
+            label: O que o estudante aprende
+            type: string
+            list: true
+          - name: fechamento
+            label: Ao final (opcional)
+            type: text
+      - name: publico
+        label: Público-alvo
+        type: object
+        description: 'Um ou mais grupos (ex.: "Estudantes ingressantes que:") com os itens, e uma observação opcional no fim.'
+        fields:
+          - name: grupos
+            label: Grupos
+            type: object
+            list: true
+            fields:
+              - name: titulo
+                label: Quem
+                type: string
+              - name: itens
+                label: Itens
+                type: string
+                list: true
+          - name: observacao
+            label: Observação (opcional)
+            type: text
+      - name: perfil
+        label: Perfil do estudante
+        type: string
+        list: true
+        description: 'Características de quem aproveita mais este eixo (ex.: "Tem dificuldade em...").'
 
   - name: cursos
     label: Cursos
