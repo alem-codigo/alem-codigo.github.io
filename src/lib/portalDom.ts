@@ -28,7 +28,8 @@ function h(tag: string, attrs: Atributos = {}, ...filhos: Filho[]): HTMLElement 
   for (const [k, v] of Object.entries(attrs)) {
     if (v === undefined || v === false) continue;
     if (k === 'href') {
-      const url = typeof v === 'string' && (v.startsWith('#') || v.startsWith('/')) ? v : urlSegura(v);
+      const interno = typeof v === 'string' && (v.startsWith('#') || /^\/(?![/\\])/.test(v));
+      const url = interno ? (v as string) : urlSegura(v);
       if (url) el.setAttribute('href', url);
     } else el.setAttribute(k, v === true ? '' : v);
   }

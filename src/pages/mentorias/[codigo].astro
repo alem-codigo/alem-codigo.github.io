@@ -548,20 +548,21 @@ const depoimentos = r?.depoimentos ?? [];
 <style>
   /* ---- Blocos (estilo "bento" do Railway) ----
    * Desktop: capa e inscrição no topo; mentores ao lado de eixos e parceiro; objetivo e público
-   * lado a lado na última linha. Celular: capa, eixos, mentores, parceiro, objetivo, público e
-   * inscrição no fim. Sem parceiro, o público ocupa o espaço dele. */
+   * lado a lado na última linha. Abaixo de 64rem: capa, inscrição (a ação da página: "Inscrever-se"
+   * ou "Acessar a turma", na mesma ordem do HTML e do Tab), portal (se aberto), eixos, mentores,
+   * parceiro, objetivo e público. Sem parceiro, o público ocupa o espaço dele. */
   .bento {
     display: grid;
     gap: var(--espaco-s);
-    grid-template-areas: 'capa' 'eixos' 'mentores' 'parceiro' 'objetivo' 'publico' 'inscricao';
+    grid-template-areas: 'capa' 'inscricao' 'eixos' 'mentores' 'parceiro' 'objetivo' 'publico';
   }
 
   .bento[data-sem-parceiro] {
-    grid-template-areas: 'capa' 'eixos' 'mentores' 'objetivo' 'publico' 'inscricao';
+    grid-template-areas: 'capa' 'inscricao' 'eixos' 'mentores' 'objetivo' 'publico';
   }
 
-  /* Portal aberto (depois do login): conteúdo da turma logo depois da capa (opção B). No
-   * celular, o card de inscrição (com "Acessar a turma") sobe para antes do portal. */
+  /* Portal aberto (depois do login): conteúdo da turma logo abaixo do card de inscrição (opção B).
+   * A linha só existe com o portal visível, para não sobrar um espaço vazio na grade. */
   .bento:has(> .portal:not([hidden])) {
     grid-template-areas: 'capa' 'inscricao' 'portal' 'eixos' 'mentores' 'parceiro' 'objetivo' 'publico';
   }

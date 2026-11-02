@@ -7,7 +7,14 @@
  * As cores vêm dos tokens `--logo-*` (trocam sozinhas no tema escuro). Sem animação em
  * telas sem hover e com `prefers-reduced-motion: reduce`.
  */
-import svg from '../assets/marca/logo-animado.svg?raw';
+import bruto from '../assets/marca/logo-animado.svg?raw';
+
+// O SVG traz um manifesto C2PA (Content Credentials) em texto: ~7,7 KB repetidos em toda página e
+// lidos como "texto visível" do link da logo (Lighthouse: label-content-name-mismatch). O arquivo
+// fica como está; só a cópia inline sai sem ele.
+const svg = bruto
+  .replace(/<c2pa:manifest>[\s\S]*?<\/c2pa:manifest>/g, '')
+  .replace(/\s+xmlns:c2pa="[^"]*"/g, '');
 
 interface Props {
   /** Altura em px; a largura segue a proporção do desenho. */

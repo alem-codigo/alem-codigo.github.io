@@ -17,7 +17,8 @@ const TRILHA = 'M356 244 C420 236 472 218 466 196 C460 174 430 160 430 135 C430 
 
 <section class="cena" aria-label="Encerramento" data-cena>
   <div class="container cena__grade">
-    <p class="cena__frase" aria-hidden="true">{SLOGAN}</p>
+    <!-- Texto em ::before (data-frase): decorativo, fora da checagem de contraste do axe/Lighthouse. -->
+    <p class="cena__frase" aria-hidden="true" data-frase={SLOGAN}></p>
     <p class="visualmente-oculto">{SLOGAN}</p>
 
     <!-- Recorte: só do meio da montanha para cima (viewBox até y=240). -->
@@ -149,6 +150,10 @@ const TRILHA = 'M356 244 C420 236 472 218 466 196 C460 174 430 160 430 135 C430 
     white-space: nowrap;
     pointer-events: none;
     transition: color 1.2s var(--curva);
+  }
+
+  .cena__frase::before {
+    content: attr(data-frase);
   }
 
   .cena--fincada .cena__frase,

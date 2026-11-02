@@ -34,7 +34,8 @@ interface Props {
   rotuloId: string;
 }
 
-const { itens, rotuloId } = Astro.props;
+// `rotuloId` fica na interface por compatibilidade; o mosaico tem nome próprio (landmark-unique).
+const { itens } = Astro.props;
 const destaques = destaquesDaGaleria(itens.map((i) => i.entrada.data));
 
 /** "120 inscritos · nota 4,7" (só o que estiver preenchido e puder ser mostrado). */
@@ -59,7 +60,7 @@ const numeros = (r: CollectionEntry<'mentorias'>['data']['resultado']): string =
     </button>
   </div>
 
-  <div class="galeria__janela" data-galeria-janela role="region" aria-labelledby={rotuloId} tabindex="0">
+  <div class="galeria__janela" data-galeria-janela role="region" aria-label="Mosaico das mentorias já realizadas" tabindex="0">
     <div class="galeria__trilho" data-galeria-trilho>
       <ul class="galeria__mosaico" role="list">
         {
