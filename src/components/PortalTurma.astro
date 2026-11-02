@@ -1,0 +1,739 @@
+---
+/**
+ * Portal da turma (Fase 2, D-34; layout opção B). Começa oculto e vazio: a página pública só tem
+ * as informações da mentoria e o botão "Acessar a turma" (AcessoTurma.astro). Depois do login com
+ * a conta Google do aluno, o conteúdo é buscado na API do Classroom com o token dele e montado
+ * aqui (src/lib/portalDom.ts): próximas lives, próximos prazos, turma no Classroom e cronograma
+ * por tópico. Quem não é da turma recebe "sem acesso" do próprio Google.
+ *
+ * Os estilos são globais (com prefixo .portal) porque o conteúdo é criado no navegador, sem os
+ * atributos de escopo do Astro.
+ */
+import { PORTAL_CLASSROOM } from '../lib/site';
+
+interface Props {
+  courseId: string;
+  linkTurma: string;
+}
+
+const { courseId, linkTurma } = Astro.props;
+---
+
+{
+  PORTAL_CLASSROOM && (
+    <section
+      id="portal"
+      class="portal"
+      aria-labelledby="portal-titulo"
+      hidden
+      data-portal
+      data-curso={courseId}
+      data-link={linkTurma}
+      data-cliente={PORTAL_CLASSROOM.clientId}
+    >
+      <h2 id="portal-titulo" class="portal__titulo" tabindex="-1">
+        Conteúdo da turma
+      </h2>
+      <div class="portal__conteudo" data-portal-conteudo />
+    </section>
+  )
+}
+
+<script>
+  import { buscarTurma, ErroTurma, montarConteudo } from '../lib/classroomApi';
+  import { carregarGoogle, ErroLogin, esquecerToken, googleCarregado, pedirToken, tokenSalvo } from '../lib/loginGoogle';
+  import { ativarVideos, montarPortal } from '../lib/portalDom';
+
+  const portal = document.querySelector<HTMLElement>('[data-portal]');
+  const acesso = document.querySelector<HTMLElement>('[data-acesso-turma]');
+  const botao = acesso?.querySelector<HTMLAnchorElement>('[data-portal-entrar]');
+  const status = acesso?.querySelector<HTMLElement>('[data-acesso-status]');
+  const conteudo = portal?.querySelector<HTMLElement>('[data-portal-conteudo]');
+  const { curso = '', link = '', cliente = '' } = portal?.dataset ?? {};
+
+  if (portal && acesso && botao && status && conteudo && curso && cliente) {
+    // Com o login ligado, o botão deixa de abrir o Classroom em nova aba.
+    botao.removeAttribute('target');
+    acesso.querySelector('[data-acesso-externo]')?.remove();
+    ativarVideos(conteudo);
+
+    const avisar = (...partes: (Node | string)[]) => status.replaceChildren(...partes);
+
+    const elemento = (tag: string, texto: string, attrs: Record<string, string> = {}) => {
+      const el = document.createElement(tag);
+      el.textContent = texto;
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      return el;
+    };
+
+    const linkConvite = () => elemento('a', 'Como aceitar o convite da turma', { href: '/como-participar/#convite' });
+    const linkClassroom = () => elemento('a', 'Abrir no Classroom', { href: link, target: '_blank', rel: 'noopener' });
+    const outraConta = () => {
+      const b = elemento('button', 'Entrar com outra conta', { type: 'button' });
+      b.addEventListener('click', () => void entrar(true));
+      return b;
+    };
+
+    const estado = (e: 'saiu' | 'carregando' | 'conectado') => {
+      acesso.dataset.estado = e;
+      acesso.querySelector<HTMLElement>('[data-acesso-ir]')!.hidden = e !== 'conectado';
+    };
+
+    const sair = () => {
+      esquecerToken();
+      portal.hidden = true;
+      conteudo.replaceChildren();
+      estado('saiu');
+      avisar('Você saiu da turma neste site.');
+      botao.focus();
+    };
+
+    conteudo.addEventListener('click', (e) => {
+      if (e.target instanceof Element && e.target.closest('[data-portal-sair]')) sair();
+    });
+
+    function mostrarErro(erro: unknown): void {
+      estado('saiu');
+      portal!.hidden = true;
+      if (erro instanceof ErroTurma && erro.motivo === 'sem-acesso') {
+        esquecerToken();
+        avisar(
+          elemento('p', 'Esta conta Google não tem acesso à turma. Entre com a conta em que você aceitou o convite (o e-mail da inscrição).'),
+          outraConta(),
+          linkConvite(),
+        );
+      } else if (erro instanceof ErroTurma && erro.motivo === 'sessao') {
+        esquecerToken();
+        avisar('Sua sessão expirou. Clique em "Acessar a turma" para entrar de novo.');
+      } else if (erro instanceof ErroLogin && erro.motivo === 'bloqueado') {
+        avisar('O navegador bloqueou a janela de login do Google. Permita pop-ups para este site e tente de novo.');
+      } else if (erro instanceof ErroLogin && erro.motivo === 'cancelado') {
+        avisar('Login cancelado.');
+      } else if (erro instanceof ErroLogin && erro.motivo === 'escopo') {
+        avisar('Para ver a turma aqui, marque todas as permissões pedidas pelo Google (são só de leitura).');
+      } else {
+        avisar(elemento('p', 'Não foi possível carregar a turma agora.'), linkClassroom());
+      }
+    }
+
+    async function carregar(token: string, automatico: boolean): Promise<void> {
+      estado('carregando');
+      if (!automatico) avisar('Carregando a turma…');
+      const api = await buscarTurma(curso, token);
+      conteudo!.replaceChildren(montarPortal(montarConteudo(api, curso, link)));
+      portal!.hidden = false;
+      estado('conectado');
+      avisar();
+      if (!automatico) {
+        portal!.querySelector('#portal-titulo')!.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        portal!.querySelector<HTMLElement>('#portal-titulo')?.focus({ preventScroll: true });
+      }
+    }
+
+    async function entrar(trocarConta = false): Promise<void> {
+      try {
+        // Sem o script já carregado, a janela do Google pode ser bloqueada depois do await.
+        const oauth2 = await carregarGoogle();
+        const token = await pedirToken(oauth2, cliente, trocarConta);
+        await carregar(token, false);
+      } catch (erro) {
+        mostrarErro(erro);
+      }
+    }
+
+    // Baixa o script do Google quando o aluno se aproxima do botão (nada antes disso).
+    const preparar = () => void carregarGoogle().catch(() => undefined);
+    for (const ev of ['pointerenter', 'focus', 'touchstart'] as const) botao.addEventListener(ev, preparar, { once: true, passive: true });
+
+    botao.addEventListener('click', (e) => {
+      if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      if (!googleCarregado()) avisar('Abrindo o login do Google…');
+      void entrar();
+    });
+
+    // Já entrou nesta aba: carrega sem pedir login de novo. Sem acesso a esta turma, fica quieto.
+    const token = tokenSalvo();
+    if (token) {
+      carregar(token, true).catch((erro) => {
+        if (erro instanceof ErroTurma && erro.motivo === 'sem-acesso') {
+          estado('saiu');
+          portal.hidden = true;
+          avisar();
+        } else mostrarErro(erro);
+      });
+    }
+  }
+</script>
+
+<style is:global>
+  .portal {
+    display: grid;
+    gap: var(--espaco-s);
+  }
+
+  .portal[hidden] {
+    display: none;
+  }
+
+  .portal__titulo {
+    margin-block-start: var(--espaco-s);
+    font-size: var(--passo-3);
+    scroll-margin-block-start: 6rem;
+  }
+
+  .portal__titulo:focus {
+    outline: none;
+  }
+
+  .portal :is(p, li) {
+    max-width: none;
+  }
+
+  .portal-icone {
+    width: 1.1em;
+    height: 1.1em;
+    flex: none;
+  }
+
+  .portal-icone path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ---- Faixa "agora": pesos 5 · 4 · 3; um bloco que falta deixa os outros ocuparem a linha ---- */
+  .portal-agora {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-s);
+  }
+
+  .portal-bloco {
+    gap: var(--espaco-xs);
+  }
+
+  .portal-bloco--lives {
+    flex: 5 1 20rem;
+  }
+
+  .portal-bloco--prazos {
+    flex: 4 1 16rem;
+  }
+
+  .portal-bloco--turma {
+    flex: 3 1 15rem;
+  }
+
+  .portal-bloco__rotulo {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    color: var(--_texto-suave);
+    font-family: var(--fonte-mono);
+    font-size: var(--passo--1);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .portal-bloco__rotulo .portal-icone {
+    color: var(--icone-cor);
+  }
+
+  .portal-bloco__acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espaco-xs) var(--espaco-s);
+  }
+
+  .portal-sair {
+    min-height: 2.75rem;
+    padding: 0 var(--espaco-2xs);
+    border: 0;
+    background: none;
+    color: var(--_link);
+    font: inherit;
+    font-weight: var(--peso-negrito);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  /* Só o bloco da turma (sem lives nem prazos): texto à esquerda, ações à direita. */
+  @media (width >= 48rem) {
+    .portal-bloco--turma:only-child {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      column-gap: var(--espaco-l);
+    }
+
+    .portal-bloco--turma:only-child > * {
+      grid-column: 1;
+    }
+
+    .portal-bloco--turma:only-child > .portal-bloco__acoes {
+      grid-row: 1 / span 2;
+      grid-column: 2;
+    }
+  }
+
+  /* ---- Lives: selo de data como o do card de mentoria; a primeira em destaque ---- */
+  .lives,
+  .prazos {
+    display: grid;
+    gap: var(--espaco-s);
+  }
+
+  .live {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--espaco-s);
+  }
+
+  .live + .live {
+    padding-block-start: var(--espaco-s);
+    border-block-start: 1px solid var(--_borda);
+  }
+
+  .live__data {
+    display: grid;
+    justify-items: center;
+    min-width: 3.2rem;
+    padding: 0.3rem 0.5rem 0.35rem;
+    border-radius: var(--raio-m);
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px #e2e4ea;
+    color: #2b2b3d;
+    line-height: 1.05;
+  }
+
+  .live__dia {
+    font-size: var(--passo-1);
+    font-weight: 800;
+  }
+
+  .live__mes {
+    color: #693d84;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+  }
+
+  .live:first-child .live__data {
+    min-width: 4rem;
+  }
+
+  .live:first-child .live__dia {
+    font-size: var(--passo-3);
+  }
+
+  .live__texto {
+    display: grid;
+    gap: var(--espaco-3xs);
+  }
+
+  .live__titulo {
+    font-weight: var(--peso-negrito);
+    line-height: 1.25;
+  }
+
+  .live__titulo a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .live__titulo a:hover {
+    text-decoration: underline;
+  }
+
+  .live:first-child .live__titulo {
+    font-size: var(--passo-1);
+  }
+
+  .live__quando {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .live__link {
+    justify-self: start;
+    margin-block-start: var(--espaco-3xs);
+  }
+
+  .live:not(:first-child) .live__link {
+    min-height: 2.25rem;
+    padding-block: 0.3rem;
+    font-size: var(--passo--1);
+  }
+
+  /* ---- Prazos ---- */
+  .prazo-item {
+    display: grid;
+    gap: var(--espaco-3xs);
+    padding-inline-start: var(--espaco-s);
+    border-inline-start: 3px solid var(--icone-cor);
+  }
+
+  .prazo-item a {
+    font-weight: var(--peso-negrito);
+  }
+
+  .prazo-item time {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  /* ---- Cronograma ---- */
+  .cronograma {
+    --marcador: 2.5rem;
+
+    gap: var(--espaco-m);
+  }
+
+  .cronograma__topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--espaco-3xs) var(--espaco-m);
+  }
+
+  .cronograma__nota,
+  .trilha__contagem {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .cronograma__itens {
+    display: grid;
+    gap: var(--espaco-xs);
+  }
+
+  .cronograma__indice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-2xs);
+  }
+
+  .cronograma__indice a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    min-height: 2.75rem;
+    padding: 0.35rem 0.9rem;
+    border: 1px solid var(--_borda);
+    border-radius: var(--raio-pilula);
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+    text-decoration: none;
+  }
+
+  .cronograma__indice a:hover {
+    border-color: currentColor;
+  }
+
+  .cronograma__indice .mono {
+    color: var(--icone-cor);
+  }
+
+  /* Trilha numerada (mesma linguagem do passo a passo de /como-participar). */
+  .trilha__passo {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--marcador) minmax(0, 1fr);
+    gap: var(--espaco-s);
+    padding-block-end: var(--espaco-l);
+    scroll-margin-block-start: 6rem;
+  }
+
+  .trilha__passo:last-child {
+    padding-block-end: 0;
+  }
+
+  .trilha__passo:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    inset-block: var(--marcador) 0;
+    inset-inline-start: calc(var(--marcador) / 2 - 1px);
+    width: 2px;
+    background: var(--_borda);
+  }
+
+  .trilha__marcador {
+    display: grid;
+    place-items: center;
+    width: var(--marcador);
+    height: var(--marcador);
+    border-radius: 50%;
+    background: var(--icone-fundo);
+    box-shadow: inset 0 0 0 1px var(--icone-borda);
+    color: var(--icone-cor);
+    font-weight: var(--peso-negrito);
+  }
+
+  .trilha__passo--geral .trilha__marcador {
+    background: var(--_fundo);
+    box-shadow: inset 0 0 0 2px var(--_borda);
+  }
+
+  .trilha__corpo {
+    display: grid;
+    align-content: start;
+    gap: var(--espaco-xs);
+    min-width: 0;
+    padding-block-start: 0.35rem;
+  }
+
+  .trilha__titulo {
+    font-size: var(--passo-2);
+  }
+
+  .trilha__contagem {
+    margin-block-start: calc(var(--espaco-xs) * -1);
+  }
+
+  /* Celular: marcador ao lado do título e itens na largura toda (sem a linha vertical). */
+  @media (width < 48rem) {
+    .cronograma {
+      --marcador: 2.1rem;
+    }
+
+    .trilha__passo {
+      gap: var(--espaco-3xs) var(--espaco-xs);
+    }
+
+    .trilha__passo:not(:last-child)::before {
+      display: none;
+    }
+
+    .trilha__corpo {
+      display: contents;
+    }
+
+    .trilha__marcador {
+      grid-row: 1 / 3;
+      align-self: center;
+    }
+
+    .trilha__titulo {
+      grid-column: 2;
+      align-self: end;
+    }
+
+    .trilha__contagem {
+      grid-column: 2;
+      margin: 0;
+    }
+
+    .trilha__corpo > .cronograma__itens {
+      grid-column: 1 / -1;
+      margin-block-start: var(--espaco-xs);
+    }
+  }
+
+  /* ---- Item ---- */
+  .portal .item {
+    display: grid;
+    gap: var(--espaco-2xs);
+    padding: var(--espaco-s) var(--espaco-m);
+    border: 1px solid var(--_borda);
+    border-radius: var(--raio-m);
+    background: var(--_rodape);
+    scroll-margin-block-start: 6rem;
+  }
+
+  .portal .item:target {
+    box-shadow: 0 0 0 2px var(--cor-foco);
+  }
+
+  .item__topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espaco-3xs) var(--espaco-xs);
+  }
+
+  .item__tipo {
+    color: var(--icone-cor);
+    font-family: var(--fonte-mono);
+    font-size: var(--passo--1);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Prazo por vencer nos tons da pílula "em breve" (testados no AA); vencido, neutro. */
+  .portal .prazo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.2em 0.7em;
+    border-radius: var(--raio-pilula);
+    background: var(--pilula-em-breve-fundo);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pilula-em-breve-texto) 30%, transparent);
+    color: var(--pilula-em-breve-texto);
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+    line-height: 1.3;
+  }
+
+  .portal .prazo[data-vencido] {
+    background: var(--selo-fundo);
+    box-shadow: inset 0 0 0 1px var(--selo-borda);
+    color: var(--selo-texto);
+    font-weight: 600;
+  }
+
+  .item__titulo {
+    font-size: var(--passo-1);
+    line-height: var(--altura-linha-titulo);
+  }
+
+  .item__meta {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .item__descricao {
+    display: grid;
+    gap: var(--espaco-3xs);
+    overflow-wrap: anywhere;
+  }
+
+  .item__mais summary {
+    width: fit-content;
+    color: var(--_link);
+    font-weight: var(--peso-negrito);
+    cursor: pointer;
+  }
+
+  .item__mais[open] summary {
+    margin-block-end: var(--espaco-2xs);
+  }
+
+  .item__videos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: var(--espaco-xs);
+    margin-block-start: var(--espaco-2xs);
+  }
+
+  .anexos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-2xs);
+    margin-block-start: var(--espaco-2xs);
+  }
+
+  .anexo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espaco-2xs);
+    min-height: 2.75rem;
+    max-width: 100%;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--_borda);
+    border-radius: var(--raio-m);
+    background: var(--_fundo);
+    font-size: var(--passo--1);
+    line-height: 1.25;
+    text-decoration: none;
+  }
+
+  .anexo:hover {
+    border-color: currentColor;
+  }
+
+  .anexo--entrega {
+    border-color: var(--icone-cor);
+  }
+
+  .anexo__texto {
+    display: grid;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .anexo__origem {
+    color: var(--_texto-suave);
+    font-family: var(--fonte-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  /* ---- Vídeo leve: nada do YouTube antes do clique ---- */
+  .portal .video {
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--raio-m);
+    background: #0e0c15;
+  }
+
+  .portal .video .video__capa {
+    display: grid;
+    align-content: end;
+    width: 100%;
+    height: 100%;
+    padding: var(--espaco-s);
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  .video__play {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: rgb(14 12 21 / 0.55);
+    box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.7);
+    translate: -50% -50%;
+    transition:
+      scale var(--duracao) var(--curva),
+      background var(--duracao) var(--curva);
+  }
+
+  .video__play svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-inline-start: 0.15rem;
+  }
+
+  .video__play path {
+    fill: currentColor;
+  }
+
+  .video__capa:is(:hover, :focus-visible) .video__play {
+    background: #0478c7;
+    scale: 1.08;
+  }
+
+  .video__titulo {
+    position: relative;
+    z-index: 1;
+    font-weight: var(--peso-negrito);
+    line-height: 1.25;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+  }
+
+  .video__player {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .video__play {
+      transition: none;
+    }
+  }
+</style>

@@ -4,18 +4,24 @@
  * existe junto com esta página. Informações em blocos (estilo "bento" do Railway): capa e título;
  * card de inscrição à direita (no celular, no fim); mentores, eixos, parceiro, público e objetivo.
  * Inscrição: botão do Forms nas inscrições abertas; data de abertura em "em breve"; campo "me avise"
- * nos demais status (D-19); "Adicionar ao calendário" conforme o status. Portal do Classroom
- * (cronograma, aulas, lives) entra na Fase 2.
+ * nos demais status (D-19); "Adicionar ao calendário" conforme o status.
+ * Portal da turma (D-34): com a turma do Classroom ligada (`classroomCourseId`), a partir das
+ * inscrições encerradas, o card de inscrição ganha "Acessar a turma". A página pública não mostra
+ * nada da turma; depois do login com a conta Google do aluno, o conteúdo (lives, prazos e
+ * cronograma) é buscado no Classroom e aparece logo depois da capa (opção B).
  */
 import type { GetStaticPaths } from 'astro';
 import { getCollection, getEntries, render } from 'astro:content';
 import { Image } from 'astro:assets';
+import AcessoTurma from '../../components/AcessoTurma.astro';
 import AdicionarCalendario from '../../components/AdicionarCalendario.astro';
 import AvisoTurma from '../../components/AvisoTurma.astro';
 import Compartilhar from '../../components/Compartilhar.astro';
 import MentorPerfil from '../../components/MentorPerfil.astro';
+import PortalTurma from '../../components/PortalTurma.astro';
 import StatusPilula from '../../components/StatusPilula.astro';
 import Base from '../../layouts/Base.astro';
+import { linkDaTurma, mostrarPortal } from '../../lib/classroom';
 import { hojeEmSaoPaulo } from '../../lib/datas';
 import { ICONES_EIXO } from '../../lib/eixos';
 import { eventoCalendario } from '../../lib/calendario';
@@ -63,6 +69,7 @@ const abertura = dataDestaque(m.inscricoes.abertura);
 const fechamento = dataDestaque(m.inscricoes.fechamento);
 const urlPagina = new URL(caminhoMentoria(mentoria.id), Astro.site).toString();
 const evento = eventoCalendario(m, status, mentoria.id, urlPagina);
+const turma = m.classroomCourseId && mostrarPortal(status) ? { courseId: m.classroomCourseId, link: linkDaTurma(m.classroomCourseId) } : undefined;
 
 // Resultado da turma: só depois que ela começa (antes disso, os números ainda mudam).
 const r = status === 'em-andamento' || status === 'encerrada' ? m.resultado : undefined;
@@ -134,6 +141,8 @@ const depoimentos = r?.depoimentos ?? [];
             </div>
           </dl>
 
+          {turma && <AcessoTurma linkTurma={turma.link} />}
+
           {
             status === 'inscricoes-abertas' && (
               <>
@@ -163,6 +172,8 @@ const depoimentos = r?.depoimentos ?? [];
           {evento && <AdicionarCalendario evento={evento} ics={`/mentorias/${mentoria.id}.ics`} arquivo={`${mentoria.id}.ics`} />}
         </div>
       </aside>
+
+      {turma && <PortalTurma courseId={turma.courseId} linkTurma={turma.link} />}
 
       <div class="card bento__bloco bento__objetivo">
         <section aria-labelledby="objetivo">
@@ -549,6 +560,16 @@ const depoimentos = r?.depoimentos ?? [];
     grid-template-areas: 'capa' 'eixos' 'mentores' 'objetivo' 'publico' 'inscricao';
   }
 
+  /* Portal aberto (depois do login): conteúdo da turma logo depois da capa (opção B). No
+   * celular, o card de inscrição (com "Acessar a turma") sobe para antes do portal. */
+  .bento:has(> .portal:not([hidden])) {
+    grid-template-areas: 'capa' 'inscricao' 'portal' 'eixos' 'mentores' 'parceiro' 'objetivo' 'publico';
+  }
+
+  .bento[data-sem-parceiro]:has(> .portal:not([hidden])) {
+    grid-template-areas: 'capa' 'inscricao' 'portal' 'eixos' 'mentores' 'objetivo' 'publico';
+  }
+
   @media (width >= 64rem) {
     .bento {
       grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -566,6 +587,22 @@ const depoimentos = r?.depoimentos ?? [];
         'mentores mentores mentores mentores mentores eixos eixos eixos inscricao inscricao inscricao inscricao'
         'objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo publico publico publico publico';
     }
+
+    .bento:has(> .portal:not([hidden])) {
+      grid-template-areas:
+        'capa capa capa capa capa capa capa capa inscricao inscricao inscricao inscricao'
+        'portal portal portal portal portal portal portal portal portal portal portal portal'
+        'mentores mentores mentores mentores mentores eixos eixos eixos parceiro parceiro parceiro parceiro'
+        'objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo publico publico publico publico';
+    }
+
+    .bento[data-sem-parceiro]:has(> .portal:not([hidden])) {
+      grid-template-areas:
+        'capa capa capa capa capa capa capa capa inscricao inscricao inscricao inscricao'
+        'portal portal portal portal portal portal portal portal portal portal portal portal'
+        'mentores mentores mentores mentores mentores eixos eixos eixos publico publico publico publico'
+        'objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo objetivo';
+    }
   }
 
   /* Texto na largura toda dos blocos (sem a linha de leitura de 65ch do base.css). */
@@ -581,6 +618,9 @@ const depoimentos = r?.depoimentos ?? [];
   .bento__publico { grid-area: publico; }
   .bento__mentores { grid-area: mentores; }
   .bento__parceiro { grid-area: parceiro; }
+  /* PortalTurma.astro: a classe é do componente, por isso :global. */
+  .bento > :global(.portal) { grid-area: portal; }
+  .bento > :global(.portal[hidden]) { display: none; }
 
   .bento__bloco { gap: var(--espaco-xs); }
 

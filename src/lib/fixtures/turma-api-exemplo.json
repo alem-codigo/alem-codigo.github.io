@@ -1,0 +1,121 @@
+{
+  "curso": {
+    "id": "797247136963",
+    "name": "M26-99 — Turma de exemplo",
+    "alternateLink": "https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz"
+  },
+  "topicos": [
+    { "courseId": "797247136963", "topicId": "t-semana-1", "name": "Semana 1 · Fundamentos" },
+    { "courseId": "797247136963", "topicId": "t-semana-2", "name": "Semana 2 · Prática" },
+    { "courseId": "797247136963", "topicId": "t-vazio", "name": "Semana 3 (ainda sem itens)" }
+  ],
+  "atividades": [
+    {
+      "id": "cw-exercicio-1",
+      "title": "Exercício 1 — Papéis do Scrum",
+      "description": "Responda ao questionário sobre os papéis. Use como referência o material da aula 1 e o artigo https://developer.mozilla.org/pt-BR/ (seção de equipes ágeis). Quem tiver dúvidas pode perguntar no mural da turma; respondemos em até dois dias úteis. O questionário fica aberto até o prazo, e cada estudante pode enviar uma única vez. Bons estudos!",
+      "state": "PUBLISHED",
+      "topicId": "t-semana-1",
+      "alternateLink": "https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz/a/Y3ctZXhlcmNpY2lvLTE/details",
+      "creationTime": "2026-11-05T13:00:00.000Z",
+      "dueDate": { "year": 2026, "month": 11, "day": 13 },
+      "dueTime": { "hours": 2, "minutes": 59 },
+      "materials": [
+        { "form": { "formUrl": "https://docs.google.com/forms/d/e/abc/viewform", "title": "Questionário: papéis do Scrum" } },
+        { "link": { "url": "https://developer.mozilla.org/pt-BR/", "title": "MDN Web Docs" } }
+      ]
+    },
+    {
+      "id": "cw-desafio",
+      "title": "Desafio — Montar o backlog",
+      "state": "PUBLISHED",
+      "topicId": "t-semana-2",
+      "alternateLink": "https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz/a/Y3ctZGVzYWZpbw/details",
+      "creationTime": "2026-11-11T13:00:00.000Z",
+      "dueDate": { "year": 2026, "month": 11, "day": 20 },
+      "dueTime": { "hours": 2, "minutes": 59 }
+    },
+    {
+      "id": "cw-sem-prazo",
+      "title": "Diário de bordo (sem prazo)",
+      "description": "Registre o que aprendeu a cada semana.",
+      "state": "PUBLISHED",
+      "topicId": "t-semana-2",
+      "alternateLink": "https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz/a/Y3ctc2VtLXByYXpv/details",
+      "creationTime": "2026-11-11T14:00:00.000Z"
+    }
+  ],
+  "materiais": [
+    {
+      "id": "cm-boas-vindas",
+      "title": "Boas-vindas e combinados",
+      "description": "Olá, turma!\r\nLeiam o guia em https://scrumguides.org/scrum-guide.html antes da primeira live.",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz/m/Ym9hcy12aW5kYXM/details",
+      "creationTime": "2026-11-03T11:00:00.000Z",
+      "materials": [
+        { "driveFile": { "driveFile": { "title": "Cronograma da turma.pdf", "alternateLink": "https://drive.google.com/file/d/abc/view" } } }
+      ]
+    },
+    {
+      "id": "cm-live-abertura",
+      "title": "Live 04/11 19h30 · Abertura",
+      "description": "Sala da live no Teams.",
+      "state": "PUBLISHED",
+      "topicId": "t-semana-1",
+      "alternateLink": "https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz/m/bGl2ZS0x/details",
+      "creationTime": "2026-11-03T12:00:00.000Z",
+      "materials": [
+        { "link": { "url": "https://teams.microsoft.com/l/meetup-join/19%3ameeting_abc", "title": "Reunião no Microsoft Teams" } }
+      ]
+    },
+    {
+      "id": "cm-aula-1",
+      "title": "Aula 1 — O que é Scrum",
+      "description": "Gravação da live e slides.",
+      "state": "PUBLISHED",
+      "topicId": "t-semana-1",
+      "alternateLink": "https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz/m/YXVsYS0x/details",
+      "creationTime": "2026-11-05T00:30:00.000Z",
+      "materials": [
+        { "youtubeVideo": { "id": "dQw4w9WgXcQ", "title": "Scrum em 10 minutos", "alternateLink": "https://www.youtube.com/watch?v=dQw4w9WgXcQ" } },
+        { "link": { "url": "https://youtu.be/aqz-KE-bpKQ", "title": "Gravação da live (não listada)" } },
+        { "driveFile": { "driveFile": { "title": "Slides da aula 1", "alternateLink": "https://docs.google.com/presentation/d/xyz/edit" } } },
+        { "unknownNewType": { "foo": "bar" } }
+      ]
+    },
+    {
+      "id": "cm-live-sprint",
+      "title": "Live 11/11 às 19:30 — Sprint planning na prática",
+      "description": "Transmissão no YouTube: https://www.youtube.com/live/aqz-KE-bpKQ",
+      "state": "PUBLISHED",
+      "topicId": "t-semana-2",
+      "alternateLink": "https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz/m/bGl2ZS0y/details",
+      "creationTime": "2026-11-06T12:00:00.000Z"
+    },
+    {
+      "id": "cm-live-retro",
+      "title": "Live 18/11 19h · Retrospectiva",
+      "state": "PUBLISHED",
+      "topicId": "t-semana-2",
+      "alternateLink": "https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz/m/bGl2ZS0z/details",
+      "creationTime": "2026-11-06T12:05:00.000Z",
+      "materials": [
+        { "link": { "url": "https://meet.google.com/abc-defg-hij", "title": "Sala no Meet" } }
+      ]
+    },
+    {
+      "id": "cm-live-sem-data",
+      "title": "Live extra (data a confirmar)",
+      "state": "PUBLISHED",
+      "topicId": "t-semana-2",
+      "creationTime": "2026-11-06T12:10:00.000Z"
+    },
+    {
+      "id": "cm-rascunho",
+      "title": "Rascunho que não deveria aparecer",
+      "state": "DRAFT",
+      "creationTime": "2026-11-06T12:20:00.000Z"
+    }
+  ]
+}

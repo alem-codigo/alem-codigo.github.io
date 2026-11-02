@@ -1,0 +1,103 @@
+---
+/**
+ * "Acessar a turma", no card de inscrição (D-34). Sem JavaScript ou sem `PORTAL_CLASSROOM`, é um
+ * link para a turma no Classroom. Com eles, o clique abre o login do Google e o conteúdo aparece
+ * nesta página (PortalTurma.astro, que também tem o script que atende este botão).
+ */
+import { PORTAL_CLASSROOM } from '../lib/site';
+
+interface Props {
+  linkTurma: string;
+}
+
+const { linkTurma } = Astro.props;
+const comLogin = PORTAL_CLASSROOM !== null;
+---
+
+<div class="acesso-turma" data-acesso-turma data-estado="saiu">
+  <p class="acesso-turma__titulo">Já está na turma?</p>
+  <p class="acesso-turma__texto" data-acesso-texto>
+    {
+      comLogin
+        ? 'Entre com a conta Google em que aceitou o convite para ver aulas, materiais e prazos aqui.'
+        : 'Aulas, materiais e prazos ficam na turma do Google Classroom.'
+    }
+  </p>
+  <a class="botao acesso-turma__botao" href={linkTurma} target="_blank" rel="noopener" data-portal-entrar>
+    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M2 3h20M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3M7 21l5-5 5 5"></path></svg>
+    <span data-acesso-rotulo>{comLogin ? 'Acessar a turma' : 'Abrir no Classroom'}</span>
+    <span class="visualmente-oculto" data-acesso-externo>(Google Classroom, abre em nova aba)</span>
+  </a>
+  <a class="acesso-turma__ir" href="#portal" hidden data-acesso-ir>Ver o conteúdo da turma ↓</a>
+  <div class="acesso-turma__status" role="status" aria-live="polite" data-acesso-status></div>
+</div>
+
+<style>
+  .acesso-turma {
+    display: grid;
+    gap: var(--espaco-2xs);
+    padding-block: var(--espaco-s);
+    border-block: 1px solid var(--_borda);
+  }
+
+  .acesso-turma__titulo {
+    font-weight: var(--peso-negrito);
+  }
+
+  .acesso-turma__texto {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .acesso-turma__botao {
+    width: 100%;
+    margin-block-start: var(--espaco-3xs);
+  }
+
+  .acesso-turma__botao svg {
+    width: 1.1em;
+    height: 1.1em;
+  }
+
+  .acesso-turma__botao path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .acesso-turma__ir {
+    font-weight: var(--peso-negrito);
+  }
+
+  .acesso-turma[data-estado='conectado'] .acesso-turma__botao,
+  .acesso-turma[data-estado='conectado'] .acesso-turma__texto {
+    display: none;
+  }
+
+  .acesso-turma__status:empty {
+    display: none;
+  }
+
+  .acesso-turma__status {
+    display: grid;
+    gap: var(--espaco-2xs);
+    padding: var(--espaco-xs) var(--espaco-s);
+    border-inline-start: 3px solid var(--icone-cor);
+    background: var(--_rodape);
+    font-size: var(--passo--1);
+  }
+
+  .acesso-turma__status :global(button) {
+    justify-self: start;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--_link);
+    font: inherit;
+    font-weight: var(--peso-negrito);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+</style>

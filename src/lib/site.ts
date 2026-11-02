@@ -82,3 +82,11 @@ export const CANAIS: readonly ItemNavegacao[] = [
   { rotulo: 'YouTube', href: 'https://www.youtube.com/@alemdocodigo-mentoria' },
   { rotulo: 'Newsletter (Substack)', href: NEWSLETTER },
 ];
+
+/**
+ * Portal da turma (D-34): client ID OAuth "Aplicativo da Web" do projeto do Google Cloud da conta
+ * do programa, com as origens `https://alem-codigo.github.io` e `http://localhost:4321`. O client
+ * ID é público por natureza (não há segredo). Enquanto for `null`, o botão "Acessar a turma" da
+ * página da mentoria só abre a turma no Classroom.
+ */
+export const PORTAL_CLASSROOM: { clientId: string } | null = null;

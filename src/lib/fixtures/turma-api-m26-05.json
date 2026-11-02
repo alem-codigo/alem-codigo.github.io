@@ -1,0 +1,23 @@
+{
+  "curso": {
+    "id": "869871604122",
+    "name": "Mentoria Gestão Ágil na Prática: Experiências com Scrum",
+    "alternateLink": "https://classroom.google.com/c/ODY5ODcxNjA0MTIy"
+  },
+  "topicos": [],
+  "atividades": [],
+  "materiais": [
+    {
+      "id": "883106301812",
+      "title": "Material de Apoio – Guia Oficial do Scrum (2020)",
+      "description": "Prezados(as) acadêmicos(as),\nDisponibilizamos, em anexo, o , nas versões em , para apoiar os estudos e as atividades da mentoria .\nO documento, publicado em , corresponde à versão oficial mais recente do Scrum Guide e apresenta os fundamentos do framework, incluindo seus valores, princípios, responsabilidades, eventos e artefatos.\nRecomendamos a leitura prévia do material para facilitar a compreensão dos conceitos e contribuir para o desenvolvimento das atividades práticas durante os encontros.\nAtenciosamente,",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/ODY5ODcxNjA0MTIy/m/ODgzMTA2MzAxODEy/details",
+      "creationTime": "2026-10-25T18:39:39.000Z",
+      "materials": [
+        { "driveFile": { "driveFile": { "id": "18-7ydfEOOiUfPJw6T1WbSNmWjOqb_pQh", "title": "2020-Scrum-Guide-US.pdf", "alternateLink": "https://drive.google.com/file/d/18-7ydfEOOiUfPJw6T1WbSNmWjOqb_pQh/view?usp=drive_web" }, "shareMode": "VIEW" } },
+        { "driveFile": { "driveFile": { "id": "1zZIMHMRHruiDLrIMV3r96JjYSvCPKMdV", "title": "2020-Scrum-Guide-Portugues BR-3.0.pdf", "alternateLink": "https://drive.google.com/file/d/1zZIMHMRHruiDLrIMV3r96JjYSvCPKMdV/view?usp=drive_web" }, "shareMode": "VIEW" } }
+      ]
+    }
+  ]
+}
