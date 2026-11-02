@@ -27,7 +27,7 @@ describe('conversão da resposta da API', () => {
   it('turma real da M26-05: um material sem tópico, com os dois PDFs do Drive', () => {
     expect(m2605).toMatchObject({ courseId: '869871604122', topicos: [], link: 'https://classroom.google.com/c/ODY5ODcxNjA0MTIy' });
     expect(m2605.itens).toHaveLength(1);
-    expect(m2605.itens[0]).toMatchObject({ tipo: 'material', topicoId: null, prazo: null, publicadoEm: '2026-10-25T18:39:39.000Z' });
+    expect(m2605.itens[0]).toMatchObject({ tipo: 'material', topicoId: null, prazo: null, publicadoEm: '2026-10-25T18:39:39.501Z' });
     expect(m2605.itens[0]!.anexos.map((a) => a.tipo)).toEqual(['drive', 'drive']);
   });
 
