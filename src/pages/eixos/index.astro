@@ -381,6 +381,44 @@ const recuoY = `${(MARGEM / M.altura) * 100}%`;
     stroke-width: 3;
   }
 
+  /* Tema claro: sem a luz; a peça "salta" como os cards (sobe 6px e ganha sombra no formato
+   * da peça), com o mouse ou com o foco do teclado. A peça "você" mantém o próprio movimento. */
+  :root[data-tema='claro'] .peca__luz {
+    display: none;
+  }
+
+  .peca:not(.peca--voce) .peca__corpo {
+    transition: translate var(--duracao-lenta) var(--curva);
+  }
+
+  .peca:not(.peca--voce) .peca__forma {
+    transition: filter var(--duracao-lenta) var(--curva);
+  }
+
+  :root[data-tema='claro'] .peca:not(.peca--voce):has(.peca__link:focus-visible) .peca__corpo {
+    translate: 0 -6px;
+  }
+
+  :root[data-tema='claro'] .peca:not(.peca--voce):has(.peca__link:focus-visible) .peca__forma {
+    filter: drop-shadow(0 16px 18px rgb(43 43 61 / 0.24)) drop-shadow(0 6px 6px rgb(43 43 61 / 0.12));
+  }
+
+  @media (hover: hover) {
+    :root[data-tema='claro'] .peca:not(.peca--voce):hover .peca__corpo {
+      translate: 0 -6px;
+    }
+
+    :root[data-tema='claro'] .peca:not(.peca--voce):hover .peca__forma {
+      filter: drop-shadow(0 16px 18px rgb(43 43 61 / 0.24)) drop-shadow(0 6px 6px rgb(43 43 61 / 0.12));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root[data-tema='claro'] .peca:not(.peca--voce):is(:hover, :has(.peca__link:focus-visible)) .peca__corpo {
+      translate: none;
+    }
+  }
+
   /* Corpo da peça: ocupa a célula; é ele que se move na peça "você". */
   .peca__corpo {
     position: relative;
