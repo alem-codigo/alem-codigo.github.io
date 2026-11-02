@@ -95,6 +95,15 @@ export function destaquesHome<T extends Cronograma>(mentorias: readonly T[], hoj
   return [...abertas, ...emBreve, ...emAndamento].slice(0, limite);
 }
 
+/**
+ * Vitrine da home: só inscrições abertas (fechamento mais próximo primeiro) e as próximas,
+ * em breve (abertura mais próxima primeiro). Sem nenhuma, a home não mostra a seção.
+ */
+export function vitrineHome<T extends Cronograma>(mentorias: readonly T[], hoje: string, limite = 3): ComStatus<T>[] {
+  const { abertas, emBreve } = agruparParaHome(mentorias, hoje);
+  return [...abertas, ...emBreve].slice(0, limite);
+}
+
 export interface MenuMentorias<T> {
   /** Bloco grande: a marcada como destaque ou, sem nenhuma, a primeira da home. */
   destaque: ComStatus<T> | null;

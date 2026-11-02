@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { agruparParaHome, caminhoMentoria, dataDestaque, avaliacaoPublicavel, destaquesDaGaleria, formatarInteiro, formatarNota, listagemMentorias, opcoesParceria, periodoCurto, slugParceiro, destaquesHome, menuMentorias, formatarData, formatarPeriodo, juntarLista, textoInscricoes } from './mentorias';
+import { agruparParaHome, caminhoMentoria, dataDestaque, avaliacaoPublicavel, destaquesDaGaleria, formatarInteiro, formatarNota, listagemMentorias, opcoesParceria, periodoCurto, slugParceiro, destaquesHome, vitrineHome, menuMentorias, formatarData, formatarPeriodo, juntarLista, textoInscricoes } from './mentorias';
 import { STATUS_MENTORIA, VARIANTE_CARD, type Cronograma } from './status';
 
 const hoje = '2026-11-05';
@@ -131,6 +131,26 @@ describe('destaquesHome', () => {
   it('abertas primeiro, depois em breve e em andamento; sem encerradas; no máximo 3', () => {
     expect(destaquesHome(lista, hoje).map((d) => d.mentoria.id)).toEqual(['aberta', 'breve-2', 'breve']);
     expect(destaquesHome(lista, hoje, 10).map((d) => d.mentoria.id)).toEqual(['aberta', 'breve-2', 'breve', 'andamento']);
+  });
+});
+
+describe('vitrineHome', () => {
+  const lista = [
+    m('encerrada', '2026-09-01', '2026-09-10', '2026-09-20', '2026-10-30'),
+    m('andamento', '2026-10-01', '2026-10-10', '2026-10-20', '2026-12-20'),
+    m('insc-encerradas', '2026-10-20', '2026-11-01', '2026-11-15', '2026-12-20'),
+    m('breve', '2026-12-01', '2026-12-10', '2027-01-10', '2027-02-20'),
+    m('aberta', '2026-11-01', '2026-11-20', '2026-11-25', '2026-12-20'),
+    m('breve-2', '2026-11-20', '2026-11-30', '2026-12-05', '2026-12-30'),
+  ];
+
+  it('só abertas e em breve, nessa ordem; no máximo 3', () => {
+    expect(vitrineHome(lista, hoje, 10).map((d) => d.mentoria.id)).toEqual(['aberta', 'breve-2', 'breve']);
+    expect(vitrineHome(lista, hoje, 2).map((d) => d.mentoria.id)).toEqual(['aberta', 'breve-2']);
+  });
+
+  it('sem abertas nem em breve: vazia', () => {
+    expect(vitrineHome(lista.slice(0, 3), hoje)).toEqual([]);
   });
 });
 

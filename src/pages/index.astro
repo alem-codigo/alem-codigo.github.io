@@ -7,35 +7,35 @@ import MentoriaCard from '../components/MentoriaCard.astro';
 import SecaoEixos from '../components/SecaoEixos.astro';
 import Base from '../layouts/Base.astro';
 import { hojeEmSaoPaulo } from '../lib/datas';
-import { destaquesHome } from '../lib/mentorias';
-import { inscricoesAbertas } from '../lib/status';
+import { vitrineHome } from '../lib/mentorias';
 
 const hoje = hojeEmSaoPaulo();
 const mentorias = await getCollection('mentorias');
-// Uma seção só, "Conheça as mentorias": até 3 cards (abertas, depois em breve e em andamento).
-const destaques = destaquesHome(
+// "Conheça as mentorias": até 3 cards, só inscrições abertas e as próximas (em breve).
+// Sem nenhuma, a seção inteira some.
+const destaques = vitrineHome(
   mentorias.map((entrada) => ({ ...entrada.data, entrada })),
   hoje,
 );
 
 // Com inscrições abertas, os botões da capa e da chamada final levam à seção da própria home.
-const linkInscricoes = mentorias.some((m) => inscricoesAbertas(m.data, hoje)) ? '#mentorias' : null;
+const linkInscricoes = destaques.some((d) => d.status === 'inscricoes-abertas') ? '#mentorias' : null;
 ---
 
 <Base>
   <Hero linkInscricoes={linkInscricoes} />
 
-  <section class="secao container pilha mentorias" id="mentorias" aria-labelledby="mentorias-titulo">
-    <header class="secao-cabecalho">
-      <div class="secao-cabecalho__texto">
-        <p class="rotulo">Mentorias</p>
-        <h2 id="mentorias-titulo">Conheça as mentorias</h2>
-        <p class="texto-suave">Turmas com inscrições abertas, as próximas e as que estão em andamento.</p>
-      </div>
-    </header>
+  {
+    destaques.length > 0 && (
+      <section class="secao container pilha mentorias" id="mentorias" aria-labelledby="mentorias-titulo">
+        <header class="secao-cabecalho">
+          <div class="secao-cabecalho__texto">
+            <p class="rotulo">Mentorias</p>
+            <h2 id="mentorias-titulo">Conheça as mentorias</h2>
+            <p class="texto-suave">Turmas com inscrições abertas e as próximas a abrir.</p>
+          </div>
+        </header>
 
-    {
-      destaques.length > 0 ? (
         <ul class="grade mentorias__lista" role="list">
           {destaques.map(({ mentoria, status }) => (
             <li>
@@ -43,19 +43,15 @@ const linkInscricoes = mentorias.some((m) => inscricoesAbertas(m.data, hoje)) ? 
             </li>
           ))}
         </ul>
-      ) : (
-        <div class="mentorias__vazio">
-          <p class="mentorias__vazio-titulo">Nenhuma turma aberta ou em andamento no momento</p>
-          <p class="texto-suave">
-            Novas turmas abrem ao longo do semestre. Enquanto isso, conheça as mentorias anteriores e os eixos de
-            aprendizagem.
-          </p>
-        </div>
-      )
-    }
 
-    <p><a class="link-seta" href="/mentorias/">Veja todas as mentorias</a></p>
-  </section>
+        <p>
+          <a class="link-seta" href="/mentorias/">
+            Veja todas as mentorias
+          </a>
+        </p>
+      </section>
+    )
+  }
 
   <SecaoEixos />
   <ComoFunciona />
@@ -93,21 +89,8 @@ const linkInscricoes = mentorias.some((m) => inscricoesAbertas(m.data, hoje)) ? 
     --grade-min: max(18rem, calc((100% - 2 * var(--espaco-m)) / 3));
   }
 
-  .mentorias__vazio-titulo {
-    font-size: var(--passo-1);
-    font-weight: var(--peso-negrito);
-  }
-
   .mentorias__lista > li {
     display: grid;
-  }
-
-  .mentorias__vazio {
-    display: grid;
-    gap: var(--espaco-2xs);
-    padding: var(--espaco-l);
-    border: 1px dashed var(--cor-borda);
-    border-radius: var(--raio-l);
   }
 
   .chamada {
