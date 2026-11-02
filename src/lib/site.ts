@@ -60,6 +60,7 @@ export const RODAPE: readonly { titulo: string; itens: readonly ItemNavegacao[] 
       { rotulo: 'Sobre', href: '/sobre/' },
       { rotulo: 'Como participar', href: '/como-participar/' },
       { rotulo: 'Eixos', href: '/eixos/' },
+      { rotulo: 'Privacidade', href: '/privacidade/' },
     ],
   },
   {
@@ -89,4 +90,7 @@ export const CANAIS: readonly ItemNavegacao[] = [
  * ID é público por natureza (não há segredo). Enquanto for `null`, o botão "Acessar a turma" da
  * página da mentoria só abre a turma no Classroom.
  */
-export const PORTAL_CLASSROOM: { clientId: string } | null = null;
+export const PORTAL_CLASSROOM: { clientId: string } | null = {
+  // Projeto "Além do Código – Portal" (conta do programa), cliente "Site Além do Código (web)".
+  clientId: '478914339004-g05gc8gid48m1nlglnopsdet8cnm81so.apps.googleusercontent.com',
+};

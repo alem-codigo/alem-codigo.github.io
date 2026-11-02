@@ -29,6 +29,13 @@ const comLogin = PORTAL_CLASSROOM !== null;
     <span class="visualmente-oculto" data-acesso-externo>(Google Classroom, abre em nova aba)</span>
   </a>
   <a class="acesso-turma__ir" href="#portal" hidden data-acesso-ir>Ver o conteúdo da turma ↓</a>
+  {
+    comLogin && (
+      <p class="acesso-turma__nota">
+        Só leitura, nada fica guardado. <a href="/privacidade/#acesso-turma">Como usamos seus dados</a>
+      </p>
+    )
+  }
   <div class="acesso-turma__status" role="status" aria-live="polite" data-acesso-status></div>
 </div>
 
@@ -65,6 +72,15 @@ const comLogin = PORTAL_CLASSROOM !== null;
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+
+  .acesso-turma__nota {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .acesso-turma[data-estado='conectado'] .acesso-turma__nota {
+    display: none;
   }
 
   .acesso-turma__ir {

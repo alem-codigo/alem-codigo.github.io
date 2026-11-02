@@ -66,7 +66,7 @@ export function urlSegura(url: unknown): string | null {
   }
 }
 
-/** ID de 11 caracteres de um link do YouTube (mesma regra de apps-script/nucleo.js). */
+/** ID de 11 caracteres de um link do YouTube (youtu.be, watch?v=, /live/, /shorts/, /embed/). */
 export function extrairIdYoutube(url: string): string | null {
   const host = hostDaUrl(url);
   const caminho = url.replace(/^https?:\/\/[^/]+/i, '').split('#')[0] ?? '';

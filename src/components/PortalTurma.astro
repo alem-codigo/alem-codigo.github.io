@@ -176,6 +176,12 @@ const { courseId, linkTurma } = Astro.props;
     display: none;
   }
 
+  /* Faixa "agora" e cronograma, montados no navegador, com o mesmo espaço dos outros blocos. */
+  .portal__conteudo {
+    display: grid;
+    gap: var(--espaco-s);
+  }
+
   .portal__titulo {
     margin-block-start: var(--espaco-s);
     font-size: var(--passo-3);

@@ -1,0 +1,247 @@
+---
+/**
+ * Política de privacidade (/privacidade): o que o site faz com dados, em especial o acesso à turma
+ * com a conta Google (D-34). Exigida pelo Google para publicar o app OAuth ("Em produção") e
+ * referência para a LGPD. Linkada no rodapé e no bloco "Já está na turma?".
+ *
+ * RASCUNHO de texto: revisar com os professores antes do lançamento. Ao mudar o que o site
+ * coleta (formulários, análise de acesso, escopos do Google), atualize esta página e a data.
+ */
+import CabecalhoPagina from '../components/CabecalhoPagina.astro';
+import Base from '../layouts/Base.astro';
+import { CONTATO, SITE } from '../lib/site';
+
+const ATUALIZADA_EM = '2 de novembro de 2026';
+const SECOES = [
+  ['resumo', 'Em resumo'],
+  ['acesso-turma', 'Acesso à turma com a conta Google'],
+  ['formularios', 'Formulários'],
+  ['navegador', 'O que fica no seu navegador'],
+  ['terceiros', 'Serviços de terceiros'],
+  ['direitos', 'Seus direitos e contato'],
+] as const;
+---
+
+<Base
+  title="Privacidade"
+  description={`Como o site do ${SITE.nome} trata dados pessoais, inclusive no acesso à turma com a conta Google.`}
+>
+  <div class="container privacidade">
+    <nav class="privacidade__trilha" aria-label="Trilha">
+      <a href="/">Início</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Privacidade</span>
+    </nav>
+
+    <CabecalhoPagina
+      rotulo="Privacidade"
+      titulo="Política de privacidade"
+      subtitulo={`O que o site do ${SITE.nome} acessa, o que guarda (quase nada) e como falar com a gente.`}
+    />
+
+    <div class="privacidade__grade">
+      <nav class="privacidade__indice" aria-labelledby="indice-titulo">
+        <p class="rotulo" id="indice-titulo">Nesta página</p>
+        <ul role="list">
+          {
+            SECOES.map(([id, titulo]) => (
+              <li>
+                <a href={`#${id}`}>{titulo}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="privacidade__texto">
+        <section id="resumo" aria-labelledby="resumo-titulo">
+          <h2 id="resumo-titulo">Em resumo</h2>
+          <ul class="lista">
+            <li>O site não tem cadastro, não usa cookies de rastreamento, não tem anúncios nem ferramentas de análise de acesso.</li>
+            <li>
+              Ao acessar a turma pelo site, você entra com a sua conta Google e autoriza apenas a <strong>leitura</strong> da
+              turma. O conteúdo vai direto do Google para o seu navegador: o programa não recebe, não vê e não guarda nada.
+            </li>
+            <li>
+              Os dados que você envia nos formulários (inscrição e aviso de novas turmas) ficam no Google Forms do programa e
+              são usados só para a finalidade informada em cada formulário.
+            </li>
+          </ul>
+          <p>
+            O {SITE.nome} é um programa de mentorias do Cluster de TI da UniCesumar EaD, mantido de forma independente pelos
+            professores do programa, sem contas ou sistemas da instituição.
+          </p>
+        </section>
+
+        <section id="acesso-turma" aria-labelledby="acesso-titulo">
+          <h2 id="acesso-titulo">Acesso à turma com a conta Google</h2>
+          <p>
+            Na página de uma mentoria, o botão <strong>Acessar a turma</strong> abre o login do Google. Ao autorizar, você
+            permite que o site, <strong>no seu navegador</strong>, leia no Google Classroom:
+          </p>
+          <ul class="lista">
+            <li>as suas turmas (nome e link da turma, para confirmar que você faz parte dela);</li>
+            <li>os tópicos da turma;</li>
+            <li>as atividades publicadas pelos professores (título, instruções, anexos e prazo), <strong>sem</strong> notas nem entregas;</li>
+            <li>os materiais publicados pelos professores.</li>
+          </ul>
+          <p>
+            Todas as permissões são só de leitura: o site não publica, não altera e não apaga nada no Classroom. O site não
+            lê seus e-mails, suas notas, suas entregas, seus arquivos do Drive nem a sua agenda.
+          </p>
+          <p>
+            Esses dados são usados apenas para mostrar a você, na página da mentoria, as aulas, os materiais, as próximas
+            lives e os prazos da turma. Eles não são enviados a nenhum servidor do programa (o site não tem servidor nem
+            banco de dados), não são compartilhados com ninguém e não são usados para publicidade nem para treinar modelos de
+            inteligência artificial.
+          </p>
+          <p>
+            A autorização do Google (um código temporário de cerca de uma hora) fica guardada só nesta aba do navegador, para
+            você não precisar entrar de novo a cada página. Ela é apagada quando você fecha a aba ou clica em <strong>Sair</strong>. Para retirar a autorização de vez, acesse <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a> e remova o {SITE.nome}.
+          </p>
+          <p>
+            O uso e a transferência, para qualquer outro aplicativo, de informações recebidas das APIs do Google seguem a <a href="https://developers.google.com/terms/api-services-user-data-policy">Política de dados do usuário dos serviços de API do Google</a>,
+            incluindo os requisitos de uso limitado.
+          </p>
+        </section>
+
+        <section id="formularios" aria-labelledby="formularios-titulo">
+          <h2 id="formularios-titulo">Formulários</h2>
+          <p>
+            <strong>Inscrição:</strong> cada mentoria tem um formulário do Google Forms, na conta do programa. Os dados
+            (como nome, curso e o e-mail da conta Google) são usados para a inscrição, o convite para a turma, o contato
+            durante a mentoria e, quando houver, a emissão do certificado por plataforma parceira, como informado no próprio
+            formulário.
+          </p>
+          <p>
+            <strong>Aviso de novas turmas:</strong> o campo "me avise" das páginas das mentorias envia o seu e-mail, a
+            mentoria e a situação dela para um formulário do programa, somente com o seu consentimento. O e-mail é usado só
+            para avisar sobre novas turmas.
+          </p>
+          <p>
+            As respostas ficam no Google Forms e na planilha vinculada, na conta do programa, acessíveis apenas aos
+            professores, e nunca são publicadas no site.
+          </p>
+        </section>
+
+        <section id="navegador" aria-labelledby="navegador-titulo">
+          <h2 id="navegador-titulo">O que fica no seu navegador</h2>
+          <ul class="lista">
+            <li>a sua escolha de tema (claro ou escuro);</li>
+            <li>qual foto da página inicial você viu por último, para mostrar outra na próxima visita;</li>
+            <li>a autorização temporária do Google, se você acessou uma turma (apagada ao fechar a aba ou sair).</li>
+          </ul>
+          <p>Nada disso é enviado ao programa. Você pode apagar esses dados nas configurações do navegador.</p>
+        </section>
+
+        <section id="terceiros" aria-labelledby="terceiros-titulo">
+          <h2 id="terceiros-titulo">Serviços de terceiros</h2>
+          <ul class="lista">
+            <li>
+              <strong>GitHub Pages</strong> hospeda o site e pode manter registros técnicos de acesso (como o endereço IP),
+              conforme a política do GitHub.
+            </li>
+            <li>
+              <strong>Google</strong>: o login só é carregado quando você vai usar o botão "Acessar a turma"; os formulários
+              e o Classroom seguem a política do Google.
+            </li>
+            <li>
+              <strong>YouTube</strong>: os vídeos das aulas só carregam o player quando você clica neles, pelo endereço
+              youtube-nocookie.com.
+            </li>
+            <li>
+              Os botões de compartilhar são links simples para WhatsApp, LinkedIn e Facebook: nenhum script dessas redes é
+              carregado na página.
+            </li>
+          </ul>
+        </section>
+
+        <section id="direitos" aria-labelledby="direitos-titulo">
+          <h2 id="direitos-titulo">Seus direitos e contato</h2>
+          <p>
+            Pela Lei Geral de Proteção de Dados (LGPD), você pode pedir para saber quais dados seus o programa tem, corrigi-los
+            ou excluí-los (por exemplo, sair da lista de aviso de novas turmas). Escreva para <a href={`mailto:${CONTATO.email}`}>{CONTATO.email}</a>.
+          </p>
+          <p class="privacidade__data">Atualizada em {ATUALIZADA_EM}.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .privacidade {
+    display: grid;
+    gap: var(--espaco-l);
+    padding-block: var(--espaco-l) var(--espaco-2xl);
+  }
+
+  .privacidade__trilha {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-2xs);
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .privacidade__grade {
+    display: grid;
+    gap: var(--espaco-l);
+  }
+
+  @media (width >= 64rem) {
+    .privacidade__grade {
+      grid-template-columns: 13rem minmax(0, 1fr);
+      align-items: start;
+      gap: var(--espaco-2xl);
+    }
+
+    .privacidade__indice {
+      position: sticky;
+      top: 6rem;
+    }
+  }
+
+  .privacidade__indice {
+    display: grid;
+    gap: var(--espaco-xs);
+  }
+
+  .privacidade__indice ul {
+    display: grid;
+    gap: var(--espaco-3xs);
+  }
+
+  .privacidade__indice a {
+    display: block;
+    padding: 0.35rem 0 0.35rem var(--espaco-s);
+    border-inline-start: 2px solid var(--cor-borda);
+    color: var(--cor-texto-suave);
+    text-decoration: none;
+  }
+
+  .privacidade__indice a:hover {
+    border-color: var(--cor-link);
+    color: var(--cor-link);
+  }
+
+  .privacidade__texto {
+    display: grid;
+    gap: var(--espaco-xl);
+  }
+
+  .privacidade__texto section {
+    display: grid;
+    gap: var(--espaco-s);
+    scroll-margin-block-start: 6rem;
+  }
+
+  .privacidade__texto h2 {
+    font-size: var(--passo-2);
+  }
+
+  .privacidade__data {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+  }
+</style>

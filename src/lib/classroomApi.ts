@@ -1,7 +1,7 @@
 /**
  * Leitura da turma na API do Classroom, no navegador, com o token do aluno (D-34). O site não
  * guarda nada: cada visita busca de novo. `montarConteudo` (pura, testada) converte as respostas
- * no modelo do portal, com a mesma lista branca de tipos de anexo de apps-script/nucleo.js.
+ * no modelo do portal; só entram os tipos de anexo conhecidos (Drive, YouTube, link e formulário).
  */
 import {
   extrairIdYoutube,
@@ -11,11 +11,14 @@ import {
   type ItemTurma,
 } from './classroom';
 
-/** Escopos pedidos no login: só leitura, sem agenda (D-34). */
+/**
+ * Escopos pedidos no login: só leitura, sem agenda (D-34). Todos "não confidenciais" para o
+ * Google; `course-work.readonly` lê as atividades sem notas nem entregas (vale para aluno e professor).
+ */
 export const ESCOPOS_CLASSROOM = [
   'https://www.googleapis.com/auth/classroom.courses.readonly',
   'https://www.googleapis.com/auth/classroom.topics.readonly',
-  'https://www.googleapis.com/auth/classroom.coursework.me.readonly',
+  'https://www.googleapis.com/auth/classroom.course-work.readonly',
   'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
 ] as const;
 
