@@ -10,7 +10,7 @@ const arquivosMentorias = import.meta.glob<string>('../content/mentorias/**/*.md
 
 /**
  * O Astro só registra referências quebradas como erro de log, sem falhar o build.
- * A spec exige o contrário (seção 6.2): referência a eixo, mentor ou selo inexistente
+ * A spec exige o contrário (seção 6.2): referência a eixo, mentor, selo ou curso inexistente
  * precisa impedir o deploy. Também falha com dois arquivos de mesmo código: como o id vem
  * do código, o Astro manteria só um deles, sem aviso. Executado uma única vez por build.
  */
@@ -19,7 +19,7 @@ async function verificar(): Promise<void> {
     ({ codigo, arquivos }) => `código ${codigo} usado em mais de um arquivo: ${arquivos.join(', ')}`,
   );
   for (const m of await getCollection('mentorias')) {
-    for (const ref of [...m.data.eixos, ...m.data.mentores, ...m.data.selos]) {
+    for (const ref of [...m.data.eixos, ...m.data.mentores, ...m.data.selos, ...m.data.cursos]) {
       if (!(await getEntry(ref))) {
         problemas.push(`mentoria "${m.id}" referencia ${ref.collection}/"${ref.id}", que não existe`);
       }

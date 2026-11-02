@@ -8,6 +8,7 @@ import {
   idTurmaClassroom,
   listaDeTextos,
   opcional,
+  referenciaDeEixo,
   referenciaDoPainel,
   resultadoTurma,
   slugDoCodigo,
@@ -19,7 +20,12 @@ import {
 
 /** ID da entrada = nome do arquivo (é o slug usado nas URLs e nas referências). */
 const eixos = defineCollection({
-  loader: glob({ pattern: '**/*.{yaml,yml}', base: './src/content/eixos' }),
+  // Arquivo `3-conteudo-pratico.yaml` → id `conteudo-pratico` (o número só ordena a lista do painel).
+  loader: glob({
+    pattern: '**/*.{yaml,yml}',
+    base: './src/content/eixos',
+    generateId: ({ entry }) => entry.replace(/\.ya?ml$/, '').replace(/^\d+-/, ''),
+  }),
   schema: z.object({
     numero: z.number().int().positive(),
     titulo: texto,
@@ -41,6 +47,15 @@ const selos = defineCollection({
   }),
 });
 
+/** Cursos do Cluster de TI (selecionados nas mentorias). ID = nome do arquivo. */
+const cursos = defineCollection({
+  loader: glob({ pattern: '**/*.{yaml,yml}', base: './src/content/cursos' }),
+  schema: z.object({
+    nome: texto,
+    sigla: texto,
+  }),
+});
+
 const mentores = defineCollection({
   loader: glob({ pattern: '**/*.{yaml,yml}', base: './src/content/mentores' }),
   schema: ({ image }) =>
@@ -48,8 +63,9 @@ const mentores = defineCollection({
       nome: texto,
       /** Fixo (equipe do programa) ou convidado: separa as seções da página /mentores. */
       tipo: z.enum(['fixo', 'convidado'], 'Escolha o tipo de mentor: fixo ou convidado'),
-      foto: image(),
-      bio: texto,
+      /** Opcional: sem foto, o site mostra um ícone de pessoa. */
+      foto: opcional(image()),
+      bio: texto.pipe(z.string().max(500, 'bio: até 500 caracteres')),
       cargo: texto,
       empresa: opcional(texto),
       // Redes (src/lib/icones.ts → REDES_MENTOR): a página mostra só as preenchidas.
@@ -77,13 +93,18 @@ const mentorias = defineCollection({
         codigo: codigoMentoria,
         titulo: texto,
         /** Uma ou duas frases: topo da página, menu e Open Graph (que corta textos longos). */
-        resumo: texto.pipe(z.string().max(200, 'resumo: até 200 caracteres (uma ou duas frases)')),
+        resumo: texto.pipe(z.string().max(400, 'resumo: até 400 caracteres')),
         /** "Necessidade de mercado atendida": contexto e demanda do mercado (opcional). */
         necessidade: opcional(texto),
-        cursos: z.array(texto).min(1, 'Informe ao menos um curso elegível'),
+        /** Aberta a todos os cursos do Cluster de TI (dispensa a lista de cursos). */
+        todosOsCursos: z.preprocess((v) => v ?? false, z.boolean()),
+        cursos: z.preprocess(
+          (v) => (v === null || v === undefined ? [] : v),
+          z.array(referenciaDoPainel(reference('cursos'))),
+        ),
         prerequisitos: listaDeTextos,
         // O painel grava `arquivo.yaml`; `referenciaDoPainel` reduz ao id da entrada (ver .pages.yml).
-        eixos: z.array(referenciaDoPainel(reference('eixos'))).min(1, 'Selecione ao menos um eixo'),
+        eixos: z.array(referenciaDeEixo(reference('eixos'))).min(1, 'Selecione ao menos um eixo'),
         mentores: z.array(referenciaDoPainel(reference('mentores'))).min(1, 'Selecione ao menos um mentor'),
         selos: z.preprocess(
           (v) => (v === null || v === undefined ? [] : v),
@@ -98,8 +119,17 @@ const mentorias = defineCollection({
         /** Inscritos, concluintes, avaliação e depoimentos, preenchidos depois da turma. */
         resultado: resultadoTurma,
       })
+      .superRefine((m, ctx) => {
+        if (!m.todosOsCursos && m.cursos.length === 0) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['cursos'],
+            message: 'Selecione ao menos um curso elegível ou marque "Aberta a todos os cursos"',
+          });
+        }
+      })
       .superRefine(validarCronograma)
       .superRefine(validarCodigo),
 });
 
-export const collections = { eixos, mentores, mentorias, selos };
+export const collections = { cursos, eixos, mentores, mentorias, selos };

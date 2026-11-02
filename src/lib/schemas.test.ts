@@ -5,6 +5,7 @@ import {
   codigosDuplicados,
   cronograma,
   dataCalendario,
+  idDeEixo,
   idDeReferencia,
   idDoLinkDaTurma,
   idTurmaClassroom,
@@ -199,5 +200,17 @@ describe('ID da turma do Classroom', () => {
   it('o schema aceita o número ou o link e sempre guarda o número', () => {
     expect(idTurmaClassroom.parse(' 797247136963 ')).toBe('797247136963');
     expect(idTurmaClassroom.parse('https://classroom.google.com/c/Nzk3MjQ3MTM2OTYz')).toBe('797247136963');
+  });
+});
+
+describe('idDeEixo', () => {
+  it('tira o número da frente do arquivo do eixo', () => {
+    expect(idDeEixo('3-conteudo-pratico.yaml')).toBe('conteudo-pratico');
+    expect(idDeEixo('src/content/eixos/1-curriculo-e-trabalhabilidade.yaml')).toBe('curriculo-e-trabalhabilidade');
+  });
+
+  it('aceita o id puro ou o arquivo antigo, sem número', () => {
+    expect(idDeEixo('conteudo-pratico')).toBe('conteudo-pratico');
+    expect(idDeEixo('carreira-em-ti.yaml')).toBe('carreira-em-ti');
   });
 });

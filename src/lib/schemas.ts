@@ -95,6 +95,18 @@ export function idDeReferencia(valor: unknown): unknown {
 /** Envolve um `reference()` do Astro para aceitar o valor gravado pelo painel. */
 export const referenciaDoPainel = <T extends z.ZodType>(schema: T) => z.preprocess(idDeReferencia, schema);
 
+/**
+ * Id de um eixo. Os arquivos de eixo começam pelo número (`3-conteudo-pratico.yaml`), para o painel
+ * listá-los em ordem numérica; o id (e a URL) fica sem ele: `conteudo-pratico`.
+ */
+export function idDeEixo(valor: unknown): unknown {
+  const id = idDeReferencia(valor);
+  return typeof id === 'string' ? id.replace(/^\d+-/, '') : id;
+}
+
+/** Referência a eixo vinda do painel (com ou sem o número na frente do arquivo). */
+export const referenciaDeEixo = <T extends z.ZodType>(schema: T) => z.preprocess(idDeEixo, schema);
+
 /** `classroomCourseId`: ID numérico da turma no Classroom. */
 /**
  * ID numérico da turma a partir do link do Classroom. O código depois de `/c/` no endereço

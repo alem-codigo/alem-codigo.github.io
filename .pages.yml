@@ -66,9 +66,9 @@ content:
         label: Resumo
         type: text
         required: true
-        description: 'Uma ou duas frases, até 200 caracteres: o que o aluno vai fazer e o que leva da mentoria. Aparece no topo da página, no menu e na prévia do link no WhatsApp e no LinkedIn.'
+        description: 'Até 400 caracteres: o que o aluno vai fazer e o que leva da mentoria. Aparece no topo da página e no menu; a prévia do link no WhatsApp e no LinkedIn mostra só o começo, então comece pelo mais importante.'
         options:
-          maxlength: 200
+          maxlength: 400
       - name: body
         label: Objetivo
         type: rich-text
@@ -112,12 +112,20 @@ content:
             required: true
             default: ""
             description: 'Último dia da mentoria. Depois dele, ela vai para a seção de encerradas.'
+      - name: todosOsCursos
+        label: Aberta a todos os cursos do Cluster de TI
+        type: boolean
+        description: 'Marque quando qualquer curso do cluster puder participar; aí não precisa selecionar cursos abaixo.'
       - name: cursos
         label: Cursos elegíveis
-        type: string
-        list: true
-        required: true
-        description: 'Um curso por item, ex.: Análise e Desenvolvimento de Sistemas.'
+        type: reference
+        description: 'Selecione os cursos (se não marcou a opção acima). Se o curso não aparece, cadastre-o antes em Cursos.'
+        options:
+          collection: cursos
+          multiple: true
+          value: "{name}"
+          label: "{sigla} · {nome}"
+          search: nome
       - name: prerequisitos
         label: Pré-requisitos
         type: string
@@ -294,8 +302,7 @@ content:
       - name: foto
         label: Foto
         type: image
-        required: true
-        description: 'Foto de rosto, de preferência quadrada. Qualquer tamanho; o site otimiza.'
+        description: 'Opcional. Foto de rosto, de preferência quadrada; qualquer tamanho, o site otimiza. Sem foto, aparece um ícone de pessoa.'
         options:
           media: mentores
       - name: cargo
@@ -311,9 +318,9 @@ content:
         label: Bio curta
         type: text
         required: true
-        description: 'Duas ou três frases (até 300 caracteres): quem é e em que pode ajudar o aluno. O currículo completo fica no LinkedIn.'
+        description: 'Até 500 caracteres: quem é e em que pode ajudar o aluno. O currículo completo fica no LinkedIn.'
         options:
-          maxlength: 300
+          maxlength: 500
       - name: linkedin
         label: LinkedIn
         type: string
@@ -370,7 +377,9 @@ content:
     type: collection
     path: src/content/eixos
     format: yaml
-    filename: "{titulo}.yaml"
+    # O número na frente do arquivo ordena a lista do painel (1-curriculo-e-trabalhabilidade.yaml);
+    # o endereço da página do eixo fica sem ele (/eixos/curriculo-e-trabalhabilidade/).
+    filename: "{numero}-{titulo}.yaml"
     view:
       primary: titulo
       fields: [numero, titulo]
@@ -423,6 +432,32 @@ content:
               label: Capelo de formatura (vida acadêmica)
             - value: grafico
               label: Gráfico subindo (carreira)
+
+  - name: cursos
+    label: Cursos
+    description: 'Cursos do Cluster de TI, selecionados nas mentorias. Antes de excluir ou renomear um curso já usado, retire-o das mentorias que o usam.'
+    type: collection
+    path: src/content/cursos
+    format: yaml
+    filename: "{nome}.yaml"
+    view:
+      primary: nome
+      fields: [sigla, nome]
+      sort: [nome]
+      default:
+        sort: nome
+        order: asc
+    fields:
+      - name: nome
+        label: Nome do curso
+        type: string
+        required: true
+        description: 'Nome completo, ex.: Análise e Desenvolvimento de Sistemas.'
+      - name: sigla
+        label: Sigla
+        type: string
+        required: true
+        description: 'Ex.: ADSIS. Aparece ao lado do nome na página da mentoria.'
 
   - name: selos
     label: Selos

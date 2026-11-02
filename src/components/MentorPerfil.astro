@@ -1,7 +1,8 @@
 ---
 /**
  * Perfil do mentor: foto redonda, nome, cargo | empresa (destaque do mentor: ameixa no claro, azul
- * no escuro), bio e ícones das redes cadastradas. Usado na página da mentoria e em /mentores.
+ * no escuro), bio e ícones das redes cadastradas. Sem foto, um ícone de pessoa no mesmo círculo.
+ * Usado na página da mentoria e em /mentores.
  * O slot padrão entra no fim do texto (ex.: lista de mentorias do mentor).
  */
 import type { CollectionEntry } from 'astro:content';
@@ -23,7 +24,17 @@ const redes = REDES_MENTOR.filter((r) => p[r.campo]);
 ---
 
 <div class="mentor" data-foto={foto}>
-  <Image class="mentor__foto" src={p.foto} alt="" width={240} height={240} />
+  {
+    p.foto ? (
+      <Image class="mentor__foto" src={p.foto} alt="" width={240} height={240} />
+    ) : (
+      <span class="mentor__foto mentor__foto--padrao" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
+        </svg>
+      </span>
+    )
+  }
   <div class="mentor__texto">
     <Nome class="mentor__nome">{p.nome}</Nome>
     <p class="mentor__cargo">{[p.cargo, p.empresa].filter(Boolean).join(' | ')}</p>
@@ -67,6 +78,25 @@ const redes = REDES_MENTOR.filter((r) => p[r.campo]);
     height: var(--_foto);
     border-radius: 50%;
     object-fit: cover;
+  }
+
+  /* Sem foto: ícone de pessoa (Lucide, ISC) em ameixa, no lugar da foto. */
+  .mentor__foto--padrao {
+    display: grid;
+    place-items: center;
+    background: var(--icone-fundo);
+    box-shadow: inset 0 0 0 1px var(--icone-borda);
+    color: var(--icone-cor);
+  }
+
+  .mentor__foto--padrao svg {
+    width: 50%;
+    height: 50%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .mentor__texto {

@@ -47,7 +47,15 @@ const hoje = hojeEmSaoPaulo();
 const status = calcularStatus(m, hoje);
 const variante = VARIANTE_CARD[status];
 const { Content } = await render(mentoria);
-const [eixos, mentores, selos] = await Promise.all([getEntries(m.eixos), getEntries(m.mentores), getEntries(m.selos)]);
+const [eixos, mentores, selos, cursos] = await Promise.all([
+  getEntries(m.eixos),
+  getEntries(m.mentores),
+  getEntries(m.selos),
+  getEntries(m.cursos),
+]);
+const textoCursos = m.todosOsCursos
+  ? 'Todos os cursos do Cluster de TI'
+  : juntarLista(cursos.map((c) => `${c.data.nome} (${c.data.sigla})`));
 const eixosOrdenados = eixos.sort((a, b) => a.data.ordem - b.data.ordem);
 const periodoInscricoes = formatarPeriodo(m.inscricoes.abertura, m.inscricoes.fechamento, hoje);
 const periodoRealizacao = formatarPeriodo(m.realizacao.inicio, m.realizacao.fim, hoje);
@@ -205,7 +213,7 @@ const depoimentos = r?.depoimentos ?? [];
           <dl class="mentoria-pagina__lista">
             <div>
               <dt>Cursos elegíveis</dt>
-              <dd>{juntarLista(m.cursos)}</dd>
+              <dd>{textoCursos}</dd>
             </div>
             {
               m.prerequisitos.length > 0 && (
