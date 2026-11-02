@@ -624,10 +624,18 @@ const PERGUNTAS = [
     rotate: 45deg;
   }
 
+  /* Resposta no tom mais escuro (faixa), para separar da pergunta e das demais ao expandir. */
   .pergunta__resposta {
     display: grid;
     gap: var(--espaco-2xs);
-    padding-block-end: var(--espaco-s);
+    margin-block-end: var(--espaco-s);
+    padding: var(--espaco-s) var(--espaco-m);
+    border-radius: var(--raio-m);
+    background: var(--cor-faixa);
+  }
+
+  .pergunta__resposta p {
+    max-width: none;
   }
 
   /* ---- Chamada final ---- */
