@@ -17,6 +17,7 @@ import AcessoTurma from '../../components/AcessoTurma.astro';
 import AdicionarCalendario from '../../components/AdicionarCalendario.astro';
 import AvisoTurma from '../../components/AvisoTurma.astro';
 import Compartilhar from '../../components/Compartilhar.astro';
+import Estrelas from '../../components/Estrelas.astro';
 import MentorPerfil from '../../components/MentorPerfil.astro';
 import PortalTurma from '../../components/PortalTurma.astro';
 import StatusPilula from '../../components/StatusPilula.astro';
@@ -74,15 +75,17 @@ const turma = m.classroomCourseId && mostrarPortal(status) ? { courseId: m.class
 // Resultado da turma: só depois que ela começa (antes disso, os números ainda mudam).
 const r = status === 'em-andamento' || status === 'encerrada' ? m.resultado : undefined;
 const nota = avaliacaoPublicavel(r);
-const numerosTurma = [
+type NumeroTurma = { rotulo: string; valor: string; detalhe?: string; estrelas?: number };
+const numerosTurma: NumeroTurma[] = ([
   r?.inscritos !== undefined && { rotulo: 'Inscritos', valor: formatarInteiro(r.inscritos) },
   r?.concluintes !== undefined && { rotulo: 'Concluintes', valor: formatarInteiro(r.concluintes) },
   nota && {
     rotulo: 'Avaliação dos alunos',
     valor: `${formatarNota(nota.media)} de 5`,
     detalhe: `${formatarInteiro(nota.respostas)} avaliações`,
+    estrelas: nota.media,
   },
-].filter((n): n is { rotulo: string; valor: string; detalhe?: string } => Boolean(n));
+] as (NumeroTurma | false)[]).filter((n): n is NumeroTurma => Boolean(n));
 const depoimentos = r?.depoimentos ?? [];
 ---
 
@@ -283,6 +286,7 @@ const depoimentos = r?.depoimentos ?? [];
                 <div class="turma__numero">
                   <dt>{n.rotulo}</dt>
                   <dd>
+                    {n.estrelas !== undefined && <Estrelas media={n.estrelas} id={`estrelas-${mentoria.id}`} />}
                     <span class="turma__valor">{n.valor}</span>
                     {n.detalhe && <span class="turma__detalhe">{n.detalhe}</span>}
                   </dd>
@@ -703,6 +707,10 @@ const depoimentos = r?.depoimentos ?? [];
 
   .turma__numero dd {
     display: grid;
+  }
+
+  .turma__numero .estrelas {
+    font-size: var(--passo-1);
   }
 
   .turma__valor {

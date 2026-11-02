@@ -57,6 +57,10 @@ const pares: Par[] = [
   ['--icone-cor', '--icone-fundo', AA.componente],
   ['--icone-cor', '--card-padrao-fundo', AA.texto],
 
+  // Estrelas da avaliação (gráfico): a cheia contra o card e contra a vazia (o limite da fração)
+  ['--estrela-cor', '--card-padrao-fundo', AA.componente],
+  ['--estrela-cor', '--estrela-vazia', AA.componente],
+
   // Destaque do mentor: cargo/empresa (texto) e ícones das redes, também sobre o fundo do hover
   ['--mentor-destaque', '--card-padrao-fundo', AA.texto],
   ['--mentor-destaque', '--mentor-destaque-fundo', AA.componente],

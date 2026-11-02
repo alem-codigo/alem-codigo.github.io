@@ -1,0 +1,67 @@
+---
+/**
+ * Nota da turma em estrelas (D-26): 5 estrelas com a parte cheia proporcional à média. Decorativo
+ * (`aria-hidden`): quem lê a nota é o texto ao lado ("4,7 de 5"). Cores dos tokens `--estrela-*`;
+ * `tom="sobre-imagem"` para os destaques do mosaico, sobre a capa escurecida.
+ */
+import { CAMINHO_ESTRELA, CELULA, larguraCheia, TOTAL_ESTRELAS } from '../lib/estrelas';
+
+interface Props {
+  media: number;
+  /** Id único na página (o recorte do SVG precisa de um). Ex.: `estrelas-m26-01`. */
+  id: string;
+  tom?: 'padrao' | 'sobre-imagem';
+}
+
+const { media, id, tom = 'padrao' } = Astro.props;
+const largura = TOTAL_ESTRELAS * CELULA;
+const posicoes = Array.from({ length: TOTAL_ESTRELAS }, (_, i) => i * CELULA);
+---
+
+<svg
+  class="estrelas"
+  data-tom={tom}
+  viewBox={`0 0 ${largura} ${CELULA}`}
+  aria-hidden="true"
+  focusable="false"
+>
+  <defs>
+    <path id={`${id}-forma`} d={CAMINHO_ESTRELA} />
+    <clipPath id={`${id}-recorte`}>
+      <rect width={larguraCheia(media)} height={CELULA} />
+    </clipPath>
+  </defs>
+  <g class="estrelas__vazias">
+    {posicoes.map((x) => <use href={`#${id}-forma`} x={x} />)}
+  </g>
+  <g class="estrelas__cheias" clip-path={`url(#${id}-recorte)`}>
+    {posicoes.map((x) => <use href={`#${id}-forma`} x={x} />)}
+  </g>
+</svg>
+
+<style>
+  .estrelas {
+    display: inline-block;
+    width: 6.25em;
+    height: 1.25em;
+    flex: none;
+    vertical-align: -0.2em;
+  }
+
+  .estrelas__vazias {
+    fill: var(--estrela-vazia);
+  }
+
+  .estrelas__cheias {
+    fill: var(--estrela-cor);
+  }
+
+  /* Sobre a capa escurecida do mosaico (texto branco fixo): tons claros fixos. */
+  .estrelas[data-tom='sobre-imagem'] .estrelas__vazias {
+    fill: rgb(255 255 255 / 0.3);
+  }
+
+  .estrelas[data-tom='sobre-imagem'] .estrelas__cheias {
+    fill: #f0b8e6;
+  }
+</style>

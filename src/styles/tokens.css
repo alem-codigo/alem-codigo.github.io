@@ -45,6 +45,9 @@
     --icone-fundo: light-dark(#f3e4f0, #3d1a3a);
     --icone-borda: light-dark(#e8cfe3, #5a2753);
     --icone-cor: light-dark(#793670, #e07fcf);
+    /* Estrelas da avaliação da turma (D-26): cheia em ameixa, vazia no tom da borda dos ícones. */
+    --estrela-cor: light-dark(#793670, #e07fcf);
+    --estrela-vazia: light-dark(#e8cfe3, #5a2753);
 
     /* ---- Destaque do mentor (cargo, empresa e ícones das redes): ameixa no claro, azul no escuro ---- */
     --mentor-destaque: light-dark(#793670, #4aa9f2);
