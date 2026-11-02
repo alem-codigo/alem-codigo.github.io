@@ -13,12 +13,11 @@ import { Image } from 'astro:assets';
 import AdicionarCalendario from '../../components/AdicionarCalendario.astro';
 import AvisoTurma from '../../components/AvisoTurma.astro';
 import Compartilhar from '../../components/Compartilhar.astro';
-import Icone from '../../components/Icone.astro';
+import MentorPerfil from '../../components/MentorPerfil.astro';
 import StatusPilula from '../../components/StatusPilula.astro';
 import Base from '../../layouts/Base.astro';
 import { hojeEmSaoPaulo } from '../../lib/datas';
 import { ICONES_EIXO } from '../../lib/eixos';
-import { REDES_MENTOR } from '../../lib/icones';
 import { eventoCalendario } from '../../lib/calendario';
 import {
   avaliacaoPublicavel,
@@ -162,6 +161,14 @@ const depoimentos = r?.depoimentos ?? [];
           <h2 id="objetivo">Objetivo</h2>
           <div class="prosa"><Content /></div>
         </section>
+        {
+          m.necessidade && (
+            <section class="bento__necessidade" aria-labelledby="necessidade">
+              <h2 id="necessidade">Necessidade de mercado</h2>
+              <p class="prosa">{m.necessidade}</p>
+            </section>
+          )
+        }
       </div>
 
       <div class="card bento__bloco bento__eixos">
@@ -224,25 +231,8 @@ const depoimentos = r?.depoimentos ?? [];
           <ul class="mentoria-pagina__mentores" role="list">
             {
               mentores.map((p) => (
-                <li class="mentor">
-                  <Image class="mentor__foto" src={p.data.foto} alt="" width={160} height={160} />
-                  <div class="mentor__texto">
-                    <h3>{p.data.nome}</h3>
-                    <p class="mentor__cargo">{[p.data.cargo, p.data.empresa].filter(Boolean).join(' | ')}</p>
-                    <p>{p.data.bio}</p>
-                    {REDES_MENTOR.some((r) => p.data[r.campo]) && (
-                      <ul class="mentor__redes" role="list" aria-label={`Redes de ${p.data.nome}`}>
-                        {REDES_MENTOR.filter((r) => p.data[r.campo]).map((r) => (
-                          <li>
-                            <a class="mentor__rede" href={p.data[r.campo]} title={r.rotulo}>
-                              <Icone nome={r.campo} />
-                              <span class="visualmente-oculto">{r.rotulo} de {p.data.nome}</span>
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+                <li>
+                  <MentorPerfil mentor={p} />
                 </li>
               ))
             }
@@ -528,58 +518,6 @@ const depoimentos = r?.depoimentos ?? [];
     gap: var(--espaco-m);
   }
 
-  .mentor {
-    display: grid;
-    grid-template-columns: 5rem 1fr;
-    gap: var(--espaco-s);
-    align-items: start;
-  }
-
-  .mentor__foto {
-    width: 5rem;
-    height: 5rem;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .mentor__texto {
-    display: grid;
-    gap: var(--espaco-3xs);
-  }
-
-  .mentor h3 {
-    font-size: var(--passo-1);
-  }
-
-  /* Cargo e empresa no destaque do mentor: ameixa no claro, azul no escuro (tokens.css). */
-  .mentor__cargo {
-    color: var(--mentor-destaque);
-    font-weight: 600;
-    font-size: var(--passo--1);
-  }
-
-  /* Só as redes cadastradas; alvo de toque de 44px. */
-  .mentor__redes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--espaco-3xs);
-    margin-inline-start: -0.6rem;
-  }
-
-  .mentor__rede {
-    display: inline-grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: var(--raio-m);
-    color: var(--mentor-destaque);
-    transition: background var(--duracao) var(--curva);
-  }
-
-  .mentor__rede:hover {
-    background: var(--mentor-destaque-fundo);
-  }
-
   .bento__parceiro img {
     width: auto;
     max-width: 14rem;
@@ -673,6 +611,12 @@ const depoimentos = r?.depoimentos ?? [];
   .bento__parceiro { justify-content: center; }
 
   .bento .mentoria-pagina__inscricao { height: 100%; }
+
+  /* Necessidade de mercado: segunda seção do bloco do objetivo, separada por uma linha. */
+  .bento__necessidade {
+    padding-block-start: var(--espaco-s);
+    border-block-start: 1px solid var(--_borda);
+  }
 
   /* ---- Resultado da turma (em andamento e encerrada): números e depoimentos ---- */
   .turma {

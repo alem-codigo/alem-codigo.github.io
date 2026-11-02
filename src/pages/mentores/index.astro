@@ -1,0 +1,127 @@
+---
+/**
+ * Mentores (/mentores): um card por mentor, em ordem alfabética, com o perfil (MentorPerfil) e a
+ * lista das mentorias que conduz (as ativas primeiro, depois as anteriores), cada uma com link.
+ */
+import { getCollection } from 'astro:content';
+import MentorPerfil from '../../components/MentorPerfil.astro';
+import StatusPilula from '../../components/StatusPilula.astro';
+import Base from '../../layouts/Base.astro';
+import { hojeEmSaoPaulo } from '../../lib/datas';
+import { caminhoMentoria, listagemMentorias, periodoCurto } from '../../lib/mentorias';
+
+const hoje = hojeEmSaoPaulo();
+const [mentores, mentorias] = await Promise.all([getCollection('mentores'), getCollection('mentorias')]);
+const ordenados = mentores.sort((a, b) => a.data.nome.localeCompare(b.data.nome, 'pt-BR'));
+
+const mentoriasDe = (id: string) => {
+  const doMentor = mentorias.filter((m) => m.data.mentores.some((r) => r.id === id));
+  const { ativas, encerradas } = listagemMentorias(
+    doMentor.map((entrada) => ({ ...entrada.data, entrada })),
+    hoje,
+  );
+  return [...ativas, ...encerradas];
+};
+---
+
+<Base
+  title="Mentores"
+  description="Conheça os mentores do Além do Código: professores e profissionais que conduzem as mentorias."
+>
+  <div class="container mentores-pagina">
+    <header class="secao-cabecalho">
+      <div class="secao-cabecalho__texto">
+        <p class="rotulo">Mentores</p>
+        <h1>Quem conduz as mentorias</h1>
+        <p class="texto-suave">Professores e profissionais que acompanham cada turma, do primeiro encontro ao projeto final.</p>
+      </div>
+    </header>
+
+    <ul class="mentores-pagina__lista" role="list">
+      {
+        ordenados.map((mentor) => {
+          const lista = mentoriasDe(mentor.id);
+          return (
+            <li class="card mentores-pagina__card">
+              <MentorPerfil mentor={mentor} nivel="h2" foto="grande">
+                {lista.length > 0 && (
+                  <div class="mentores-pagina__mentorias">
+                    <h3 class="mentores-pagina__rotulo">{lista.length > 1 ? 'Mentorias' : 'Mentoria'}</h3>
+                    <ul role="list">
+                      {lista.map(({ mentoria, status }) => (
+                        <li>
+                          <a href={caminhoMentoria(mentoria.entrada.id)}>{mentoria.titulo}</a>
+                          <span class="mentores-pagina__meta">
+                            {periodoCurto(mentoria.realizacao.inicio, mentoria.realizacao.fim)}
+                          </span>
+                          <StatusPilula status={status} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </MentorPerfil>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</Base>
+
+<style>
+  .mentores-pagina {
+    display: grid;
+    gap: var(--espaco-xl);
+    padding-block: var(--espaco-xl) var(--espaco-2xl);
+  }
+
+  .mentores-pagina__lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+    gap: var(--espaco-m);
+  }
+
+  .mentores-pagina__card {
+    padding: var(--espaco-m);
+  }
+
+  .mentores-pagina__mentorias {
+    display: grid;
+    gap: var(--espaco-2xs);
+    margin-block-start: var(--espaco-xs);
+    padding-block-start: var(--espaco-s);
+    border-block-start: 1px solid var(--_borda);
+  }
+
+  .mentores-pagina__rotulo {
+    color: var(--_texto-suave);
+    font-family: var(--fonte-mono);
+    font-size: var(--passo--1);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .mentores-pagina__mentorias ul {
+    display: grid;
+    gap: var(--espaco-2xs);
+  }
+
+  .mentores-pagina__mentorias li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espaco-3xs) var(--espaco-xs);
+    max-width: none;
+  }
+
+  .mentores-pagina__mentorias a {
+    font-weight: var(--peso-negrito);
+  }
+
+  .mentores-pagina__meta {
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+  }
+</style>

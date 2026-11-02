@@ -372,9 +372,15 @@ const numeros = (r: CollectionEntry<'mentorias'>['data']['resultado']): string =
     display: grid;
     grid-auto-flow: column dense;
     grid-template-rows: repeat(2, var(--galeria-linha));
+    grid-auto-rows: var(--galeria-linha);
     grid-auto-columns: var(--galeria-coluna);
     gap: var(--galeria-espaco);
     padding-inline-end: var(--galeria-espaco);
+  }
+
+  /* Com até 2 blocos pequenos e nenhum destaque, uma linha só (sem faixa vazia embaixo). */
+  .galeria__mosaico:not(:has(> li:nth-child(3), > .galeria__item--destaque)) {
+    grid-template-rows: var(--galeria-linha);
   }
 
   .galeria__item {

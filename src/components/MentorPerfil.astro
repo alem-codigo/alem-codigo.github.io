@@ -1,0 +1,126 @@
+---
+/**
+ * Perfil do mentor: foto redonda, nome, cargo | empresa (destaque do mentor: ameixa no claro, azul
+ * no escuro), bio e ícones das redes cadastradas. Usado na página da mentoria e em /mentores.
+ * O slot padrão entra no fim do texto (ex.: lista de mentorias do mentor).
+ */
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import { REDES_MENTOR } from '../lib/icones';
+import Icone from './Icone.astro';
+
+interface Props {
+  mentor: CollectionEntry<'mentores'>;
+  /** Nível do nome, conforme a hierarquia da página. */
+  nivel?: 'h2' | 'h3';
+  /** Tamanho da foto: 5rem na página da mentoria, maior na listagem. */
+  foto?: 'media' | 'grande';
+}
+
+const { mentor, nivel: Nome = 'h3', foto = 'media' } = Astro.props;
+const p = mentor.data;
+const redes = REDES_MENTOR.filter((r) => p[r.campo]);
+---
+
+<div class="mentor" data-foto={foto}>
+  <Image class="mentor__foto" src={p.foto} alt="" width={240} height={240} />
+  <div class="mentor__texto">
+    <Nome class="mentor__nome">{p.nome}</Nome>
+    <p class="mentor__cargo">{[p.cargo, p.empresa].filter(Boolean).join(' | ')}</p>
+    <p class="mentor__bio">{p.bio}</p>
+    {
+      redes.length > 0 && (
+        <ul class="mentor__redes" role="list" aria-label={`Redes de ${p.nome}`}>
+          {redes.map((r) => (
+            <li>
+              <a class="mentor__rede" href={p[r.campo]} title={r.rotulo}>
+                <Icone nome={r.campo} />
+                <span class="visualmente-oculto">
+                  {r.rotulo} de {p.nome}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    <slot />
+  </div>
+</div>
+
+<style>
+  .mentor {
+    --_foto: 5rem;
+
+    display: grid;
+    grid-template-columns: var(--_foto) 1fr;
+    gap: var(--espaco-s);
+    align-items: start;
+  }
+
+  .mentor[data-foto='grande'] {
+    --_foto: 6.5rem;
+  }
+
+  .mentor__foto {
+    width: var(--_foto);
+    height: var(--_foto);
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .mentor__texto {
+    display: grid;
+    gap: var(--espaco-3xs);
+    min-width: 0;
+  }
+
+  .mentor__nome {
+    font-size: var(--passo-1);
+    font-weight: var(--peso-negrito);
+  }
+
+  .mentor__texto p {
+    max-width: none;
+  }
+
+  /* Cargo e empresa no destaque do mentor: ameixa no claro, azul no escuro (tokens.css). */
+  .mentor__cargo {
+    color: var(--mentor-destaque);
+    font-weight: 600;
+    font-size: var(--passo--1);
+  }
+
+  /* Só as redes cadastradas; alvo de toque de 44px. */
+  .mentor__redes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-3xs);
+    margin-inline-start: -0.6rem;
+  }
+
+  .mentor__rede {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--raio-m);
+    color: var(--mentor-destaque);
+    transition: background var(--duracao) var(--curva);
+  }
+
+  .card .mentor__rede {
+    color: var(--mentor-destaque);
+  }
+
+  .mentor__rede:hover {
+    background: var(--mentor-destaque-fundo);
+  }
+
+  /* Celular estreito: foto acima do texto na listagem. */
+  @media (width < 30rem) {
+    .mentor[data-foto='grande'] {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

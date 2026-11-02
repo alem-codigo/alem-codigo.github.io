@@ -36,3 +36,6 @@ export const ICONES_EIXO = {
 export type IconeEixo = keyof typeof ICONES_EIXO;
 
 export const NOMES_ICONES_EIXO = Object.keys(ICONES_EIXO) as [IconeEixo, ...IconeEixo[]];
+
+/** Caminho da página do eixo, com barra no fim (igual à canônica e ao sitemap). */
+export const caminhoEixo = (id: string): string => `/eixos/${id}/`;

@@ -1,0 +1,212 @@
+---
+/**
+ * Sobre (/sobre): o programa, como funciona, quem faz e o vínculo institucional (D-03).
+ * Os números vêm do conteúdo cadastrado (mentorias realizadas, eixos, mentores e inscritos) e só
+ * aparecem quando há o que mostrar.
+ *
+ * RASCUNHO de texto: revisar com os professores antes do lançamento.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { hojeEmSaoPaulo } from '../lib/datas';
+import { formatarInteiro } from '../lib/mentorias';
+import { SITE } from '../lib/site';
+import { calcularStatus } from '../lib/status';
+
+const hoje = hojeEmSaoPaulo();
+const [mentorias, eixos, mentores] = await Promise.all([
+  getCollection('mentorias'),
+  getCollection('eixos'),
+  getCollection('mentores'),
+]);
+const realizadas = mentorias.filter((m) => calcularStatus(m.data, hoje) === 'encerrada').length;
+const inscritos = mentorias.reduce((soma, m) => soma + (m.data.resultado?.inscritos ?? 0), 0);
+const parcerias = new Set(mentorias.flatMap((m) => (m.data.parceiro ? [m.data.parceiro.nome] : []))).size;
+
+const numeros = [
+  { valor: realizadas, rotulo: realizadas === 1 ? 'mentoria realizada' : 'mentorias realizadas' },
+  { valor: inscritos, rotulo: 'inscrições' },
+  { valor: eixos.length, rotulo: 'eixos de formação' },
+  { valor: mentores.length, rotulo: mentores.length === 1 ? 'mentor' : 'mentores' },
+  { valor: parcerias, rotulo: parcerias === 1 ? 'empresa parceira' : 'empresas parceiras' },
+].filter((n) => n.valor > 0);
+
+const COMO_FUNCIONA = [
+  {
+    titulo: 'Turmas curtas, com começo, meio e fim',
+    texto:
+      'Cada mentoria tem tema, período e cursos elegíveis definidos. A inscrição é pelo formulário; a turma acontece no Google Classroom, com encontros ao vivo, materiais e atividades.',
+  },
+  {
+    titulo: 'Prática que vira portfólio',
+    texto:
+      'As mentorias terminam com uma entrega: um projeto, uma análise ou um repositório que o aluno pode mostrar em processos seletivos.',
+  },
+  {
+    titulo: 'Organizadas em eixos',
+    texto:
+      'Currículo e trabalhabilidade, conteúdo técnico, conteúdo prático, vida acadêmica e carreira em TI. Uma turma pode trabalhar um eixo ou combinar vários.',
+  },
+  {
+    titulo: 'Em parceria com empresas',
+    texto: 'Parte das mentorias é feita com empresas, que trazem ferramentas, problemas e a visão de quem contrata.',
+  },
+] as const;
+---
+
+<Base
+  title="Sobre"
+  description="O Além do Código é um programa de mentorias em tecnologia para estudantes e egressos do Cluster de TI da UniCesumar EaD."
+>
+  <div class="container sobre">
+    <header class="sobre__cabecalho">
+      <p class="rotulo">Sobre</p>
+      <h1>Um programa para ir além do código</h1>
+      <p class="sobre__chamada">
+        O {SITE.nome} é um programa de mentorias em tecnologia para estudantes e egressos do Cluster de TI da UniCesumar
+        EaD. Em turmas curtas, com encontros ao vivo e uma entrega no fim, o aluno trabalha o que vai além da sala de
+        aula: portfólio, prática, ferramentas e carreira.
+      </p>
+    </header>
+
+    {
+      numeros.length > 0 && (
+        <dl class="sobre__numeros">
+          {numeros.map((n) => (
+            <div class="sobre__numero">
+              <dt>{n.rotulo}</dt>
+              <dd class="sobre__valor">{formatarInteiro(n.valor)}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+
+    <section class="sobre__secao" aria-labelledby="como-funciona">
+      <h2 id="como-funciona">Como funciona</h2>
+      <ul class="sobre__grade" role="list">
+        {
+          COMO_FUNCIONA.map((item) => (
+            <li class="card">
+              <h3>{item.titulo}</h3>
+              <p class="texto-suave">{item.texto}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="sobre__secao sobre__duas" aria-labelledby="quem-faz">
+      <div class="sobre__bloco">
+        <h2 id="quem-faz">Quem faz</h2>
+        <p>
+          O programa é mantido por professores do Cluster de TI, que planejam as mentorias, conduzem as turmas e convidam
+          profissionais e empresas parceiras para mentorias específicas.
+        </p>
+        <p><a class="link-seta" href="/mentores/">Conheça os mentores</a></p>
+      </div>
+      <div class="sobre__bloco">
+        <h2 id="vinculo">Vínculo com a instituição</h2>
+        <p>
+          O {SITE.nome} é oferecido exclusivamente a estudantes e egressos do Cluster de TI da UniCesumar EaD e acontece
+          como projeto do cluster, mas é mantido de forma independente: não é gerido pela instituição e não usa contas
+          institucionais.
+        </p>
+      </div>
+    </section>
+
+    <section class="card card--brilho sobre__chamada-final" data-variante="violeta" aria-labelledby="participar">
+      <h2 id="participar">Quer participar?</h2>
+      <p class="texto-suave">Veja as turmas abertas e as próximas, confira os cursos elegíveis e garanta sua vaga.</p>
+      <div class="grupo">
+        <a class="botao" href="/mentorias/">Conhecer as mentorias</a>
+        <a class="botao botao--contorno" href="/eixos/">Ver os eixos</a>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .sobre {
+    display: grid;
+    gap: var(--espaco-2xl);
+    padding-block: var(--espaco-xl) var(--espaco-2xl);
+  }
+
+  .sobre__cabecalho {
+    display: grid;
+    gap: var(--espaco-xs);
+  }
+
+  .sobre__chamada {
+    max-width: 48rem;
+    color: var(--cor-texto-suave);
+    font-size: var(--passo-1);
+  }
+
+  /* ---- Números do programa ---- */
+  .sobre__numeros {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: var(--espaco-s);
+  }
+
+  .sobre__numero {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: var(--espaco-3xs);
+    padding-inline-start: var(--espaco-s);
+    border-inline-start: 3px solid var(--icone-cor);
+  }
+
+  .sobre__valor {
+    font-size: var(--passo-4);
+    font-weight: var(--peso-titulo);
+    line-height: 1;
+  }
+
+  .sobre__numero dt {
+    color: var(--cor-texto-suave);
+  }
+
+  .sobre__secao {
+    display: grid;
+    gap: var(--espaco-m);
+  }
+
+  .sobre__grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: var(--espaco-m);
+  }
+
+  .sobre__grade h3 {
+    font-size: var(--passo-1);
+  }
+
+  .sobre__grade p {
+    max-width: none;
+  }
+
+  .sobre__duas {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+    gap: var(--espaco-xl);
+  }
+
+  .sobre__bloco {
+    display: grid;
+    align-content: start;
+    gap: var(--espaco-xs);
+  }
+
+  .sobre__chamada-final {
+    align-items: flex-start;
+    gap: var(--espaco-s);
+    padding: var(--espaco-xl) var(--espaco-l);
+  }
+
+  .sobre__chamada-final .botao {
+    align-self: auto;
+  }
+</style>

@@ -51,16 +51,16 @@ export const RODAPE: readonly { titulo: string; itens: readonly ItemNavegacao[] 
   {
     titulo: 'Programa',
     itens: [
-      { rotulo: 'Sobre', href: '/sobre' },
+      { rotulo: 'Sobre', href: '/sobre/' },
       { rotulo: 'Como participar', href: '/como-participar' },
-      { rotulo: 'Eixos', href: '/eixos' },
+      { rotulo: 'Eixos', href: '/eixos/' },
     ],
   },
   {
     titulo: 'Mentorias',
     itens: [
-      { rotulo: 'Todas as mentorias', href: '/mentorias' },
-      { rotulo: 'Mentores', href: '/mentores' },
+      { rotulo: 'Todas as mentorias', href: '/mentorias/' },
+      { rotulo: 'Mentores', href: '/mentores/' },
     ],
   },
 ];

@@ -46,7 +46,7 @@ const temMenuMentorias = menuMentorias(mentorias, hojeEmSaoPaulo()).destaque !==
         <ul class="navegacao__lista" role="list">
           {
             NAVEGACAO_PRINCIPAL.map((item) => {
-              const comPainel = item.href === '/mentorias' && temMenuMentorias;
+              const comPainel = item.href === '/mentorias/' && temMenuMentorias;
               return (
                 <li class:list={[comPainel && 'navegacao__item--painel']} data-painel={comPainel ? '' : undefined}>
                   <a

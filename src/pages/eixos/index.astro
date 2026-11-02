@@ -1,0 +1,174 @@
+---
+/**
+ * Eixos de formação (/eixos): um bloco por eixo, na ordem do campo `ordem`, com ícone, descrição e
+ * quantas mentorias o eixo tem (e quantas com inscrições abertas). O bloco inteiro leva à página do eixo.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { hojeEmSaoPaulo } from '../../lib/datas';
+import { caminhoEixo, ICONES_EIXO } from '../../lib/eixos';
+import { calcularStatus } from '../../lib/status';
+
+const hoje = hojeEmSaoPaulo();
+const [eixos, mentorias] = await Promise.all([getCollection('eixos'), getCollection('mentorias')]);
+const ordenados = eixos.sort((a, b) => a.data.ordem - b.data.ordem);
+
+const contagem = (id: string) => {
+  const doEixo = mentorias.filter((m) => m.data.eixos.some((e) => e.id === id));
+  const abertas = doEixo.filter((m) => calcularStatus(m.data, hoje) === 'inscricoes-abertas').length;
+  return { total: doEixo.length, abertas };
+};
+
+const textoContagem = ({ total, abertas }: { total: number; abertas: number }): string => {
+  if (total === 0) return 'Mentorias em breve';
+  const base = `${total} ${total === 1 ? 'mentoria' : 'mentorias'}`;
+  return abertas > 0 ? `${base} · ${abertas} com inscrições abertas` : base;
+};
+---
+
+<Base
+  title="Eixos de formação"
+  description="Os eixos de formação do Além do Código: currículo e trabalhabilidade, conteúdo técnico, conteúdo prático, vida acadêmica e carreira em TI."
+>
+  <div class="container eixos-pagina">
+    <header class="secao-cabecalho">
+      <div class="secao-cabecalho__texto">
+        <p class="rotulo">Eixos de formação</p>
+        <h1>{ordenados.length} eixos para ir além do código</h1>
+        <p class="texto-suave">
+          As mentorias se organizam em eixos de formação. Uma turma pode trabalhar um eixo ou combinar vários.
+        </p>
+      </div>
+    </header>
+
+    <ul class="eixos-pagina__lista" role="list">
+      {
+        ordenados.map((e) => {
+          const c = contagem(e.id);
+          return (
+            <li class="card card--brilho eixo-bloco">
+              <span class="icone eixo-bloco__icone">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d={ICONES_EIXO[e.data.icone].d} />
+                </svg>
+              </span>
+              <div class="eixo-bloco__texto">
+                <span class="eixo-bloco__numero mono">Eixo {e.data.numero}</span>
+                <h2 class="eixo-bloco__titulo">
+                  <a class="eixo-bloco__link" href={caminhoEixo(e.id)}>
+                    {e.data.titulo}
+                  </a>
+                </h2>
+                <p class="texto-suave">{e.data.descricao}</p>
+                <p class="eixo-bloco__contagem" data-abertas={c.abertas > 0 ? '' : undefined}>
+                  {textoContagem(c)}
+                </p>
+              </div>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</Base>
+
+<style>
+  .eixos-pagina {
+    display: grid;
+    gap: var(--espaco-xl);
+    padding-block: var(--espaco-xl) var(--espaco-2xl);
+  }
+
+  .eixos-pagina__lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    gap: var(--espaco-m);
+  }
+
+  .eixo-bloco {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--espaco-s);
+    padding: var(--espaco-m);
+  }
+
+  .eixo-bloco:has(.eixo-bloco__link:focus-visible) {
+    outline: 3px solid var(--cor-foco);
+    outline-offset: 2px;
+  }
+
+  .eixo-bloco__icone {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .eixo-bloco__icone svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .eixo-bloco__texto {
+    display: grid;
+    gap: var(--espaco-3xs);
+    min-width: 0;
+  }
+
+  .eixo-bloco__texto p {
+    max-width: none;
+  }
+
+  .eixo-bloco__numero {
+    color: var(--icone-cor);
+    font-size: var(--passo--1);
+    font-weight: 700;
+  }
+
+  .eixo-bloco__titulo {
+    font-size: var(--passo-2);
+    line-height: 1.2;
+  }
+
+  .eixo-bloco__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .card .eixo-bloco__link {
+    color: inherit;
+  }
+
+  .eixo-bloco__link:focus-visible {
+    outline: none;
+  }
+
+  /* Bloco inteiro clicável (link esticado). */
+  .eixo-bloco__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+  }
+
+  .eixo-bloco:hover .eixo-bloco__link {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .eixo-bloco__contagem {
+    margin-block-start: var(--espaco-2xs);
+    color: var(--_texto-suave);
+    font-size: var(--passo--1);
+    font-weight: var(--peso-negrito);
+  }
+
+  .eixo-bloco__contagem[data-abertas] {
+    color: var(--pilula-inscricoes-abertas-texto);
+  }
+</style>

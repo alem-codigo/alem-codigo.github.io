@@ -74,7 +74,10 @@ const mentorias = defineCollection({
       .extend({
         codigo: codigoMentoria,
         titulo: texto,
-        resumo: texto,
+        /** Uma ou duas frases: topo da página, menu e Open Graph (que corta textos longos). */
+        resumo: texto.pipe(z.string().max(200, 'resumo: até 200 caracteres (uma ou duas frases)')),
+        /** "Necessidade de mercado atendida": contexto e demanda do mercado (opcional). */
+        necessidade: opcional(texto),
         cursos: z.array(texto).min(1, 'Informe ao menos um curso elegível'),
         prerequisitos: listaDeTextos,
         // O painel grava `arquivo.yaml`; `referenciaDoPainel` reduz ao id da entrada (ver .pages.yml).

@@ -8,11 +8,11 @@ export interface ItemNavegacao {
 
 /** Navegação principal (cabeçalho). As rotas seguem o mapa de páginas da spec (seção 7). */
 export const NAVEGACAO_PRINCIPAL: readonly ItemNavegacao[] = [
-  { rotulo: 'Mentorias', href: '/mentorias' },
-  { rotulo: 'Eixos', href: '/eixos' },
-  { rotulo: 'Mentores', href: '/mentores' },
+  { rotulo: 'Mentorias', href: '/mentorias/' },
+  { rotulo: 'Eixos', href: '/eixos/' },
+  { rotulo: 'Mentores', href: '/mentores/' },
   { rotulo: 'Como participar', href: '/como-participar' },
-  { rotulo: 'Sobre', href: '/sobre' },
+  { rotulo: 'Sobre', href: '/sobre/' },
 ];
 
 const semBarraFinal = (caminho: string): string =>

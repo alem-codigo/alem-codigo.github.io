@@ -66,7 +66,20 @@ content:
         label: Resumo
         type: text
         required: true
-        description: 'Uma ou duas frases. Aparece no card e na prévia do link no WhatsApp e no LinkedIn.'
+        description: 'Uma ou duas frases, até 200 caracteres: o que o aluno vai fazer e o que leva da mentoria. Aparece no topo da página, no menu e na prévia do link no WhatsApp e no LinkedIn.'
+        options:
+          maxlength: 200
+      - name: body
+        label: Objetivo
+        type: rich-text
+        required: true
+        description: 'O que o aluno vai aprender e entregar. Aparece no bloco "Objetivo" da página da mentoria.'
+        options:
+          media: mentorias
+      - name: necessidade
+        label: Necessidade de mercado atendida
+        type: text
+        description: 'Opcional. Por que esta mentoria importa para o mercado de trabalho (o contexto e a demanda das empresas). Aparece na página, junto ao objetivo.'
       - name: inscricoes
         label: Inscrições
         type: object
@@ -244,13 +257,6 @@ content:
                 label: O aluno autorizou a publicação
                 type: boolean
                 description: 'Obrigatório. Sem esta marcação, o site não é atualizado.'
-      - name: body
-        label: Objetivo
-        type: rich-text
-        required: true
-        description: 'Texto da página da mentoria. O que o aluno vai aprender e para quem é.'
-        options:
-          media: mentorias
 
   - name: mentores
     label: Mentores
