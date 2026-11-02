@@ -107,6 +107,34 @@ const recuoY = `${(MARGEM / M.altura) * 100}%`;
     </header>
 
     <div class="quebra-cabeca__area">
+      <!-- Relevo das peças no tema claro: a luz vem do canto superior esquerdo (brilho especular +
+           sombreado difuso nas bordas, a partir do canal alfa desfocado). -->
+      <svg class="quebra-cabeca__defs" aria-hidden="true" focusable="false">
+        <defs>
+          {[
+            { id: 'relevo-claro', brilho: 0.9, sombra: 1.36, forca: 0.35 },
+          ].map((f) => (
+            <filter id={f.id} x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
+              <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="alfa" />
+              <feDiffuseLighting in="alfa" surfaceScale="7" diffuseConstant={f.sombra} lighting-color="#ffffff" result="difusa">
+                <feDistantLight azimuth="225" elevation="48" />
+              </feDiffuseLighting>
+              <feComponentTransfer in="difusa" result="difusaSuave">
+                <feFuncR type="linear" slope={f.forca} intercept={1 - f.forca} />
+                <feFuncG type="linear" slope={f.forca} intercept={1 - f.forca} />
+                <feFuncB type="linear" slope={f.forca} intercept={1 - f.forca} />
+              </feComponentTransfer>
+              <feComposite in="difusaSuave" in2="SourceAlpha" operator="in" result="difusaDentro" />
+              <feBlend in="SourceGraphic" in2="difusaDentro" mode="multiply" result="sombreado" />
+              <feSpecularLighting in="alfa" surfaceScale="7" specularConstant={f.brilho} specularExponent="22" lighting-color="#ffffff" result="especular">
+                <feDistantLight azimuth="225" elevation="38" />
+              </feSpecularLighting>
+              <feComposite in="especular" in2="SourceAlpha" operator="in" result="especularDentro" />
+              <feComposite in="sombreado" in2="especularDentro" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" />
+            </filter>
+          ))}
+        </defs>
+      </svg>
       {
         aneis.map((a) => (
           <svg
@@ -148,12 +176,14 @@ const recuoY = `${(MARGEM / M.altura) * 100}%`;
               ))}
               {e ? (
                 <a class="peca__link" href={caminhoEixo(e.id)}>
-                  <span class="peca__icone">
-                    <svg aria-hidden="true" viewBox="0 0 24 24">
-                      <path d={ICONES_EIXO[e.data.icone].d} />
-                    </svg>
+                  <span class="peca__topo">
+                    <span class="peca__icone">
+                      <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d={ICONES_EIXO[e.data.icone].d} />
+                      </svg>
+                    </span>
+                    <span class="peca__numero">Eixo {e.data.numero}</span>
                   </span>
-                  <span class="peca__numero">Eixo {e.data.numero}</span>
                   <span class="peca__titulo">{e.data.titulo}</span>
                   <span class="peca__descricao">{e.data.descricao}</span>
                   <span class="peca__seta">Conhecer →</span>
@@ -343,6 +373,17 @@ const recuoY = `${(MARGEM / M.altura) * 100}%`;
     fill: var(--card-padrao-fundo);
   }
 
+  /* Tema claro: relevo (efeito 3D) no fundo de cada peça. No escuro, as peças ficam planas. */
+  .quebra-cabeca__defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  :root[data-tema='claro'] .peca__fundo {
+    filter: url(#relevo-claro);
+  }
+
   .peca__contorno {
     fill: none;
     stroke: var(--icone-cor);
@@ -374,6 +415,12 @@ const recuoY = `${(MARGEM / M.altura) * 100}%`;
   .peca:hover,
   .peca:has(.peca__link:focus-visible) {
     z-index: 2;
+  }
+
+  /* Tema claro: peças dos eixos sem o contorno ameixa (o relevo marca as bordas). A peça "você" e
+   * as fantasmas continuam com o traço; o foco do teclado ainda mostra o contorno (regra abaixo). */
+  :root[data-tema='claro'] .peca:not(.peca--voce, :has(.peca__link:focus-visible)) .peca__contorno {
+    stroke: transparent;
   }
 
   .peca:has(.peca__link:focus-visible) .peca__contorno {
@@ -497,12 +544,19 @@ const recuoY = `${(MARGEM / M.altura) * 100}%`;
     outline: none;
   }
 
+  /* Ícone e "Eixo N" na mesma linha. */
+  .peca__topo {
+    display: flex;
+    align-items: center;
+    gap: 2.5cqi;
+    margin-block-end: 1cqi;
+  }
+
   .peca__icone {
     display: inline-grid;
     place-items: center;
     width: clamp(1.9rem, 10cqi, 2.5rem);
     height: clamp(1.9rem, 10cqi, 2.5rem);
-    margin-block-end: 1cqi;
     border-radius: var(--raio-m);
     background: var(--icone-fundo);
     box-shadow: inset 0 0 0 1px var(--icone-borda);
@@ -522,7 +576,7 @@ const recuoY = `${(MARGEM / M.altura) * 100}%`;
   .peca__numero {
     color: var(--icone-cor);
     font-family: var(--fonte-mono);
-    font-size: clamp(0.72rem, 3.6cqi, 0.875rem);
+    font-size: clamp(0.85rem, 4.4cqi, 1.05rem);
     font-weight: 700;
   }
 
