@@ -6,6 +6,7 @@
  *
  * Sem JavaScript, o botão "Mentorias" (<details>) continua abrindo e fechando a lista.
  */
+import CabecalhoPagina from '../../components/CabecalhoPagina.astro';
 import { getCollection } from 'astro:content';
 import MentorPerfil from '../../components/MentorPerfil.astro';
 import StatusPilula from '../../components/StatusPilula.astro';
@@ -47,13 +48,11 @@ const SECOES = [
   description="Conheça os mentores do Além do Código: a equipe fixa do programa e os mentores convidados."
 >
   <div class="container mentores-pagina">
-    <header class="secao-cabecalho">
-      <div class="secao-cabecalho__texto">
-        <p class="rotulo">Mentores</p>
-        <h1>Quem conduz as mentorias</h1>
-        <p class="texto-suave">Professores e profissionais que acompanham cada turma, do primeiro encontro ao projeto final.</p>
-      </div>
-    </header>
+    <CabecalhoPagina
+      rotulo="Mentores"
+      titulo="Quem conduz as mentorias"
+      subtitulo="Professores e profissionais que acompanham cada turma, do primeiro encontro ao projeto final."
+    />
 
     {
       SECOES.map((secao) => (
@@ -118,12 +117,6 @@ const SECOES = [
     display: grid;
     gap: var(--espaco-xl);
     padding-block: var(--espaco-xl) var(--espaco-2xl);
-  }
-
-  /* Título e subtítulo sem a largura máxima do cabeçalho de seção (não quebram no desktop). */
-  .mentores-pagina :global(.secao-cabecalho__texto),
-  .mentores-pagina :global(.secao-cabecalho__texto p) {
-    max-width: none;
   }
 
   .mentores-pagina__secao {

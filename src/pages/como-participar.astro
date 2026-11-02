@@ -12,6 +12,7 @@
  * aceitar, participar); esta página detalha a parte operacional (conta, inscrição, convite,
  * notificações). Ao mudar um passo aqui, confira o resumo da home.
  */
+import CabecalhoPagina from '../components/CabecalhoPagina.astro';
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import { hojeEmSaoPaulo } from '../lib/datas';
@@ -92,15 +93,11 @@ const PERGUNTAS = [
       <span aria-current="page">Como participar</span>
     </nav>
 
-    <header class="participar__cabecalho">
-      <div class="participar__titulo">
-        <p class="rotulo">Como participar</p>
-        <h1>Da inscrição ao primeiro encontro</h1>
-        <p class="participar__chamada">
-          As mentorias acontecem no Google Classroom, e o acesso depende de quatro passos. O terceiro, aceitar o
-          convite da turma, é o que mais gente esquece.
-        </p>
-      </div>
+    <CabecalhoPagina
+      rotulo="Como participar"
+      titulo="Da inscrição ao primeiro encontro"
+      subtitulo="As mentorias acontecem no Google Classroom, e o acesso depende de quatro passos. O terceiro, aceitar o convite da turma, é o que mais gente esquece."
+    >
       {
         linkInscricoes && (
           <a class="botao" href={linkInscricoes}>
@@ -108,7 +105,7 @@ const PERGUNTAS = [
           </a>
         )
       }
-    </header>
+    </CabecalhoPagina>
 
     <div class="participar__corpo">
       <nav class="indice" aria-labelledby="indice-titulo">
@@ -318,26 +315,6 @@ const PERGUNTAS = [
     gap: var(--espaco-2xs);
     color: var(--cor-texto-suave);
     font-size: var(--passo--1);
-  }
-
-  /* ---- Cabeçalho ---- */
-  .participar__cabecalho {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--espaco-s) var(--espaco-l);
-  }
-
-  .participar__titulo {
-    display: grid;
-    gap: var(--espaco-xs);
-  }
-
-  .participar__chamada {
-    max-width: 48rem;
-    color: var(--cor-texto-suave);
-    font-size: var(--passo-1);
   }
 
   /* ---- Corpo: índice + conteúdo. No celular, o índice vira uma linha de links no topo. ---- */

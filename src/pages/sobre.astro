@@ -6,6 +6,7 @@
  *
  * RASCUNHO de texto: revisar com os professores antes do lançamento.
  */
+import CabecalhoPagina from '../components/CabecalhoPagina.astro';
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import { hojeEmSaoPaulo } from '../lib/datas';
@@ -59,15 +60,11 @@ const COMO_FUNCIONA = [
   description="O Além do Código é um programa de mentorias em tecnologia para estudantes e egressos do Cluster de TI da UniCesumar EaD."
 >
   <div class="container sobre">
-    <header class="sobre__cabecalho">
-      <p class="rotulo">Sobre</p>
-      <h1>Um programa para ir além do código</h1>
-      <p class="sobre__chamada">
-        O {SITE.nome} é um programa de mentorias em tecnologia para estudantes e egressos do Cluster de TI da UniCesumar
-        EaD. Em turmas curtas, com encontros ao vivo e uma entrega no fim, o aluno trabalha o que vai além da sala de
-        aula: portfólio, prática, ferramentas e carreira.
-      </p>
-    </header>
+    <CabecalhoPagina
+      rotulo="Sobre"
+      titulo="Um programa para ir além do código"
+      subtitulo={`O ${SITE.nome} é um programa de mentorias em tecnologia para estudantes e egressos do Cluster de TI da UniCesumar EaD. Em turmas curtas, com encontros ao vivo e uma entrega no fim, o aluno trabalha o que vai além da sala de aula: portfólio, prática, ferramentas e carreira.`}
+    />
 
     {
       numeros.length > 0 && (
@@ -131,17 +128,6 @@ const COMO_FUNCIONA = [
     display: grid;
     gap: var(--espaco-2xl);
     padding-block: var(--espaco-xl) var(--espaco-2xl);
-  }
-
-  .sobre__cabecalho {
-    display: grid;
-    gap: var(--espaco-xs);
-  }
-
-  .sobre__chamada {
-    max-width: 48rem;
-    color: var(--cor-texto-suave);
-    font-size: var(--passo-1);
   }
 
   /* ---- Números do programa ---- */

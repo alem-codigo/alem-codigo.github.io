@@ -11,6 +11,7 @@
  * para o botão "Inscrições abertas" do cabeçalho chegar já filtrado e o link poder ser compartilhado.
  * Sem JavaScript, os filtros não aparecem e a página mostra todas as mentorias.
  */
+import CabecalhoPagina from '../../components/CabecalhoPagina.astro';
 import { getCollection } from 'astro:content';
 import AvisoTurma from '../../components/AvisoTurma.astro';
 import GaleriaEncerradas from '../../components/GaleriaEncerradas.astro';
@@ -52,12 +53,7 @@ const grupos = [
   description="Todas as mentorias do Além do Código: inscrições abertas, próximas turmas, turmas em andamento e mentorias encerradas."
 >
   <div class="container listagem">
-    <header class="secao-cabecalho">
-      <div class="secao-cabecalho__texto">
-        <p class="rotulo">Mentorias</p>
-        <h1>Conheça as mentorias</h1>
-      </div>
-    </header>
+    <CabecalhoPagina rotulo="Mentorias" titulo="Conheça as mentorias" />
 
     {
       temFiltros && (

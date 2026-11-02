@@ -1,0 +1,61 @@
+---
+/**
+ * Cabeçalho das páginas internas (Mentorias, Eixos, Mentores, Como participar, Sobre): rótulo em
+ * mono, título (h1) e subtítulo opcional. Título e subtítulo usam a largura toda do conteúdo, sem
+ * a largura máxima de leitura (só quebram quando o texto não cabe na linha), e o subtítulo tem o
+ * mesmo tamanho em todas as páginas. O slot padrão fica à direita no desktop (ex.: um botão).
+ */
+interface Props {
+  rotulo: string;
+  titulo: string;
+  subtitulo?: string;
+}
+
+const { rotulo, titulo, subtitulo } = Astro.props;
+const temAcoes = Astro.slots.has('default');
+---
+
+<header class="cabecalho-pagina">
+  <div class="cabecalho-pagina__texto">
+    <p class="rotulo">{rotulo}</p>
+    <h1>{titulo}</h1>
+    {subtitulo && <p class="cabecalho-pagina__subtitulo">{subtitulo}</p>}
+  </div>
+  {
+    temAcoes && (
+      <div class="cabecalho-pagina__acoes">
+        <slot />
+      </div>
+    )
+  }
+</header>
+
+<style>
+  .cabecalho-pagina {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--espaco-s) var(--espaco-l);
+  }
+
+  .cabecalho-pagina__texto {
+    display: grid;
+    flex: 1 1 32rem;
+    gap: var(--espaco-xs);
+    min-width: 0;
+  }
+
+  .cabecalho-pagina__texto :is(h1, p) {
+    max-width: none;
+  }
+
+  .cabecalho-pagina__subtitulo {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo-1);
+  }
+
+  .cabecalho-pagina__acoes {
+    flex: none;
+  }
+</style>

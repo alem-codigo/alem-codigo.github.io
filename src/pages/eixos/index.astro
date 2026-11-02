@@ -12,6 +12,7 @@
  * As abas dependem de quantas colunas há: cada peça (e o anel) traz as três versões (3, 2 e 1
  * coluna) e o CSS mostra a da largura da tela.
  */
+import CabecalhoPagina from '../../components/CabecalhoPagina.astro';
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { caminhoEixo, ICONES_EIXO } from '../../lib/eixos';
@@ -96,15 +97,11 @@ const recuoY = `${(MARGEM / M.altura) * 100}%`;
   description="Os eixos da aprendizagem do Além do Código: currículo e trabalhabilidade, conteúdo técnico, conteúdo prático, vida acadêmica e carreira em TI."
 >
   <div class="container eixos-pagina">
-    <header class="secao-cabecalho">
-      <div class="secao-cabecalho__texto">
-        <p class="rotulo">Eixos</p>
-        <h1>Os eixos da aprendizagem</h1>
-        <p class="texto-suave">
-          As mentorias se organizam em eixos que se completam. Uma turma pode trabalhar um eixo ou combinar vários.
-        </p>
-      </div>
-    </header>
+    <CabecalhoPagina
+      rotulo="Eixos"
+      titulo="Os eixos da aprendizagem"
+      subtitulo="As mentorias se organizam em eixos que se completam. Uma turma pode trabalhar um eixo ou combinar vários."
+    />
 
     <div class="quebra-cabeca__area">
       <!-- Relevo das peças no tema claro: a luz vem do canto superior esquerdo (brilho especular +
@@ -238,7 +235,7 @@ const recuoY = `${(MARGEM / M.altura) * 100}%`;
   }
 
   /* O título fica por cima do anel de fantasmas. */
-  .eixos-pagina > .secao-cabecalho {
+  .eixos-pagina > :global(.cabecalho-pagina) {
     position: relative;
     z-index: 4;
   }
