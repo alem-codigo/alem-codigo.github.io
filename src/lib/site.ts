@@ -2,7 +2,7 @@ import type { ItemNavegacao } from './navegacao';
 
 export const SITE = {
   nome: 'Além do Código',
-  descricao: 'Programa de mentorias em tecnologia para estudantes e egressos do Cluster de TI da UniCesumar EaD.',
+  descricao: 'Programa de mentorias em tecnologia para estudantes do Cluster de TI da UniCesumar EaD.',
   /** Texto obrigatório no rodapé: o programa não é gerido pela instituição (D-03). */
   vinculo: 'Projeto do Cluster de TI da UniCesumar EaD, mantido de forma independente.',
   /**
