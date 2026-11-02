@@ -1,0 +1,113 @@
+{
+  "_nota": "Resposta real da API (conta de professor, 2026-11-02), reduzida aos campos usados. IDs de arquivos do Drive, da sala do Meet e do formulário trocados por fictícios.",
+  "curso": {
+    "id": "793640305776",
+    "name": "Mentoria UX na Prática: Avaliação Heurística",
+    "courseState": "ACTIVE",
+    "alternateLink": "https://classroom.google.com/c/NzkzNjQwMzA1Nzc2"
+  },
+  "topicos": [
+    { "topicId": "797103022159", "name": "Seção de Dúvidas" },
+    { "topicId": "796725627721", "name": "Semana 1" },
+    { "topicId": "796725560803", "name": "Semana 2" },
+    { "topicId": "797048918663", "name": "Semana 3" }
+  ],
+  "atividades": [
+    {
+      "id": "797191058340",
+      "title": "Entregável: Projeto de Análise Heurística de Usabilidade e Acessibilidade",
+      "description": "Seguem as orientações da atividade que deverão desenvolver na prática durante a Semana 2.",
+      "topicId": "796725560803",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/NzkzNjQwMzA1Nzc2/a/Nzk3MTkxMDU4MzQw/details",
+      "creationTime": "2026-04-13T01:47:51.408Z",
+      "dueDate": { "year": 2026, "month": 4, "day": 25 },
+      "dueTime": { "hours": 2, "minutes": 59 },
+      "materials": [
+        { "driveFile": { "driveFile": { "title": "Entregável da Semana 2.pdf", "alternateLink": "https://drive.google.com/file/d/ficticio-entregavel/view?usp=drive_web" } } }
+      ]
+    },
+    {
+      "id": "797048973338",
+      "title": "Faça sua pergunta",
+      "description": "Aqui vocês podem colocar suas dúvidas e contribuições para discutir e debater sobre o tema",
+      "topicId": "797103022159",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/NzkzNjQwMzA1Nzc2/sa/Nzk3MDQ4OTczMzM4/details",
+      "creationTime": "2026-04-03T18:15:55.801Z",
+      "materials": []
+    }
+  ],
+  "materiais": [
+    {
+      "id": "797213828089",
+      "title": "Última Live - dia 22/04 às 19:30 (Horário de Brasília)",
+      "description": "Na Quarta-feira dia 22/04 às 19:30 teremos a nossa última live para finalizarmos o projeto de UX.",
+      "topicId": "797048918663",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/NzkzNjQwMzA1Nzc2/m/Nzk3MjEzODI4MDg5/details",
+      "creationTime": "2026-04-14T01:02:44.983Z",
+      "materials": [{ "link": { "title": "Class video meeting", "url": "http://meet.google.com/aaa-bbbb-ccc" } }]
+    },
+    {
+      "id": "797176049083",
+      "title": "Gravação 2ª Live - dia 13/04 às 19:30 (Horário de Brasília)",
+      "description": "Segunda-feira dia 13/04 às 19:30 teremos a nossa segunda live.",
+      "topicId": "796725560803",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/NzkzNjQwMzA1Nzc2/m/Nzk3MTc2MDQ5MDgz/details",
+      "creationTime": "2026-04-11T00:12:19.523Z",
+      "materials": [
+        { "driveFile": { "driveFile": { "title": "2ª Live Mentoria UX na Prática - 2026/04/13 18:49 GMT-03:00 - Recording", "alternateLink": "https://drive.google.com/file/d/ficticio-gravacao-2/view?usp=drive_web" } } }
+      ]
+    },
+    {
+      "id": "856541342154",
+      "title": "Gravação da Live 09/04 - Mentoria UX na Prática",
+      "description": "Dia 09/04 às 19:30 - Live de Abertura da Mentoria UX na Prática",
+      "topicId": "796725627721",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/NzkzNjQwMzA1Nzc2/m/ODU2NTQxMzQyMTU0/details",
+      "creationTime": "2026-03-18T17:13:45.357Z",
+      "materials": [
+        { "driveFile": { "driveFile": { "title": "Live de Abertura - Mentoria UX na Prática - 2026/04/09 18:50 GMT-03:00 - Recording", "alternateLink": "https://drive.google.com/file/d/ficticio-gravacao-1/view?usp=drive_web" } } }
+      ]
+    },
+    {
+      "id": "797083665808",
+      "title": "Dinâmica",
+      "description": "",
+      "topicId": "796725627721",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/NzkzNjQwMzA1Nzc2/m/Nzk3MDgzNjY1ODA4/details",
+      "creationTime": "2026-04-06T21:56:56.898Z",
+      "materials": [{ "link": { "url": "https://forms.gle/ficticio123" } }]
+    },
+    {
+      "id": "793978296249",
+      "title": "Vídeos de Apoio",
+      "description": "Coloquei aqui uma seleção de vídeos que abordam o mesmo tema, porém com pessoas e didáticas diferentes.",
+      "topicId": "796725627721",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/NzkzNjQwMzA1Nzc2/m/NzkzOTc4Mjk2MjQ5/details",
+      "creationTime": "2026-02-23T14:50:13.795Z",
+      "materials": [
+        { "youtubeVideo": { "id": "1gBV5PmiQz4", "title": "As Dez Heurísticas de Usabilidade de Jacob Nielsen - Design de Interfaces e UX (Com Exemplos)" } },
+        { "youtubeVideo": { "id": "o1X3NpLbtvY", "title": "Fundamentos do UX Design | 10 Heurísticas de Nielsen" } }
+      ]
+    },
+    {
+      "id": "793701423549",
+      "title": "Material de Estudo",
+      "description": "Segue o material de estudo da semana 1:\n\nSite oficial Norman Group\n10 Heurísticas de Nielsen (traduzidas para pt-br)",
+      "topicId": "796725627721",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/NzkzNjQwMzA1Nzc2/m/NzkzNzAxNDIzNTQ5/details",
+      "creationTime": "2026-02-08T19:29:41.794Z",
+      "materials": [
+        { "link": { "title": "10 Usability Heuristics for User Interface Design - NN/G", "url": "https://www.nngroup.com/articles/ten-usability-heuristics/" } },
+        { "driveFile": { "driveFile": { "title": "10 Heurísticas de Usabilidade Nielsen - pt-br.pdf", "alternateLink": "https://drive.google.com/file/d/ficticio-heuristicas/view?usp=drive_web" } } }
+      ]
+    }
+  ]
+}

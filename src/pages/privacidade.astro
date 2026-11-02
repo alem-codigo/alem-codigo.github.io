@@ -40,7 +40,7 @@ const SECOES = [
     />
 
     <div class="privacidade__grade">
-      <nav class="privacidade__indice" aria-labelledby="indice-titulo">
+      <nav class="privacidade__indice" aria-labelledby="indice-titulo" data-indice>
         <p class="rotulo" id="indice-titulo">Nesta página</p>
         <ul role="list">
           {
@@ -169,6 +169,13 @@ const SECOES = [
   </div>
 </Base>
 
+<script>
+  import { acompanharIndice } from '../lib/indiceAtivo';
+
+  const nav = document.querySelector<HTMLElement>('[data-indice]');
+  if (nav) acompanharIndice(nav);
+</script>
+
 <style>
   .privacidade {
     display: grid;
@@ -196,9 +203,13 @@ const SECOES = [
       gap: var(--espaco-2xl);
     }
 
+    /* Caixa no tom da faixa, fixa ao rolar. */
     .privacidade__indice {
       position: sticky;
       top: 6rem;
+      padding: var(--espaco-m);
+      border-radius: var(--raio-m);
+      background: var(--cor-faixa);
     }
   }
 
@@ -218,11 +229,22 @@ const SECOES = [
     border-inline-start: 2px solid var(--cor-borda);
     color: var(--cor-texto-suave);
     text-decoration: none;
+    transition:
+      border-color 0.2s,
+      color 0.2s;
   }
 
-  .privacidade__indice a:hover {
+  /* Hover e seção em leitura (aria-current, marcado por indiceAtivo.ts) com o mesmo estilo. */
+  .privacidade__indice a:hover,
+  .privacidade__indice a[aria-current] {
     border-color: var(--cor-link);
     color: var(--cor-link);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .privacidade__indice a {
+      transition: none;
+    }
   }
 
   .privacidade__texto {

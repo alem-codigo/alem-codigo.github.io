@@ -108,7 +108,7 @@ const PERGUNTAS = [
     </CabecalhoPagina>
 
     <div class="participar__corpo">
-      <nav class="indice" aria-labelledby="indice-titulo">
+      <nav class="indice" aria-labelledby="indice-titulo" data-indice>
         <p class="indice__titulo rotulo" id="indice-titulo">Nesta página</p>
         <ol class="indice__lista" role="list">
           {
@@ -302,6 +302,13 @@ const PERGUNTAS = [
   </div>
 </Base>
 
+<script>
+  import { acompanharIndice } from '../lib/indiceAtivo';
+
+  const nav = document.querySelector<HTMLElement>('[data-indice]');
+  if (nav) acompanharIndice(nav);
+</script>
+
 <style>
   .participar {
     display: grid;
@@ -353,10 +360,21 @@ const PERGUNTAS = [
     color: var(--cor-texto);
     font-size: var(--passo--1);
     text-decoration: none;
+    transition:
+      border-color 0.2s,
+      color 0.2s;
   }
 
-  .indice a:hover {
+  /* Hover e seção em leitura (aria-current, marcado por indiceAtivo.ts) com o mesmo estilo. */
+  .indice a:hover,
+  .indice a[aria-current] {
     border-color: var(--cor-link);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .indice a {
+      transition: none;
+    }
   }
 
   .indice__numero {
@@ -370,11 +388,14 @@ const PERGUNTAS = [
       gap: var(--espaco-xl);
     }
 
-    /* Fixo ao rolar, abaixo do cabeçalho fixo (4.5rem). */
+    /* Caixa no tom da faixa, fixa ao rolar, abaixo do cabeçalho fixo (4.5rem). */
     .indice {
       position: sticky;
       top: calc(4.5rem + var(--espaco-m));
       align-self: start;
+      padding: var(--espaco-m);
+      border-radius: var(--raio-m);
+      background: var(--cor-faixa);
     }
 
     .indice__lista {
@@ -392,7 +413,8 @@ const PERGUNTAS = [
       border-radius: 0;
     }
 
-    .indice a:hover {
+    .indice a:hover,
+    .indice a[aria-current] {
       border-inline-start-color: var(--cor-link);
       color: var(--cor-link);
     }

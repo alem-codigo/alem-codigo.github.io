@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import exemploApi from './fixtures/turma-api-exemplo.json';
+import m2601Api from './fixtures/turma-api-m26-01.json';
 import m2605Api from './fixtures/turma-api-m26-05.json';
 import {
   cronogramaPorTopico,
   dataDaLive,
+  ehLive,
   formatarDataHora,
   horarioDaLive,
   instanteEmSaoPaulo,
@@ -44,12 +46,15 @@ describe('conversão da resposta da API', () => {
     expect(item('cw-sem-prazo').prazo).toBeNull();
   });
 
-  it('normaliza quebras de linha e só aceita https nos links', () => {
+  it('normaliza quebras de linha, troca http por https e descarta outros protocolos', () => {
     expect(item('cm-boas-vindas').descricao).toBe('Olá, turma!\nLeiam o guia em https://scrumguides.org/scrum-guide.html antes da primeira live.');
     const api = structuredClone(exemploApi) as TurmaApi;
-    api.materiais[0]!.materials = [{ link: { url: 'javascript:alert(1)', title: 'x' } }, { link: { url: 'http://inseguro.com' } }];
-    expect(montarConteudo(api, '1', 'https://classroom.google.com/c/MQ').itens.find((i) => i.id === 'cm-boas-vindas')!.anexos).toEqual([]);
+    api.materiais[0]!.materials = [{ link: { url: 'javascript:alert(1)', title: 'x' } }, { link: { url: 'http://sala.exemplo.com/abc' } }];
+    expect(montarConteudo(api, '1', 'https://classroom.google.com/c/MQ').itens.find((i) => i.id === 'cm-boas-vindas')!.anexos).toEqual([
+      { tipo: 'link', titulo: 'sala.exemplo.com/abc', url: 'https://sala.exemplo.com/abc' },
+    ]);
     expect(urlSegura('javascript:alert(1)')).toBeNull();
+    expect(urlSegura('http://exemplo.com')).toBeNull();
   });
 
   it('tópico que não veio na lista vira "sem tópico"', () => {
@@ -166,10 +171,55 @@ describe('prazos e outros', () => {
     expect(mostrarPortal('encerrada')).toBe(true);
   });
 
-  it('descrição: linhas sem as vazias e só links https clicáveis, sem a pontuação final', () => {
-    expect(linhasDaDescricao('Leia https://exemplo.com/guia.\n\n  \nhttp://inseguro.com fim')).toEqual([
+  it('descrição: linhas sem as vazias e links clicáveis (http vira https), sem a pontuação final', () => {
+    expect(linhasDaDescricao('Leia https://exemplo.com/guia.\n\n  \nhttp://meet.google.com/abc fim')).toEqual([
       [{ texto: 'Leia ' }, { url: 'https://exemplo.com/guia' }, { texto: '.' }],
-      [{ texto: 'http://inseguro.com' }, { texto: ' fim' }],
+      [{ url: 'https://meet.google.com/abc' }, { texto: ' fim' }],
     ]);
+  });
+});
+
+describe('turma real da M26-01 (conta de professor, encerrada)', () => {
+  const m2601 = montarConteudo(m2601Api as TurmaApi, '793640305776', linkDaTurma('793640305776'));
+  const doItem = (id: string) => m2601.itens.find((i) => i.id === id)!;
+
+  it('tópicos na ordem do Classroom e turma ativa (não arquivada)', () => {
+    expect(m2601.arquivada).toBe(false);
+    expect(cronogramaPorTopico(m2601).map((g) => g.nome)).toEqual(['Seção de Dúvidas', 'Semana 1', 'Semana 2', 'Semana 3']);
+  });
+
+  it('link automático do Meet (http) vira https e alimenta a live', () => {
+    expect(doItem('797213828089').anexos).toEqual([
+      { tipo: 'link', titulo: 'Class video meeting', url: 'https://meet.google.com/aaa-bbbb-ccc' },
+    ]);
+    const lives = proximasLives(m2601.itens, new Date('2026-04-22T18:00:00-03:00'));
+    expect(lives).toEqual([
+      expect.objectContaining({ itemId: '797213828089', inicio: '2026-04-22T22:30:00.000Z', url: 'https://meet.google.com/aaa-bbbb-ccc', tipoLink: 'sala' }),
+    ]);
+  });
+
+  it('"Live" no meio do título conta; gravações não', () => {
+    expect(ehLive({ titulo: 'Última Live - dia 22/04 às 19:30 (Horário de Brasília)' })).toBe(true);
+    expect(ehLive({ titulo: 'Live 04/11 19h30 · Abertura' })).toBe(true);
+    expect(ehLive({ titulo: 'Aula ao vivo 05/11 20h' })).toBe(true);
+    expect(ehLive({ titulo: 'Gravação 2ª Live - dia 13/04 às 19:30' })).toBe(false);
+    expect(ehLive({ titulo: 'Live 09/04 (gravação)' })).toBe(false);
+    expect(ehLive({ titulo: 'Deliverable' })).toBe(false);
+    // Antes da live de 13/04, a gravação (com data no título) não aparece em "Próximas lives".
+    expect(proximasLives(m2601.itens, new Date('2026-04-12T12:00:00-03:00')).map((l) => l.itemId)).toEqual(['797213828089']);
+  });
+
+  it('formulário colado como link vira anexo de formulário, mesmo sem título', () => {
+    expect(doItem('797083665808').anexos).toEqual([{ tipo: 'form', titulo: 'Formulário', url: 'https://forms.gle/ficticio123' }]);
+  });
+
+  it('prazo de 25/04 02:59 UTC é 24/04 às 23:59 em São Paulo', () => {
+    expect(formatarDataHora(doItem('797191058340').prazo!, '2026-11-02')).toBe('sex., 24/04, 23:59');
+  });
+
+  it('turma arquivada é marcada', () => {
+    const api = structuredClone(m2601Api) as TurmaApi;
+    api.curso.courseState = 'ARCHIVED';
+    expect(montarConteudo(api, '793640305776', '').arquivada).toBe(true);
   });
 });

@@ -41,6 +41,8 @@ export interface ConteudoTurma {
   nome: string;
   /** Turma no Classroom. */
   link: string;
+  /** Turma arquivada no Classroom (`courseState: ARCHIVED`): só consulta, sem entregas. */
+  arquivada: boolean;
   topicos: TopicoTurma[];
   itens: ItemTurma[];
 }
@@ -64,6 +66,20 @@ export function urlSegura(url: unknown): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Link vindo do Classroom: `http://` vira `https://` antes de `urlSegura` (o link automático do Meet
+ * da turma, "Class video meeting", chega como `http://meet.google.com/…`).
+ */
+export function urlDoClassroom(url: unknown): string | null {
+  return urlSegura(typeof url === 'string' ? url.replace(/^http:\/\//i, 'https://') : url);
+}
+
+/** Formulário do Google colado como link (`forms.gle/…` ou `docs.google.com/forms/…`). */
+export function ehLinkDeFormulario(url: string): boolean {
+  const host = hostDaUrl(url);
+  return host === 'forms.gle' || (host === 'docs.google.com' && /^https?:\/\/[^/]+\/forms\//i.test(url));
 }
 
 /** ID de 11 caracteres de um link do YouTube (youtu.be, watch?v=, /live/, /shorts/, /embed/). */
@@ -135,15 +151,17 @@ export function proximosPrazos(itens: readonly ItemTurma[], agora: Date, limite 
 }
 
 /* ---------- Lives (materiais do Classroom) ----------
- * Sem acesso à agenda (D-34), a live é um item publicado num tópico, com o título começando por
- * "Live" e a data e a hora no próprio título: "Live 11/11 19h30 · Sprint planning" (aceita
- * "11/11/2026", "19:30", "19h30" e "19h"). O link é o primeiro anexo com link (YouTube, Meet,
- * Teams…) ou, sem anexo, o primeiro link da descrição. */
+ * Sem acesso à agenda (D-34), a live é um item publicado num tópico com a palavra "Live" (ou
+ * "Aula ao vivo") e a data e a hora no próprio título: "Live 11/11 19h30 · Sprint planning",
+ * "Última Live - dia 22/04 às 19:30" (aceita "11/11/2026", "19:30", "19h30" e "19h"). Títulos com
+ * "Gravação" são a gravação de uma live que já aconteceu e ficam só no cronograma. O link é o
+ * primeiro anexo com link (YouTube, Meet, Teams…) ou, sem anexo, o primeiro link da descrição. */
 
 /** Duração presumida de uma live, para ela continuar em "Próximas lives" enquanto acontece. */
 export const DURACAO_LIVE_MS = 2 * 60 * 60 * 1000;
 
-const RE_TITULO_LIVE = /^\s*(?:live|aula ao vivo)\b/i;
+const RE_TITULO_LIVE = /(?:^|[^\p{L}\p{N}])(?:live|aula ao vivo)(?![\p{L}\p{N}])/iu;
+const RE_GRAVACAO = /grava[çc][ãa]o/i;
 const RE_DATA_HORA = /(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?\D{1,8}?(\d{1,2})\s*(?:h|:)\s*(\d{2})?/i;
 
 export interface LiveTurma {
@@ -200,12 +218,13 @@ function linkDaLive(item: ItemTurma): Pick<LiveTurma, 'url' | 'tipoLink'> {
       ? urlDoVideo(anexo.youtubeId)
       : anexo?.tipo === 'link'
         ? anexo.url
-        : urlSegura((item.descricao.match(RE_URL) ?? [])[0]?.replace(/[.,;:!?]+$/, ''));
+        : urlDoClassroom((item.descricao.match(RE_URL) ?? [])[0]?.replace(/[.,;:!?]+$/, ''));
   if (!url) return { url: null, tipoLink: null };
   return { url, tipoLink: extrairIdYoutube(url) ? 'youtube' : 'sala' };
 }
 
-export const ehLive = (item: Pick<ItemTurma, 'titulo'>): boolean => RE_TITULO_LIVE.test(item.titulo);
+export const ehLive = (item: Pick<ItemTurma, 'titulo'>): boolean =>
+  RE_TITULO_LIVE.test(item.titulo) && !RE_GRAVACAO.test(item.titulo);
 
 /** Lives que ainda não terminaram (a que está acontecendo aparece), da mais próxima para a mais distante. */
 export function proximasLives(itens: readonly ItemTurma[], agora: Date, limite = 3): LiveTurma[] {
@@ -283,7 +302,8 @@ export function linhasDaDescricao(descricao: string): TrechoTexto[][] {
         const url = m[0].replace(/[.,;:!?]+$/, '');
         const inicio = m.index ?? 0;
         if (inicio > resto) trechos.push({ texto: linha.slice(resto, inicio) });
-        trechos.push(urlSegura(url) ? { url } : { texto: url });
+        const segura = urlDoClassroom(url);
+        trechos.push(segura ? { url: segura } : { texto: url });
         resto = inicio + url.length;
       }
       if (resto < linha.length) trechos.push({ texto: linha.slice(resto) });

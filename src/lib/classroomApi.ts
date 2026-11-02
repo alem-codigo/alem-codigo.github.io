@@ -4,7 +4,9 @@
  * no modelo do portal; só entram os tipos de anexo conhecidos (Drive, YouTube, link e formulário).
  */
 import {
+  ehLinkDeFormulario,
   extrairIdYoutube,
+  urlDoClassroom,
   urlSegura,
   type AnexoTurma,
   type ConteudoTurma,
@@ -60,6 +62,7 @@ export interface CursoApi {
   id?: string;
   name?: string;
   alternateLink?: string;
+  courseState?: string;
 }
 
 export interface TopicoApi {
@@ -82,19 +85,21 @@ function montarAnexo(m: MaterialApi): AnexoTurma | null {
   }
   const arquivo = m.driveFile?.driveFile;
   if (arquivo) {
-    const url = urlSegura(arquivo.alternateLink);
+    const url = urlDoClassroom(arquivo.alternateLink);
     return url ? { tipo: 'drive', titulo: arquivo.title || 'Arquivo do Drive', url } : null;
   }
   if (m.form) {
-    const url = urlSegura(m.form.formUrl);
+    const url = urlDoClassroom(m.form.formUrl);
     return url ? { tipo: 'form', titulo: m.form.title || 'Formulário', url } : null;
   }
   if (m.link) {
-    const url = urlSegura(m.link.url);
+    const url = urlDoClassroom(m.link.url);
     if (!url) return null;
     const id = extrairIdYoutube(url);
     if (id) return { tipo: 'youtube', titulo: m.link.title || 'Vídeo', youtubeId: id };
-    return { tipo: 'link', titulo: m.link.title || url, url };
+    // O título do link é preenchido pelo Classroom depois de publicado e às vezes ainda vem vazio.
+    if (ehLinkDeFormulario(url)) return { tipo: 'form', titulo: m.link.title || 'Formulário', url };
+    return { tipo: 'link', titulo: m.link.title || url.replace(/^https:\/\//, ''), url };
   }
   // Tipos desconhecidos (ou novos na API) ficam de fora.
   return null;
@@ -138,6 +143,7 @@ export function montarConteudo(t: TurmaApi, courseId: string, linkPadrao: string
     courseId,
     nome: t.curso.name ?? '',
     link: urlSegura(t.curso.alternateLink) ?? linkPadrao,
+    arquivada: t.curso.courseState === 'ARCHIVED',
     topicos,
     itens,
   };

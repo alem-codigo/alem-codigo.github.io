@@ -139,7 +139,7 @@ function descricao(item: ItemTurma): HTMLElement | null {
     : texto;
 }
 
-function itemCronograma(item: ItemTurma, hoje: string, agora: Date, nivel: 'h3' | 'h4'): HTMLElement {
+function itemCronograma(item: ItemTurma, hoje: string, agora: Date, nivel: 'h3' | 'h4', arquivada: boolean): HTMLElement {
   const vencido = item.prazo !== null && Date.parse(item.prazo) <= agora.getTime();
   const videos = item.anexos.filter((a): a is Extract<AnexoTurma, { tipo: 'youtube' }> => a.tipo === 'youtube');
   const outros = item.anexos.filter((a): a is Exclude<AnexoTurma, { tipo: 'youtube' }> => a.tipo !== 'youtube');
@@ -189,7 +189,13 @@ function itemCronograma(item: ItemTurma, hoje: string, agora: Date, nivel: 'h3' 
               'a',
               { class: 'anexo anexo--entrega', href: item.link, target: '_blank', rel: 'noopener' },
               icone('externo'),
-              h('span', { class: 'anexo__texto' }, h('span', { class: 'anexo__origem' }, 'Classroom'), 'Entregar a atividade'),
+              h(
+                'span',
+                { class: 'anexo__texto' },
+                h('span', { class: 'anexo__origem' }, 'Classroom'),
+                // Turma arquivada não aceita entregas: o atalho só abre a atividade.
+                arquivada ? 'Ver a atividade' : 'Entregar a atividade',
+              ),
               novaAba(),
             ),
           ),
@@ -271,7 +277,13 @@ function blocoTurma(c: ConteudoTurma): HTMLElement {
     'section',
     { class: 'card portal-bloco portal-bloco--turma', 'aria-labelledby': 'turma-classroom-titulo' },
     rotulo('turma-classroom-titulo', 'turma', 'Turma no Classroom'),
-    h('p', {}, 'Entregas, avisos e comentários continuam na turma.'),
+    h(
+      'p',
+      {},
+      c.arquivada
+        ? 'Turma arquivada: o conteúdo fica disponível só para consulta.'
+        : 'Entregas, avisos e comentários continuam na turma.',
+    ),
     h(
       'div',
       { class: 'portal-bloco__acoes' },
@@ -299,7 +311,7 @@ function cronograma(c: ConteudoTurma, hoje: string, agora: Date): HTMLElement {
     numero: g.id === null ? null : String(++n).padStart(2, '0'),
   }));
   const lista = (itens: ItemTurma[], nivel: 'h3' | 'h4') =>
-    h('ol', { class: 'cronograma__itens', role: 'list' }, ...itens.map((i) => h('li', {}, itemCronograma(i, hoje, agora, nivel))));
+    h('ol', { class: 'cronograma__itens', role: 'list' }, ...itens.map((i) => h('li', {}, itemCronograma(i, hoje, agora, nivel, c.arquivada))));
 
   return h(
     'section',
