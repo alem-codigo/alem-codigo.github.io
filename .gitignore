@@ -20,3 +20,6 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Apps Script (clasp): scriptId local de cada mantenedor
+apps-script/.clasp.json
