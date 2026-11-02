@@ -11,6 +11,12 @@ export const SITE = {
    * Facebook leem as meta tags sem respeitar o `noindex`; o robots.txt continua liberado.
    */
   indexar: false,
+  /**
+   * Verificação de `alem-codigo.github.io` no Google Search Console (conta do programa), exigida
+   * para a verificação da marca do app do Google (8.1). Código público; não remover depois de
+   * verificado, senão o Google desfaz a verificação.
+   */
+  verificacaoGoogle: 'cxWI4q2d3-z98RUC4vI1bikNOEhLiG0Y773Y1xUm7uI',
 } as const;
 
 /**
