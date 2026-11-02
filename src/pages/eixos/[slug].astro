@@ -49,10 +49,8 @@ const temDetalhes = e.aprendizagem || e.publico || e.perfil.length > 0;
           )
         }
         <div class="folha__selo" aria-hidden="true">
-          <span class="folha__selo-circulo"></span>
-          <span class="folha__selo-texto">
-            <span class="folha__selo-rotulo">Eixo</span><span class="folha__selo-numero">{e.numero}</span>
-          </span>
+          <span class="folha__selo-rotulo">Eixo</span>
+          <span class="folha__selo-numero">{e.numero}</span>
         </div>
       </div>
 
@@ -267,39 +265,27 @@ const temDetalhes = e.aprendizagem || e.publico || e.perfil.length > 0;
     opacity: 0.12;
   }
 
-  /* Selo "Eixo N": círculo ameixa a 50% só no canto superior esquerdo (o centro fica fora do
-   * banner e a borda de baixo chega a cerca de 2/3 da altura), com o texto branco a 80% dentro
-   * ("EIXO" pequeno e o número grande). */
-  .folha__selo-circulo {
+  /* Selo "Eixo N": aba ameixa a 80% pendurada no topo do banner, à esquerda, com a base
+   * arredondada (como o escudo do site antigo); "EIXO" em cima e o número grande embaixo, em
+   * branco sólido. */
+  .folha__selo {
     position: absolute;
     top: 0;
-    left: 0;
-    width: clamp(12rem, 34%, 26rem);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: rgb(121 54 112 / 0.5);
-    translate: -22% -45%;
-  }
-
-  .folha__selo-texto {
-    position: absolute;
-    top: clamp(var(--espaco-s), 2.5vw, var(--espaco-xl));
-    left: clamp(var(--espaco-m), 4%, var(--espaco-xl));
-    color: rgb(255 255 255 / 0.8);
-  }
-
-  /* "EIXO" e o número centralizados na vertical; `text-box` corta o espaço acima e abaixo das
-   * letras (sem suporte, a diferença é de poucos pixels). */
-  .folha__selo-texto {
-    display: flex;
-    align-items: center;
-    gap: 0.3em;
+    left: clamp(var(--espaco-m), 5%, var(--espaco-2xl));
+    display: grid;
+    justify-items: center;
+    gap: clamp(0.5rem, 1vw, 0.85rem);
+    width: clamp(6rem, 13%, 9.5rem);
+    padding: clamp(0.75rem, 1.6vw, 1.25rem) var(--espaco-xs) clamp(1rem, 2.2vw, 1.75rem);
+    border-radius: 0 0 2.5rem 2.5rem;
+    background: rgb(121 54 112 / 0.8);
+    color: #ffffff;
     font-weight: var(--peso-titulo);
     line-height: 1;
-    white-space: nowrap;
   }
 
-  .folha__selo-texto > * {
+  /* `text-box` corta o espaço acima e abaixo das letras (sem suporte, só fica um pouco mais alto). */
+  .folha__selo > * {
     text-box: trim-both cap alphabetic;
   }
 
@@ -492,8 +478,8 @@ const temDetalhes = e.aprendizagem || e.publico || e.perfil.length > 0;
       height: 8rem;
     }
 
-    .folha__selo-circulo {
-      width: 12rem;
+    .folha__selo {
+      border-radius: 0 0 1.75rem 1.75rem;
     }
 
     .folha__selo-rotulo {
