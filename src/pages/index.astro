@@ -8,6 +8,7 @@ import SecaoEixos from '../components/SecaoEixos.astro';
 import Base from '../layouts/Base.astro';
 import { hojeEmSaoPaulo } from '../lib/datas';
 import { vitrineHome } from '../lib/mentorias';
+import { PORTAL_CLASSROOM } from '../lib/site';
 
 const hoje = hojeEmSaoPaulo();
 const mentorias = await getCollection('mentorias');
@@ -56,6 +57,37 @@ const linkInscricoes = destaques.some((d) => d.status === 'inscricoes-abertas') 
   <SecaoEixos />
   <ComoFunciona />
 
+  {
+    /* Exigido pelo Google para o app OAuth (8.1): a página inicial explica o acesso à turma e o uso dos dados. */
+    PORTAL_CLASSROOM && (
+      <section class="secao container" aria-labelledby="turma-titulo">
+        <div class="card turma-aviso">
+          <span class="icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M2 3h20M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3M7 21l5-5 5 5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+          <div class="turma-aviso__texto">
+            <h2 id="turma-titulo">Já está numa turma?</h2>
+            <p class="texto-suave">
+              Na página da sua mentoria, clique em <strong>Acessar a turma</strong> e entre com a sua conta Google para
+              ver aulas, lives, materiais e prazos, lidos direto do Google Classroom, só para leitura. Nada fica guardado
+              no site.
+            </p>
+            <p><a class="link-seta" href="/privacidade/#acesso-turma">Como usamos seus dados</a></p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   <section class="secao container" aria-labelledby="chamada-titulo">
     <div class="card card--brilho chamada" data-variante="violeta">
       <h2 id="chamada-titulo">Pronto para ir além do código?</h2>
@@ -91,6 +123,23 @@ const linkInscricoes = destaques.some((d) => d.status === 'inscricoes-abertas') 
 
   .mentorias__lista > li {
     display: grid;
+  }
+
+  .turma-aviso {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: var(--espaco-s) var(--espaco-m);
+    padding: var(--espaco-l);
+  }
+
+  .turma-aviso__texto {
+    display: grid;
+    gap: var(--espaco-2xs);
+  }
+
+  .turma-aviso h2 {
+    font-size: var(--passo-2);
   }
 
   .chamada {
