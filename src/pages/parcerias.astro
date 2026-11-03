@@ -1,0 +1,757 @@
+---
+/**
+ * Parcerias (/parcerias/, D-36): convite para empresas conduzirem mentorias para os alunos (o
+ * programa não oferece mentoria para empresas). Mesmo formato das demais mentorias, sem requisito
+ * mínimo e sem falar em valores; o vínculo com a instituição é repetido (D-03).
+ *
+ * As parcerias realizadas vêm do cadastro das mentorias (grupo `parceiro`, `parceriasDoCadastro`),
+ * sem coleção própria, e só as das empresas que autorizaram (`exibirEmParcerias`); sem nenhuma, a
+ * seção some. Os números (cursos) também vêm do conteúdo.
+ * Contato por `mailto:` para o e-mail do programa com `+parcerias` e assunto e corpo preenchidos
+ * (`CONTATO_PARCERIAS`). O endereço não fica escrito na página: "Copiar e-mail" (só com
+ * JavaScript) copia sem mostrar.
+ *
+ * Trilha de passos e perguntas frequentes repetem os estilos de /como-participar (D-32).
+ */
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import CabecalhoPagina from '../components/CabecalhoPagina.astro';
+import Estrelas from '../components/Estrelas.astro';
+import LogoParceiro from '../components/LogoParceiro.astro';
+import Base from '../layouts/Base.astro';
+import { caminhoMentoria, formatarInteiro, formatarNota, periodoCurto } from '../lib/mentorias';
+import { linkMailto, parceriasDoCadastro } from '../lib/parcerias';
+import { CONTATO_PARCERIAS, SITE } from '../lib/site';
+
+const [mentorias, cursos, mentores] = await Promise.all([
+  getCollection('mentorias'),
+  getCollection('cursos'),
+  getCollection('mentores', (m) => m.data.tipo === 'fixo'),
+]);
+
+const parcerias = parceriasDoCadastro(mentorias.map((m) => ({ id: m.id, ...m.data })));
+const totalCursos = cursos.filter((c) => c.id !== 'todos').length;
+const idealizadores = mentores.sort((a, b) => a.data.nome.localeCompare(b.data.nome, 'pt-BR'));
+const mailto = linkMailto(CONTATO_PARCERIAS);
+
+const GANHOS = [
+  {
+    titulo: 'Visibilidade com quem está se formando',
+    texto: `A mentoria leva o nome da sua empresa a estudantes de ${totalCursos} cursos de tecnologia, do primeiro contato até o certificado.`,
+    icone: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Zm10-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z',
+  },
+  {
+    titulo: 'Aproximação com futuros profissionais',
+    texto:
+      'Seus profissionais trabalham lado a lado com os alunos. Quem quiser pode autorizar que a empresa entre em contato depois da turma.',
+    icone:
+      'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+  },
+  {
+    titulo: 'Impacto com pouco esforço operacional',
+    texto:
+      'Vocês trazem o conhecimento; o programa cuida de inscrições, turma, comunicação e certificado. A formação ganha a visão de quem contrata.',
+    icone:
+      'M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z',
+  },
+] as const;
+
+const PAPEIS = [
+  {
+    titulo: 'A empresa',
+    itens: [
+      'Propõe o tema, alinhado ao propósito dela.',
+      'Indica os profissionais que conduzem os encontros.',
+      'Traz casos reais, problemas e, se quiser, as ferramentas que usa.',
+    ],
+  },
+  {
+    titulo: `O ${SITE.nome}`,
+    itens: [
+      'Ajuda a desenhar a mentoria no formato do programa.',
+      'Publica, divulga e cuida das inscrições.',
+      'Organiza a turma no Google Classroom, os avisos e os prazos.',
+      'Acompanha os alunos com os professores e emite o certificado.',
+    ],
+  },
+] as const;
+
+const PASSOS = [
+  {
+    titulo: 'Contato',
+    texto: 'A empresa escreve para o programa contando o tema que gostaria de trabalhar com os alunos.',
+  },
+  {
+    titulo: 'Alinhamento',
+    texto:
+      'Numa conversa com os idealizadores, vocês definem tema, objetivo, público, datas e quem conduz os encontros. O formato é o mesmo das demais mentorias, adaptado ao propósito da empresa.',
+  },
+  {
+    titulo: 'Cadastro e divulgação',
+    texto: 'O programa publica a mentoria no site, com a logo da empresa, abre as inscrições e divulga para os estudantes.',
+  },
+  {
+    titulo: 'Turma',
+    texto:
+      'Os profissionais da empresa conduzem os encontros ao vivo; o programa cuida do Classroom, dos materiais, dos prazos e do apoio aos alunos.',
+  },
+  {
+    titulo: 'Resultado',
+    texto:
+      'No fim, os alunos fazem a entrega final e avaliam a turma. A empresa recebe o balanço: inscritos, concluintes, avaliação e depoimentos autorizados.',
+  },
+] as const;
+
+const PERGUNTAS = [
+  {
+    pergunta: 'A parceria tem custo?',
+    resposta: 'Não. As mentorias são gratuitas para os alunos, e o programa não cobra das empresas.',
+  },
+  {
+    pergunta: 'Existe um requisito mínimo para participar?',
+    resposta:
+      'Não. Empresas de qualquer porte podem propor uma mentoria. O que importa é ter um tema e profissionais dispostos a conduzir os encontros.',
+  },
+  {
+    pergunta: 'Quanto tempo a empresa precisa dedicar?',
+    resposta:
+      'Depende do tema e da duração combinada no alinhamento. As mentorias são turmas curtas, com encontros ao vivo; a parte operacional fica com o programa.',
+  },
+  {
+    pergunta: 'Podemos usar as ferramentas e os casos da empresa?',
+    resposta:
+      'Sim, e é isso que torna a mentoria próxima do mercado. Só combinamos antes o que os alunos conseguem acessar gratuitamente.',
+  },
+  {
+    pergunta: 'A empresa recebe os dados dos alunos?',
+    resposta:
+      'Não. A empresa recebe os números da turma (inscritos, concluintes e avaliação). O contato de um aluno só é repassado se ele autorizar expressamente.',
+  },
+  {
+    pergunta: 'É um convênio com a UniCesumar?',
+    resposta: `Não. O ${SITE.nome} é um projeto do Cluster de TI da UniCesumar EaD, mantido de forma independente pelos professores; a parceria é com o programa, não com a instituição.`,
+  },
+  {
+    pergunta: 'Quem emite o certificado?',
+    resposta:
+      'O programa emite um certificado digital para quem conclui a mentoria, com a entrega final. A empresa aparece como parceira na página da mentoria.',
+  },
+] as const;
+---
+
+<Base
+  title="Parcerias"
+  description={`Sua empresa pode conduzir uma mentoria para estudantes de tecnologia do Cluster de TI da UniCesumar EaD. O ${SITE.nome} cuida de inscrições, turma e certificado.`}
+>
+  <div class="container parcerias">
+    <nav class="trilha" aria-label="Trilha">
+      <a href="/">Início</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Parcerias</span>
+    </nav>
+
+    <CabecalhoPagina
+      rotulo="Parcerias"
+      titulo="Leve a sua empresa para dentro da formação em TI"
+      subtitulo="Empresas parceiras conduzem mentorias para estudantes do Cluster de TI da UniCesumar EaD. A empresa traz o tema e os profissionais; o programa cuida do resto."
+    >
+      <a class="botao" href={mailto}>Quero ser parceira</a>
+    </CabecalhoPagina>
+
+    <section class="parcerias__secao" aria-labelledby="ganhos">
+      <h2 id="ganhos">O que a sua empresa ganha</h2>
+      <ul class="parcerias__grade" role="list">
+        {
+          GANHOS.map((g) => (
+            <li class="card card--brilho">
+              <span class="icone">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path
+                    d={g.icone}
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              <h3>{g.titulo}</h3>
+              <p class="texto-suave">{g.texto}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="parcerias__secao papeis" aria-labelledby="papeis">
+      <h2 id="papeis">Quem faz o quê</h2>
+      <div class="papeis__colunas">
+        {
+          PAPEIS.map((p) => (
+            <div class="papeis__coluna">
+              <h3>{p.titulo}</h3>
+              <ul class="lista" role="list">
+                {p.itens.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="parcerias__secao" aria-labelledby="como-funciona">
+      <h2 id="como-funciona">Como funciona</h2>
+      <ol class="passos" role="list">
+        {
+          PASSOS.map((p, i) => (
+            <li class="passo">
+              <span class="passo__marcador mono" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <div class="passo__corpo">
+                <h3>
+                  <span class="visualmente-oculto">Passo {i + 1}: </span>
+                  {p.titulo}
+                </h3>
+                <p>{p.texto}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    {
+      parcerias.length > 0 && (
+        <section class="parcerias__secao" aria-labelledby="realizadas">
+          <h2 id="realizadas">Quem já conduziu mentorias com a gente</h2>
+          <ul class="realizadas" role="list" data-unica={parcerias.length === 1 ? '' : undefined}>
+            {parcerias.map((p) => {
+              const numeros = [
+                p.inscritos !== undefined && { valor: formatarInteiro(p.inscritos), rotulo: 'inscrições' },
+                p.concluintes !== undefined && {
+                  valor: formatarInteiro(p.concluintes),
+                  rotulo: p.concluintes === 1 ? 'concluinte' : 'concluintes',
+                },
+              ].filter((n) => n !== false);
+              return (
+                <li class="card realizada">
+                  <a class="realizada__logo" href={p.url} rel="noopener">
+                    <LogoParceiro logo={p.logo} logoEscura={p.logoEscura} alt={`${p.nome} (site da empresa)`} altura={96} />
+                  </a>
+                  <div class="realizada__texto">
+                    <h3>{p.nome}</h3>
+                    {(numeros.length > 0 || p.avaliacao) && (
+                      <dl class="realizada__numeros">
+                        {numeros.map((n) => (
+                          <div>
+                            <dt>{n.rotulo}</dt>
+                            <dd>{n.valor}</dd>
+                          </div>
+                        ))}
+                        {p.avaliacao && (
+                          <div class="realizada__nota">
+                            <dt>avaliação dos alunos</dt>
+                            <dd>
+                              <Estrelas media={p.avaliacao.media} id={`estrelas-${p.slug}`} />
+                              {formatarNota(p.avaliacao.media)} de 5
+                            </dd>
+                          </div>
+                        )}
+                      </dl>
+                    )}
+                    <ul class="realizada__mentorias" role="list">
+                      {p.mentorias.map((m) => (
+                        <li>
+                          <a href={caminhoMentoria(m.id)}>{m.titulo}</a>
+                          <span class="texto-suave">
+                            <span class="mono">{m.codigo}</span> · {periodoCurto(m.inicio, m.fim)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {p.mentorias.length > 1 && (
+                      <a class="link-seta" href={`/mentorias/?parceria=${p.slug}`}>
+                        Todas as mentorias com {p.nome}
+                      </a>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      idealizadores.length > 0 && (
+        <section class="parcerias__secao" aria-labelledby="quem-responde">
+          <h2 id="quem-responde">Quem vai responder você</h2>
+          <p class="texto-suave">
+            Os idealizadores do programa recebem o seu contato e conduzem o alinhamento da mentoria.
+          </p>
+          <ul class="idealizadores" role="list">
+            {idealizadores.map(({ data: p }) => (
+              <li class="idealizador">
+                {p.foto ? (
+                  <Image class="idealizador__foto" src={p.foto} alt="" width={128} height={128} />
+                ) : (
+                  <span class="idealizador__foto idealizador__foto--padrao" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
+                    </svg>
+                  </span>
+                )}
+                <div>
+                  <p class="idealizador__nome">{p.nome}</p>
+                  {p.cargo && <p class="idealizador__cargo">{p.cargo}</p>}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p>
+            <a class="link-seta" href="/mentores/">Conheça os mentores</a>
+          </p>
+        </section>
+      )
+    }
+
+    <section class="parcerias__secao perguntas" aria-labelledby="perguntas-titulo">
+      <h2 id="perguntas-titulo">Perguntas frequentes</h2>
+      <div class="perguntas__lista">
+        {
+          PERGUNTAS.map((p) => (
+            <details class="pergunta">
+              <summary>{p.pergunta}</summary>
+              <div class="pergunta__resposta">
+                <p>{p.resposta}</p>
+              </div>
+            </details>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="card card--brilho chamada" data-variante="violeta" aria-labelledby="chamada-titulo">
+      <h2 id="chamada-titulo">Vamos conversar?</h2>
+      <p class="texto-suave">
+        Conte o tema que a sua empresa gostaria de trabalhar. O e-mail já vai com um roteiro curto para a primeira
+        conversa.
+      </p>
+      <div class="grupo">
+        <a class="botao" href={mailto}>Escrever para o programa</a>
+        <span class="chamada__email" data-copiar-email={CONTATO_PARCERIAS.email}>
+          <button class="botao botao--contorno" type="button" hidden>Copiar e-mail</button>
+          <span class="chamada__retorno" role="status"></span>
+        </span>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<script>
+  for (const bloco of document.querySelectorAll<HTMLElement>('[data-copiar-email]')) {
+    const botao = bloco.querySelector('button');
+    const retorno = bloco.querySelector<HTMLElement>('[role="status"]');
+    const email = bloco.dataset.copiarEmail;
+    if (!botao || !retorno || !email || !navigator.clipboard) continue;
+    botao.hidden = false;
+    let limpar: number | undefined;
+    botao.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(email);
+        retorno.textContent = 'E-mail copiado.';
+      } catch {
+        retorno.textContent = `Não foi possível copiar. O e-mail é ${email}`;
+      }
+      clearTimeout(limpar);
+      limpar = window.setTimeout(() => (retorno.textContent = ''), 4000);
+    });
+  }
+</script>
+
+<style>
+  .parcerias {
+    display: grid;
+    gap: var(--espaco-2xl);
+    padding-block: var(--espaco-m) var(--espaco-2xl);
+  }
+
+  .trilha {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-2xs);
+    margin-block-end: calc(var(--espaco-l) - var(--espaco-2xl));
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .parcerias__secao {
+    display: grid;
+    gap: var(--espaco-m);
+  }
+
+  .parcerias__secao > p {
+    max-width: none;
+  }
+
+  /* ---- O que a empresa ganha ---- */
+  .parcerias__grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+    gap: var(--espaco-m);
+  }
+
+  .parcerias__grade h3 {
+    font-size: var(--passo-1);
+  }
+
+  .parcerias__grade p {
+    max-width: none;
+  }
+
+  /* ---- Quem faz o quê: faixa com duas colunas ---- */
+  .papeis {
+    padding: var(--espaco-l);
+    border-radius: var(--raio-m);
+    background: var(--cor-faixa);
+  }
+
+  .papeis__colunas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: var(--espaco-m) var(--espaco-xl);
+  }
+
+  .papeis__coluna {
+    display: grid;
+    align-content: start;
+    gap: var(--espaco-xs);
+  }
+
+  .papeis__coluna h3 {
+    color: var(--icone-cor);
+    font-size: var(--passo-1);
+  }
+
+  /* ---- Como funciona: mesma trilha de /como-participar ---- */
+  .passos {
+    --marcador: 2.75rem;
+
+    display: grid;
+    padding: 0;
+    list-style: none;
+  }
+
+  .passo {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--marcador) minmax(0, 1fr);
+    gap: var(--espaco-s);
+    padding-block-end: var(--espaco-l);
+  }
+
+  .passo:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    inset-block: var(--marcador) 0;
+    inset-inline-start: calc(var(--marcador) / 2 - 1px);
+    width: 2px;
+    background: var(--cor-borda);
+  }
+
+  .passo:last-child {
+    padding-block-end: 0;
+  }
+
+  .passo__marcador {
+    display: grid;
+    place-items: center;
+    width: var(--marcador);
+    height: var(--marcador);
+    border-radius: 50%;
+    background: var(--icone-fundo);
+    box-shadow: inset 0 0 0 1px var(--icone-borda);
+    color: var(--icone-cor);
+    font-weight: var(--peso-negrito);
+  }
+
+  .passo__corpo {
+    display: grid;
+    align-content: start;
+    gap: var(--espaco-3xs);
+    min-width: 0;
+    padding-block-start: 0.45rem;
+  }
+
+  .passo__corpo h3 {
+    font-size: var(--passo-1);
+  }
+
+  .passo__corpo p {
+    max-width: 62ch;
+  }
+
+  /* ---- Parcerias realizadas ---- */
+  .realizadas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    gap: var(--espaco-m);
+  }
+
+  /* Os cards são <li>: sem a largura de leitura que base.css dá a todo li. */
+  .parcerias__grade > li,
+  .realizada,
+  .idealizador {
+    max-width: none;
+  }
+
+  .realizada {
+    gap: var(--espaco-m);
+  }
+
+  .realizada__logo {
+    display: inline-flex;
+    align-self: start;
+  }
+
+  .realizada__logo :global(img) {
+    width: auto;
+    max-width: 14rem;
+    height: 3rem;
+    object-fit: contain;
+  }
+
+  .realizada__texto {
+    display: grid;
+    align-content: start;
+    gap: var(--espaco-xs);
+    min-width: 0;
+  }
+
+  .realizada__texto h3 {
+    font-size: var(--passo-1);
+  }
+
+  .realizada__numeros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-s) var(--espaco-l);
+  }
+
+  .realizada__numeros > div {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--espaco-3xs);
+    padding-inline-start: var(--espaco-s);
+    border-inline-start: 3px solid var(--icone-cor);
+  }
+
+  .realizada__numeros dt {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  .realizada__numeros dd {
+    font-size: var(--passo-2);
+    font-weight: var(--peso-titulo);
+    line-height: 1.1;
+  }
+
+  .realizada__nota dd {
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-2xs);
+  }
+
+  .realizada__nota :global(.estrelas) {
+    height: 1.1em;
+  }
+
+  .realizada__mentorias {
+    display: grid;
+    gap: var(--espaco-2xs);
+    padding: 0;
+    list-style: none;
+  }
+
+  .realizada__mentorias li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--espaco-xs);
+    align-items: baseline;
+  }
+
+  .realizada__mentorias .texto-suave {
+    font-size: var(--passo--1);
+  }
+
+  /* Uma parceria só: card na largura toda, logo à esquerda do texto no desktop. */
+  @media (min-width: 48rem) {
+    .realizadas[data-unica] {
+      grid-template-columns: 1fr;
+    }
+
+    .realizadas[data-unica] .realizada {
+      display: grid;
+      grid-template-columns: 16rem minmax(0, 1fr);
+      align-items: center;
+      gap: var(--espaco-xl);
+      padding: var(--espaco-l);
+    }
+
+    .realizadas[data-unica] .realizada__logo {
+      justify-content: center;
+      align-self: center;
+    }
+
+    .realizadas[data-unica] .realizada__logo :global(img) {
+      height: 4rem;
+    }
+  }
+
+  /* ---- Quem vai responder ---- */
+  .idealizadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: var(--espaco-m);
+    padding: 0;
+    list-style: none;
+  }
+
+  .idealizador {
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-s);
+  }
+
+  .idealizador__foto {
+    flex: none;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .idealizador__foto--padrao {
+    display: grid;
+    place-items: center;
+    background: var(--icone-fundo);
+    box-shadow: inset 0 0 0 1px var(--icone-borda);
+    color: var(--icone-cor);
+  }
+
+  .idealizador__foto--padrao svg {
+    width: 1.75rem;
+    height: 1.75rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .idealizador__nome {
+    font-weight: var(--peso-negrito);
+  }
+
+  .idealizador__cargo {
+    color: var(--mentor-destaque);
+    font-size: var(--passo--1);
+  }
+
+  /* ---- Perguntas frequentes: mesmo padrão de /como-participar ---- */
+  .perguntas__lista {
+    display: grid;
+    border-block-start: var(--borda);
+  }
+
+  .pergunta {
+    border-block-end: var(--borda);
+  }
+
+  .pergunta summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espaco-s);
+    min-height: 2.75rem;
+    padding-block: var(--espaco-xs);
+    font-weight: var(--peso-negrito);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .pergunta summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .pergunta summary::after {
+    content: '+';
+    flex: none;
+    color: var(--icone-cor);
+    font-family: var(--fonte-mono);
+    font-size: var(--passo-1);
+    line-height: 1;
+    transition: rotate var(--duracao) var(--curva);
+  }
+
+  .pergunta[open] summary::after {
+    rotate: 45deg;
+  }
+
+  .pergunta__resposta {
+    display: grid;
+    gap: var(--espaco-2xs);
+    margin-block-end: var(--espaco-s);
+    padding: var(--espaco-s) var(--espaco-m);
+    border-radius: var(--raio-m);
+    background: var(--cor-faixa);
+  }
+
+  .pergunta__resposta p {
+    max-width: none;
+  }
+
+  /* ---- Chamada final ---- */
+  .chamada {
+    align-items: flex-start;
+    gap: var(--espaco-s);
+    padding: var(--espaco-xl) var(--espaco-l);
+  }
+
+  .chamada .botao {
+    align-self: auto;
+  }
+
+  .chamada__email {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espaco-xs);
+    min-width: 0;
+  }
+
+  .chamada__retorno {
+    color: var(--cor-texto-suave);
+    font-size: var(--passo--1);
+  }
+
+  @media (max-width: 47.99rem) {
+    .passos {
+      --marcador: 2.25rem;
+    }
+
+    .passo {
+      gap: var(--espaco-xs);
+    }
+
+    .papeis {
+      padding: var(--espaco-m);
+    }
+  }
+</style>

@@ -192,15 +192,21 @@ content:
       - name: parceiro
         label: Empresa parceira
         type: object
-        description: 'Só para mentorias em parceria. Preencha os três campos ou deixe os três vazios.'
+        description: 'Só para mentorias em parceria. Nome, logo e site: preencha os três ou deixe os três vazios. A logo para o tema escuro e a autorização são opcionais.'
         fields:
           - name: nome
             label: Nome da empresa
             type: string
           - name: logo
-            label: Logo
+            label: Logo (tema claro)
             type: image
-            description: 'SVG ou PNG com fundo transparente, de preferência.'
+            description: 'SVG ou PNG com fundo transparente, de preferência. Versão para fundo claro; sem a logo do tema escuro, aparece nos dois temas.'
+            options:
+              media: parceiros
+          - name: logoEscura
+            label: Logo para o tema escuro (opcional)
+            type: image
+            description: 'Versão clara da logo (ex.: branca), para fundo escuro, o tema padrão do site. Use quando a logo normal some no escuro.'
             options:
               media: parceiros
           - name: url
@@ -209,6 +215,10 @@ content:
             pattern:
               regex: '^(https://\S+)?$'
               message: Cole o link completo, começando com https://
+          - name: exibirEmParcerias
+            label: A empresa autorizou aparecer na página Parcerias
+            type: boolean
+            description: 'Marque só com a autorização da empresa (por escrito, por e-mail). Basta marcar em uma mentoria da empresa; para retirar, desmarque em todas.'
       - name: resultado
         label: Resultado da turma
         type: object

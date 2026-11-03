@@ -12,6 +12,7 @@ import { Image } from 'astro:assets';
 import { ICONES_EIXO } from '../lib/eixos';
 import { caminhoMentoria, dataDestaque, formatarPeriodo, juntarLista, textoInscricoes } from '../lib/mentorias';
 import { VARIANTE_CARD, type StatusMentoria } from '../lib/status';
+import LogoParceiro from './LogoParceiro.astro';
 import StatusPilula from './StatusPilula.astro';
 
 interface Props {
@@ -97,7 +98,7 @@ const ICONE_LINHA = {
           <p class="mentoria__parceiro">
             <span>Em parceria com</span>
             <span class="mentoria__parceiro-logo">
-              <Image src={m.parceiro.logo} alt={m.parceiro.nome} height={40} />
+              <LogoParceiro logo={m.parceiro.logo} logoEscura={m.parceiro.logoEscura} alt={m.parceiro.nome} altura={40} />
             </span>
           </p>
         ) : (
@@ -307,7 +308,7 @@ const ICONE_LINHA = {
     justify-self: start;
   }
 
-  .mentoria__parceiro-logo img {
+  .mentoria__parceiro-logo :global(img) {
     width: auto;
     max-width: 7rem;
     height: 1.5rem;

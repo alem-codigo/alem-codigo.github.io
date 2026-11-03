@@ -177,6 +177,19 @@ export function semValores(valor: unknown): boolean {
 export const grupoOpcional = <T extends z.ZodType>(schema: T) =>
   z.preprocess((v) => (semValores(v) ? undefined : v), schema.optional());
 
+/**
+ * Grupo opcional com caixas de marcação: o painel grava `false` nas caixas desmarcadas mesmo com
+ * o grupo vazio, e `false` sozinho não conta como preenchimento (ex.: parceiro sem nome nem logo,
+ * só com "autorizou" desmarcado, é parceiro ausente).
+ */
+export function semValoresAlemDeMarcacoes(valor: unknown): boolean {
+  if (valor === null || typeof valor !== 'object' || Array.isArray(valor)) return semValores(valor);
+  return Object.values(valor).every((v) => v === false || semValores(v));
+}
+
+export const grupoOpcionalComMarcacoes = <T extends z.ZodType>(schema: T) =>
+  z.preprocess((v) => (semValoresAlemDeMarcacoes(v) ? undefined : v), schema.optional());
+
 const contagem = (campo: string) =>
   z.number(`${campo}: informe um número`).int(`${campo}: use um número inteiro`).min(0, `${campo}: não pode ser negativo`);
 

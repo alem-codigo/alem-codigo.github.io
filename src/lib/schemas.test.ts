@@ -3,6 +3,7 @@ import { z } from 'astro/zod';
 import {
   codigoMentoria,
   codigosDuplicados,
+  semValoresAlemDeMarcacoes,
   conteudoEixo,
   cronograma,
   dataCalendario,
@@ -251,5 +252,17 @@ describe('conteúdo do eixo (página /eixos/[slug]/)', () => {
 
   it('público-alvo com observação precisa de ao menos um grupo', () => {
     expect(() => eixo.parse({ publico: { grupos: [], observacao: 'Transversal' } })).toThrow(/ao menos um grupo/);
+  });
+});
+
+describe('semValoresAlemDeMarcacoes', () => {
+  it('trata grupo só com caixas desmarcadas e campos vazios como ausente', () => {
+    expect(semValoresAlemDeMarcacoes({ nome: '', logo: null, exibirEmParcerias: false })).toBe(true);
+    expect(semValoresAlemDeMarcacoes(undefined)).toBe(true);
+  });
+
+  it('considera preenchido com algum texto ou caixa marcada', () => {
+    expect(semValoresAlemDeMarcacoes({ nome: 'TCS', exibirEmParcerias: false })).toBe(false);
+    expect(semValoresAlemDeMarcacoes({ nome: '', exibirEmParcerias: true })).toBe(false);
   });
 });

@@ -55,6 +55,27 @@ export const FORM_AVISO: {
  */
 export const CONTATO = { email: 'alemdocodigo.clusterti@gmail.com' } as const;
 
+/**
+ * Contato de empresas em /parcerias/ (D-36): o e-mail do programa com `+parcerias` (o Gmail
+ * entrega na mesma caixa) e o assunto com "[Parceria]", que os filtros da conta do programa usam
+ * para encaminhar aos idealizadores. Mudou o endereço ou o prefixo? Ajuste os filtros (seção 12).
+ */
+export const CONTATO_PARCERIAS = {
+  email: 'alemdocodigo.clusterti+parcerias@gmail.com',
+  assunto: '[Parceria] Interesse em conduzir uma mentoria',
+  corpo: [
+    'Olá, equipe do Além do Código!',
+    '',
+    'Empresa:',
+    'Nome e cargo:',
+    'Tema ou área de interesse:',
+    'Site da empresa:',
+    '',
+    'Mensagem:',
+    '',
+  ].join('\r\n'),
+} as const;
+
 /** Frase em marca d'água da cena da montanha, no fim da home (provisória: slogan ainda não definido). */
 export const SLOGAN = 'Cada passo conta.';
 
@@ -66,6 +87,7 @@ export const RODAPE: readonly { titulo: string; itens: readonly ItemNavegacao[] 
       { rotulo: 'Sobre', href: '/sobre/' },
       { rotulo: 'Como participar', href: '/como-participar/' },
       { rotulo: 'Eixos', href: '/eixos/' },
+      { rotulo: 'Parcerias', href: '/parcerias/' },
       { rotulo: 'Privacidade', href: '/privacidade/' },
     ],
   },

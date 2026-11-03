@@ -6,6 +6,7 @@ import {
   codigoMentoria,
   conteudoEixo,
   cronograma,
+  grupoOpcionalComMarcacoes,
   idTurmaClassroom,
   listaDeTextos,
   opcional,
@@ -126,7 +127,18 @@ const mentorias = defineCollection({
         ),
         formUrl: urlHttps,
         classroomCourseId: opcional(idTurmaClassroom),
-        parceiro: opcional(z.object({ nome: texto, logo: image(), url: urlHttps })),
+        parceiro: grupoOpcionalComMarcacoes(
+          z.object({
+            nome: texto,
+            /** Logo para o tema claro (e para os dois, sem `logoEscura`). */
+            logo: image(),
+            /** Versão para o tema escuro, o padrão do site (Q-11). */
+            logoEscura: opcional(image()),
+            url: urlHttps,
+            /** A empresa autorizou aparecer na página /parcerias/ (D-36). */
+            exibirEmParcerias: z.preprocess((v) => v ?? false, z.boolean()),
+          }),
+        ),
         capa: opcional(image()),
         /** Bloco grande do menu de Mentorias. Se houver mais de uma, vale a primeira da ordem da home. */
         destaque: z.preprocess((v) => v ?? false, z.boolean()),

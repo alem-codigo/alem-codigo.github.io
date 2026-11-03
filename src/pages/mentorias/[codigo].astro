@@ -15,6 +15,7 @@ import { getCollection, getEntries, render } from 'astro:content';
 import { Image } from 'astro:assets';
 import AcessoTurma from '../../components/AcessoTurma.astro';
 import AdicionarCalendario from '../../components/AdicionarCalendario.astro';
+import LogoParceiro from '../../components/LogoParceiro.astro';
 import AvisoTurma from '../../components/AvisoTurma.astro';
 import Compartilhar from '../../components/Compartilhar.astro';
 import Estrelas from '../../components/Estrelas.astro';
@@ -267,7 +268,7 @@ const depoimentos = r?.depoimentos ?? [];
           <section class="card bento__bloco bento__parceiro" aria-labelledby="parceiro">
             <h2 id="parceiro">Em parceria com</h2>
             <a href={m.parceiro.url}>
-              <Image src={m.parceiro.logo} alt={m.parceiro.nome} height={96} />
+              <LogoParceiro logo={m.parceiro.logo} logoEscura={m.parceiro.logoEscura} alt={m.parceiro.nome} altura={96} />
             </a>
           </section>
         )
@@ -541,7 +542,7 @@ const depoimentos = r?.depoimentos ?? [];
     gap: var(--espaco-m);
   }
 
-  .bento__parceiro img {
+  .bento__parceiro :global(img) {
     width: auto;
     max-width: 14rem;
     height: 3rem;

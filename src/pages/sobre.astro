@@ -51,6 +51,7 @@ const COMO_FUNCIONA = [
   {
     titulo: 'Em parceria com empresas',
     texto: 'Parte das mentorias é feita com empresas, que trazem ferramentas, problemas e a visão de quem contrata.',
+    link: { href: '/parcerias/', rotulo: 'Sua empresa pode ser parceira' },
   },
   {
     titulo: 'Certificado e horas complementares',
@@ -96,6 +97,11 @@ const COMO_FUNCIONA = [
             <li class="card card--brilho">
               <h3>{item.titulo}</h3>
               <p class="texto-suave">{item.texto}</p>
+              {'link' in item && (
+                <a class="link-seta" href={item.link.href}>
+                  {item.link.rotulo}
+                </a>
+              )}
             </li>
           ))
         }

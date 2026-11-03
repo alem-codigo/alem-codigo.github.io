@@ -1,0 +1,39 @@
+---
+/**
+ * Logo da empresa parceira, com a versão certa para o tema do site (Q-11, D-36): `logo` no tema
+ * claro e `logoEscura` no escuro (o padrão do site). Sem `logoEscura`, a mesma logo nos dois temas.
+ * As duas versões vão no HTML e o CSS mostra uma, como em Logo.astro (sem piscar ao trocar o tema).
+ *
+ * O tamanho fica com quem usa: estilize `img` dentro do contêiner com `:global(img)`.
+ */
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+
+interface Props {
+  logo: ImageMetadata;
+  logoEscura?: ImageMetadata;
+  alt: string;
+  /** Altura de referência para o Astro gerar a imagem (px); a exibida vem do CSS de quem usa. */
+  altura: number;
+}
+
+const { logo, logoEscura, alt, altura } = Astro.props;
+---
+
+{
+  logoEscura ? (
+    <>
+      <Image class="logo-parceiro logo-parceiro--escura" src={logoEscura} alt={alt} height={altura} />
+      <Image class="logo-parceiro logo-parceiro--clara" src={logo} alt={alt} height={altura} />
+    </>
+  ) : (
+    <Image class="logo-parceiro" src={logo} alt={alt} height={altura} />
+  )
+}
+
+<style>
+  :global(:root:not([data-tema='claro'])) .logo-parceiro--clara,
+  :global(:root[data-tema='claro']) .logo-parceiro--escura {
+    display: none;
+  }
+</style>
